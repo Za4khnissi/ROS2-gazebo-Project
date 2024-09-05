@@ -82,10 +82,18 @@ def generate_launch_description():
         output='screen'
     )
 
+    random_movement_node = Node(
+        package='ros_gz_example_application',
+        executable='random_movement.py',
+        name='random_movement',
+        output='screen'
+    )
+
     return LaunchDescription([
         gz_sim,
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
         robot_state_publisher,
+        random_movement_node
         # rviz
     ])
