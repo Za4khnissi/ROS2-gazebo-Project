@@ -3,7 +3,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from std_msgs.msg import String  # Import standard message type for commands
+from std_msgs.msg import String
 import random
 
 class RandomMovement(Node):
@@ -17,8 +17,7 @@ class RandomMovement(Node):
             10
         )
         self.timer = None
-        self.is_moving = False  # To track the movement state
-
+        self.is_moving = False
     def command_callback(self, msg):
         if msg.data == 'start':
             self.start_movement()
@@ -40,13 +39,11 @@ class RandomMovement(Node):
 
     def move_randomly(self):
         msg = Twist()
-        # Set random forward speed between 0 and 0.5 m/s (no backward movement)
-        msg.linear.x = random.uniform(0, 0.5)  # Random forward speed only
-        msg.angular.z = random.uniform(-1.0, 1.0)  # Allow random rotation
+        msg.linear.x = random.uniform(0, 0.5)
+        msg.angular.z = random.uniform(-1.0, 1.0)
         self.publisher_.publish(msg)
 
     def publish_stop_command(self):
-        # Publish a stop command to ensure the robot stops moving
         msg = Twist()
         msg.linear.x = 0.0
         msg.angular.z = 0.0

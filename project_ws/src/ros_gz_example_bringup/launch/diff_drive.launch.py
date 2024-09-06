@@ -89,11 +89,19 @@ def generate_launch_description():
         output='screen'
     )
 
+    identification_Node = Node(
+        package='ros_gz_example_application',
+        executable='identification.py',
+        name='identification_movement',
+        output='screen'
+    )
+
     return LaunchDescription([
         gz_sim,
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
         robot_state_publisher,
-        random_movement_node
+        random_movement_node,
+        identification_Node
         # rviz
     ])

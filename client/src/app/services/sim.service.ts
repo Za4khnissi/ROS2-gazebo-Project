@@ -25,4 +25,8 @@ export class SimulationService {
   launchSimulation(): Observable<{ message: string }> {
     return this.http.get<{ message: string }>(`${this.apiUrl}/launch-simulation`);
   }
+
+  stopSimulation(): Observable<{ message: string }> {
+    return this.http.get<{ message: string }>(`${this.apiUrl}/stop-simulation`);
+  }
 }

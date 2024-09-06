@@ -3,8 +3,22 @@ import { exec } from 'child_process';
 
 @Injectable()
 export class AppService {
-  // Update with the actual path to your ROS workspace
   private readonly projectWsPath = '/home/zak/inf3995/project_ws';
+
+  identifyRobot(robotId: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const identifyCommand = `ros2 topic pub /movement_command std_msgs/String "data: 'identify'" --once`;
+
+      exec(identifyCommand, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error identifying robot ${robotId}: ${error}`);
+          reject(`Error identifying robot ${robotId}: ${stderr}`);
+        } else {
+          resolve(`Robot ${robotId} is identifying.`);
+        }
+      });
+    });
+  }
 
   startSimulationMission(id: number): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -33,13 +47,28 @@ export class AppService {
   launchSimulation(): Promise<string> {
     return new Promise((resolve, reject) => {
       const command = `bash -c "source /opt/ros/humble/setup.bash && cd ${this.projectWsPath} && source install/setup.sh && colcon build && ros2 launch ros_gz_example_bringup diff_drive.launch.py"`;
-      
+
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error launching Gazebo simulation: ${error}`);
           reject(`Error launching Gazebo simulation: ${stderr}`);
         }
         resolve('Gazebo simulation launched successfully.');
+      });
+    });
+  }
+
+  stopSimulation(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const command = `pkill -f 'ros2 launch ros_gz_example_bringup diff_drive.launch.py'`;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error('Error stopping Gazebo simulation:', error);
+          reject(`Error stopping Gazebo simulation: ${stderr}`);
+        } else {
+          resolve('Gazebo simulation stopped successfully.');
+        }
       });
     });
   }
