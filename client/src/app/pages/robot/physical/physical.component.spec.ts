@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PhysicalComponent } from './physical.component';
+import { PhysicalRobotComponent } from './physical.component';
 
 describe('PhysicalComponent', () => {
-  let component: PhysicalComponent;
-  let fixture: ComponentFixture<PhysicalComponent>;
+  let component: PhysicalRobotComponent;
+  let fixture: ComponentFixture<PhysicalRobotComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PhysicalComponent]
+      imports: [PhysicalRobotComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PhysicalComponent);
+    fixture = TestBed.createComponent(PhysicalRobotComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
