@@ -1,16 +1,29 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SimulationService } from '@app/services/sim.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-simulation-robot',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css']
 })
-export class SimulationComponent {
+export class SimulationComponent implements OnInit {
   robot1Status: string = 'Waiting';
   robot2Status: string = 'Waiting';
 
-  constructor(private simService: SimulationService) {}
+  constructor(private simService: SimulationService, private router: Router) {}
+
+  ngOnInit() {
+    this.simService.launchSimulation().subscribe({
+      next: (response) => {
+        console.log(response.message);
+        this.router.navigate(['/control']);
+      },
+      error: (error) => {
+        console.error('Error launching simulation:', error);
+      }
+    });
+  }
 
   identifyRobot(robotId: number) {
     this.simService.identifyRobot(robotId).subscribe({
