@@ -4,6 +4,7 @@ import { HomeComponent } from '@app/pages/home/home.component';
 import { PhysicalRobotComponent } from '@app/pages/robot/physical/physical.component';
 import { SimulationComponent } from '@app/pages/robot/simulation/simulation.component';
 
+
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
