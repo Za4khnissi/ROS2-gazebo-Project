@@ -47,13 +47,16 @@ export class AppService {
   launchSimulation(): Promise<string> {
     return new Promise((resolve, reject) => {
       const command = `bash -c "source /opt/ros/humble/setup.bash && cd ${this.projectWsPath} && source install/setup.sh && colcon build && ros2 launch ros_gz_example_bringup diff_drive.launch.py"`;
-
+  
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          console.error(`Error launching Gazebo simulation: ${error}`);
-          reject(`Error launching Gazebo simulation: ${stderr}`);
+          console.error(`Error launching Gazebo simulation: ${error.message}`);
+          console.error(`stderr: ${stderr}`);
+          reject(`Error launching Gazebo simulation: ${error.message}`);
+        } else {
+          console.log(`stdout: ${stdout}`);
+          resolve('Gazebo simulation launched successfully.');
         }
-        resolve('Gazebo simulation launched successfully.');
       });
     });
   }
@@ -61,12 +64,14 @@ export class AppService {
   stopSimulation(): Promise<string> {
     return new Promise((resolve, reject) => {
       const command = `pkill -f 'ros2 launch ros_gz_example_bringup diff_drive.launch.py'`;
-      
+  
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          console.error('Error stopping Gazebo simulation:', error);
-          reject(`Error stopping Gazebo simulation: ${stderr}`);
+          console.error(`Error stopping Gazebo simulation: ${error.message}`);
+          console.error(`stderr: ${stderr}`);
+          reject(`Error stopping Gazebo simulation: ${error.message}`);
         } else {
+          console.log(`Gazebo simulation stopped. stdout: ${stdout}`);
           resolve('Gazebo simulation stopped successfully.');
         }
       });

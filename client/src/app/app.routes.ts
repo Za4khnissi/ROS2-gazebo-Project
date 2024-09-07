@@ -5,7 +5,7 @@ import { PhysicalRobotComponent } from '@app/pages/robot/physical/physical.compo
 import { SimulationComponent } from '@app/pages/robot/simulation/simulation.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'robot/physical', component: PhysicalRobotComponent },
   { path: 'robot/simulation', component: SimulationComponent },
