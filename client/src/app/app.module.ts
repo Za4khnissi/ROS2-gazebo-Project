@@ -6,6 +6,7 @@ import { AppRoutingModule } from './app.routes';
 import { HomeComponent } from '@app/pages/home/home.component';
 import { PhysicalRobotComponent } from '@app/pages/robot/physical/physical.component';
 import { SimulationComponent } from '@app/pages/robot/simulation/simulation.component';
+import { CommonModule } from '@angular/common';
 
 
 @NgModule({
@@ -17,7 +18,8 @@ import { SimulationComponent } from '@app/pages/robot/simulation/simulation.comp
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    CommonModule
   ],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent]
