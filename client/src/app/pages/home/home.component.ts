@@ -18,7 +18,5 @@ export class HomeComponent {
   goToSimulation() {
     this.router.navigate(['/robot/simulation']);
   }
-  closeModal() {
-    this.router.navigate(['/home']);
-  }
+ 
 }

@@ -17,7 +17,6 @@ export class AppComponent {
   constructor(private router: Router) {}
   
   shoiwChoiceButton = false;
-
   
   startProcess() {
     this.shoiwChoiceButton = true;
