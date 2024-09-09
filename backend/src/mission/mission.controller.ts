@@ -1,6 +1,6 @@
 import { Controller, Param, Get, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
-import { RosService } from '../services/ros.service';
+import { RosService } from '../ros.service';
 
 @ApiTags('Mission')
 @Controller('mission')
