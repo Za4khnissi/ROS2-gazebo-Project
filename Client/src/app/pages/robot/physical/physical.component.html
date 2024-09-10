@@ -1,0 +1,20 @@
+<div class="robot-control-container">
+    <h1>Physical Robot Control</h1>
+  
+    <div class="control-section">
+      <h3>Robot 1 Control</h3>
+      <button (click)="identifyRobot(1)">Identify Robot 1</button>
+      <button (click)="startMission(1)">Start Mission Robot 1</button>
+      <button (click)="stopMission(1)">Stop Mission Robot 1</button>
+      <p>Status: {{ robot1Status }}</p>
+    </div>
+  
+    <div class="control-section">
+      <h3>Robot 2 Control</h3>
+      <button (click)="identifyRobot(2)">Identify Robot 2</button>
+      <button (click)="startMission(2)">Start Mission Robot 2</button>
+      <button (click)="stopMission(2)">Stop Mission Robot 2</button>
+      <p>Status: {{ robot2Status }}</p>
+    </div>
+  </div>
+  
