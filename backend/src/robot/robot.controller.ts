@@ -1,4 +1,4 @@
-import { Controller, Param, Get, HttpStatus } from '@nestjs/common';
+import { Controller, Param, Get, HttpStatus, HttpException } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
 import { RosService } from '../ros.service';
 
@@ -12,10 +12,14 @@ export class RobotController {
   @ApiOkResponse({ description: 'Robot identified successfully' })
   @ApiNotFoundResponse({ description: 'Robot not found' })
   identifyRobot(@Param('robotId') robotId: string) {
-    const response = this.rosService.identifyRobot(robotId);
-    if (!response) {
-      return { statusCode: HttpStatus.NOT_FOUND, message: `Robot ${robotId} not found` };
+    try {
+      const response = this.rosService.identifyRobot(robotId);
+      if (!response) {
+        throw new HttpException(`Robot ${robotId} not found`, HttpStatus.NOT_FOUND);
+      }
+      return { statusCode: HttpStatus.OK, message: response.message };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    return { statusCode: HttpStatus.OK, message: `Robot ${robotId} is identifying itself` };
   }
 }

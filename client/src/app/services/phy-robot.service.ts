@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class RobotService {
-  private apiUrl = 'http://localhost:3000/robot';
+  private apiUrl = 'http://localhost:3000';
 
   constructor(private http: HttpClient) {}
 

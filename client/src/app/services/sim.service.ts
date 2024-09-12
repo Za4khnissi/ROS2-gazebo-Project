@@ -6,27 +6,27 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class SimulationService {
-  private apiUrl = 'http://localhost:3000/robot';
+  private apiUrl = 'http://localhost:3000';
 
   constructor(private http: HttpClient) {}
 
   identifyRobot(robotId: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/identify/simulation/${robotId}`, {});
+    return this.http.get<{ message: string }>(`${this.apiUrl}/robot/${robotId}/identify`);
   }
 
   startMission(robotId: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/start-mission/simulation/${robotId}`, {});
+    return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/start`);
   }
 
   stopMission(robotId: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/stop-mission/simulation/${robotId}`, {});
+    return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/stop`);
   }
 
   launchSimulation(): Observable<{ message: string }> {
-    return this.http.get<{ message: string }>(`${this.apiUrl}/launch-simulation`);
+    return this.http.get<{ message: string }>(`${this.apiUrl}/simulation/launch`);
   }
 
   stopSimulation(): Observable<{ message: string }> {
-    return this.http.get<{ message: string }>(`${this.apiUrl}/stop-simulation`);
+    return this.http.get<{ message: string }>(`${this.apiUrl}/simulation/stop`);
   }
 }

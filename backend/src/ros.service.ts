@@ -4,14 +4,14 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RosService implements OnModuleInit {
-  private rosConnections: Record<string, ROSLIB.Ros> = {}; 
+  private rosConnections: Record<string, ROSLIB.Ros> = {};
 
   constructor(private configService: ConfigService) {}
 
   onModuleInit() {
-    //this.connectToRobot('0', this.configService.get<string>('ROS_WS_URL_SIMULATION'));
+    this.connectToRobot('0', this.configService.get<string>('ROS_WS_URL_SIMULATION'));
     //this.connectToRobot('1', this.configService.get<string>('ROS_WS_URL_ROBOT1'));
-    //this.connectToRobot('2', this.configService.get<string>('ROS_WS_URL_ROBOT2'));
+    // this.connectToRobot('2', this.configService.get<string>('ROS_WS_URL_ROBOT2'));
   }
 
   private connectToRobot(robotId: string, wsUrl: string) {
@@ -44,21 +44,25 @@ export class RosService implements OnModuleInit {
 
   startRobotMission(robotId: string) {
     this.validateRobotConnection(robotId);
-
+  
     const topic = new ROSLIB.Topic({
       ros: this.rosConnections[robotId],
       name: `/cmd_vel`,
       messageType: 'geometry_msgs/Twist',
     });
-
+  
     const twist = new ROSLIB.Message({
-      linear: { x: 0.2, y: 0, z: 0 },
+      linear: { x: 0.5, y: 0, z: 0 },
       angular: { x: 0, y: 0, z: 0 },
     });
 
-    topic.publish(twist);
-    return { message: `Started mission for robot ${robotId}` };
+      topic.publish(twist);
+      console.log(`Robot ${robotId} started moving indefinitely`);
+      return { message: `Started mission for robot ${robotId} to move indefinitely` };
+    
   }
+  
+  
 
   stopRobotMission(robotId: string) {
     this.validateRobotConnection(robotId);
