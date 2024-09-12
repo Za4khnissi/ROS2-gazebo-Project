@@ -1,0 +1,33 @@
+FROM osrf/ros:humble-desktop
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    gazebo11 \
+    ros-humble-ros-gz \
+    ros-humble-ros-gz-sim \
+    ros-humble-ros-gz-utils \
+    python3-pip \
+    python3-colcon-common-extensions \
+    build-essential \
+    cmake \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /root/ros2_ws
+
+COPY . ./src
+
+SHELL ["/bin/bash", "-c"]
+
+RUN rosdep init && \
+    rosdep update && \
+    rosdep install --from-paths src --ignore-src -r -i -y
+
+RUN source /opt/ros/humble/setup.bash && colcon build --cmake-args -DBUILD_TESTING=ON
+
+RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
+
+EXPOSE 11345 11311
+
+CMD ["bash"]
