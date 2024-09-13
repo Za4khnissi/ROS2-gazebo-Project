@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 })
 export class HomeComponent {
   constructor(private router: Router) {}
+  showModal = false;
 
   goToPhysicalRobot() {
     this.router.navigate(['/robot/physical'])
@@ -17,4 +18,5 @@ export class HomeComponent {
   goToSimulation() {
     this.router.navigate(['/robot/simulation']);
   }
+ 
 }
