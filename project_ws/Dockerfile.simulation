@@ -1,33 +1,40 @@
-FROM osrf/ros:humble-desktop
+# Use an official ROS 2 Humble base image
+FROM ros:humble
 
-ENV DEBIAN_FRONTEND=noninteractive
+# Copy the list of installed ROS packages from the host
+COPY ros-installed-packages.txt /app/ros-installed-packages.txt
 
+# Install python3-pip and other dependencies
 RUN apt-get update && apt-get install -y \
-    gazebo11 \
-    ros-humble-ros-gz \
-    ros-humble-ros-gz-sim \
-    ros-humble-ros-gz-utils \
     python3-pip \
-    python3-colcon-common-extensions \
-    build-essential \
-    cmake \
-    git \
+    $(awk '{print $1}' /app/ros-installed-packages.txt) \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /root/ros2_ws
+# Install pygame for sound playback
+RUN pip3 install pygame
 
-COPY . ./src
-
+# Set up the environment
 SHELL ["/bin/bash", "-c"]
 
-RUN rosdep init && \
-    rosdep update && \
-    rosdep install --from-paths src --ignore-src -r -i -y
+# Ensure ROS 2 environment is sourced on container startup
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
-RUN source /opt/ros/humble/setup.bash && colcon build --cmake-args -DBUILD_TESTING=ON
+# Add Ignition Gazebo setup to environment
+RUN echo "source /usr/share/ignition/gazebo/setup.sh" >> ~/.bashrc
 
-RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
+# Copy the project workspace into the container
+COPY . /app
 
-EXPOSE 11345 11311
+WORKDIR /app
 
-CMD ["bash"]
+# Build the ROS 2 workspace
+RUN source /opt/ros/humble/setup.bash && colcon build --packages-select ros_gz_example_description ros_gz_example_gazebo ros_gz_example_application
+
+# Source the workspace on container startup
+RUN echo "source /app/install/setup.bash" >> ~/.bashrc
+
+# Expose ports for rosbridge WebSocket and Gazebo
+EXPOSE 9090 11345
+
+# Command to source the environment, rebuild if necessary, and run both the simulation and rosbridge server
+CMD ["bash", "-c", "source /opt/ros/humble/setup.bash && source /app/install/setup.bash && colcon build && ros2 launch ros_gz_example_bringup diff_drive.launch.py & ros2 launch rosbridge_server rosbridge_websocket_launch.xml"]

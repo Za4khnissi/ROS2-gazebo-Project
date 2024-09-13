@@ -1,0 +1,2 @@
+ament_prepend_unique_value IGN_GAZEBO_RESOURCE_PATH "$AMENT_CURRENT_PREFIX/share/ros_gz_example_gazebo/worlds"
+ament_prepend_unique_value IGN_GAZEBO_PLUGIN_PATH "$AMENT_CURRENT_PREFIX/lib/ros_gz_example_gazebo"

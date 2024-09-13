@@ -84,10 +84,10 @@ def generate_launch_description():
         output='screen'
     )
 
-    identify = Node(
+    identify_service = Node(
             package='ros_gz_example_application',
             executable='identify_service.py',
-            name='identify',
+            name='identify_service',
             output='screen',
         )
 
@@ -96,6 +96,6 @@ def generate_launch_description():
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
         robot_state_publisher,
-        identify
+        identify_service
         # rviz
     ])

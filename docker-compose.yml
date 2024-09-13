@@ -12,7 +12,7 @@ services:
     environment:
       - PORT=4200
     depends_on:
-      - server
+      - backend
 
   backend:
     build:
@@ -23,19 +23,21 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./server:/app
+      - ./backend:/app
+    depends_on:
+      - simulation
 
   simulation:
     build:
-      context: ./project_ws 
+      context: ./project_ws
       dockerfile: Dockerfile.simulation
     environment:
       - DISPLAY=${DISPLAY}
+    ports:
+      - "9090:9090"
+      - "11345:11345"
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./ros2_ws:/root/ros2_ws
-    privileged: true
+      - ./project_ws:/app
+    privileged: true  
     network_mode: "host"
-    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && colcon build && bash"]
-    depends_on:
-      - server
