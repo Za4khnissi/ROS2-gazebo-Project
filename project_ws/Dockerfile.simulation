@@ -1,40 +1,31 @@
-# Use an official ROS 2 Humble base image
 FROM ros:humble
 
-# Copy the list of installed ROS packages from the host
 COPY ros-installed-packages.txt /app/ros-installed-packages.txt
 
-# Install python3-pip and other dependencies
 RUN apt-get update && apt-get install -y \
     python3-pip \
+    x11-apps \
+    libgl1-mesa-glx \
+    mesa-utils \
     $(awk '{print $1}' /app/ros-installed-packages.txt) \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pygame for sound playback
-RUN pip3 install pygame
+RUN pip3 install pygame 
 
-# Set up the environment
 SHELL ["/bin/bash", "-c"]
 
-# Ensure ROS 2 environment is sourced on container startup
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
-# Add Ignition Gazebo setup to environment
 RUN echo "source /usr/share/ignition/gazebo/setup.sh" >> ~/.bashrc
 
-# Copy the project workspace into the container
 COPY . /app
 
 WORKDIR /app
 
-# Build the ROS 2 workspace
-RUN bash -c "source /opt/ros/humble/setup.bash && colcon build --packages-select ros_gz_example_description ros_gz_example_gazebo ros_gz_example_application"
+RUN bash -c "source /opt/ros/humble/setup.bash && colcon build --packages-select ros_gz_example_bringup ros_gz_example_application ros_gz_example_description ros_gz_example_gazebo"
 
-# Source the workspace on container startup
 RUN echo "source /app/install/setup.bash" >> ~/.bashrc
 
-# Expose ports for rosbridge WebSocket and Gazebo
 EXPOSE 9090 11345
 
-# Command to source the environment, rebuild if necessary, and run both the simulation and rosbridge server
 CMD ["bash", "-c", "source /opt/ros/humble/setup.bash && source /app/install/setup.bash && colcon build && ros2 launch ros_gz_example_bringup diff_drive.launch.py & ros2 launch rosbridge_server rosbridge_websocket_launch.xml"]
