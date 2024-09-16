@@ -16,4 +16,9 @@ install(FILES
   DESTINATION lib/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  random_movement.py
+  identification.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 ament_package()

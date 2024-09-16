@@ -48,7 +48,7 @@ export class SimulationComponent implements OnInit {
     if (this.simulationStatus) {
       this.simService.stopSimulation().subscribe({
         next: (response) => {
-          this.simulationStatus = false;
+          this.simulationStatus = false; // Set simulation as stopped
           console.log('Simulation stopped:', response.message);
         },
         error: (error) => {
