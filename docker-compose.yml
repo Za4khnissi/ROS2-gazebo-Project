@@ -33,9 +33,6 @@ services:
       dockerfile: Dockerfile.simulation
     environment:
       - DISPLAY=${DISPLAY}
-    ports:
-      - "9090:9090"
-      - "11345:11345"
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ./project_ws:/app

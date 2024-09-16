@@ -4,12 +4,13 @@ WORKDIR /app
 
 COPY package*.json ./
 
-COPY . .
-
-RUN npm install --legacy-peer-deps
+RUN npm ci --legacy-peer-deps
 
 RUN npm install -g @nestjs/cli 
 
+COPY . .
+
+RUN npm run build
 
 EXPOSE 3000
 
