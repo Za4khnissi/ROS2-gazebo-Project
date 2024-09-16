@@ -1,0 +1,33 @@
+FROM ros:humble
+
+# Copy the list of installed ROS packages from the host
+COPY ros-installed-packages.txt /app/ros-installed-packages.txt
+
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    x11-apps \
+    libgl1-mesa-glx \
+    mesa-utils \
+    $(awk '{print $1}' /app/ros-installed-packages.txt) \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install pygame 
+
+SHELL ["/bin/bash", "-c"]
+
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+RUN echo "source /usr/share/ignition/gazebo/setup.sh" >> ~/.bashrc
+
+COPY . /app
+
+WORKDIR /app
+
+RUN rm -rf build install log
+
+RUN bash -c "source /opt/ros/humble/setup.bash && colcon build"
+
+RUN echo "source /app/install/setup.bash" >> ~/.bashrc
+
+EXPOSE 9090 11345
+
+CMD ["bash", "-c", "source /opt/ros/humble/setup.bash && source /app/install/setup.bash && ros2 launch ros_gz_example_bringup diff_drive.launch.py & ros2 launch rosbridge_server rosbridge_websocket_launch.xml"]

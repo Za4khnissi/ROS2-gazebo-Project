@@ -1,0 +1,18 @@
+FROM node:18 AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci --legacy-peer-deps
+
+RUN npm install -g @angular/cli
+
+COPY . .
+
+RUN npm run build
+
+ENV PORT=4200
+EXPOSE 4200
+
+CMD ["npm", "start"]

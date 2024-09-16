@@ -43,7 +43,8 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>100 100</size>
+              <size>100 100
+              </size>
             </plane>
           </geometry>
           <material>
@@ -62,5 +63,6 @@
         <uri>package://ros_gz_example_description/models/limo_diff_drive</uri>
       </include>
     </model>
+
   </world>
 </sdf>
