@@ -28,7 +28,7 @@ COPY . /app
 WORKDIR /app
 
 # Build the ROS 2 workspace
-RUN source /opt/ros/humble/setup.bash && colcon build --packages-select ros_gz_example_description ros_gz_example_gazebo ros_gz_example_application
+RUN bash -c "source /opt/ros/humble/setup.bash && colcon build --packages-select ros_gz_example_description ros_gz_example_gazebo ros_gz_example_application"
 
 # Source the workspace on container startup
 RUN echo "source /app/install/setup.bash" >> ~/.bashrc
