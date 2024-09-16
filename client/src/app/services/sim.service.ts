@@ -21,12 +21,4 @@ export class SimulationService {
   stopMission(robotId: number): Observable<{ message: string }> {
     return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/stop`);
   }
-
-  launchSimulation(): Observable<{ message: string }> {
-    return this.http.get<{ message: string }>(`${this.apiUrl}/simulation/launch`);
-  }
-
-  stopSimulation(): Observable<{ message: string }> {
-    return this.http.get<{ message: string }>(`${this.apiUrl}/simulation/stop`);
-  }
 }

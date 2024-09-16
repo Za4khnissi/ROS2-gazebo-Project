@@ -11,19 +11,17 @@ services:
       - ./client:/app
     environment:
       - PORT=4200
-    depends_on:
-      - backend
 
-  backend:
+  server:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.backend
+      context: ./server
+      dockerfile: Dockerfile.server
     environment:
       - PORT=3000
     ports:
       - "3000:3000"
     volumes:
-      - ./backend:/app
+      - ./server:/app
     depends_on:
       - simulation
 
