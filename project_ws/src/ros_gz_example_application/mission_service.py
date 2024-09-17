@@ -61,6 +61,7 @@ class MissionServiceNode(Node):
         if self.publish_timer is not None:
             self.publish_timer.cancel()
             self.publish_timer = None
+            self.cmd_vel_pub.publish(Twist())
 
     def publish_velocity(self):
         # Create a Twist message with linear velocity x: 0.2
