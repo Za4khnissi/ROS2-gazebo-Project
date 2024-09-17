@@ -35,31 +35,31 @@ describe('RobotController', () => {
       expect(rosService.identifyRobot).toHaveBeenCalledWith(robotId);
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
-        message: `Robot ${robotId} is identifying itself`,
+        message: mockResponse.message,
       });
     });
 
-    it('should return NOT_FOUND when robot is not found', () => {
+    it('should throw NOT_FOUND when robot is not found', () => {
       const robotId = 'non-existent';
       jest.spyOn(rosService, 'identifyRobot').mockReturnValue(null);
 
-      const result = controller.identifyRobot(robotId);
-
+      expect(() => controller.identifyRobot(robotId)).toThrow(
+        new HttpException(`Robot ${robotId} not found`, HttpStatus.NOT_FOUND),
+      );
       expect(rosService.identifyRobot).toHaveBeenCalledWith(robotId);
-      expect(result).toEqual({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: `Robot ${robotId} not found`,
-      });
     });
 
-    it('should throw HttpException when service throws an exception', () => {
+    it('should throw INTERNAL_SERVER_ERROR when service throws an exception', () => {
       const robotId = 'error';
-      const error = new HttpException('Service error', HttpStatus.INTERNAL_SERVER_ERROR);
+      const error = new Error('Service error');
       jest.spyOn(rosService, 'identifyRobot').mockImplementation(() => {
         throw error;
       });
 
-      expect(() => controller.identifyRobot(robotId)).toThrow(HttpException);
+      expect(() => controller.identifyRobot(robotId)).toThrow(
+        new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR),
+      );
+      expect(rosService.identifyRobot).toHaveBeenCalledWith(robotId);
     });
   });
 });

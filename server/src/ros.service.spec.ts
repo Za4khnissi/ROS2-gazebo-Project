@@ -131,16 +131,41 @@ describe('RosService', () => {
       const robotId = '1';
       service['rosConnections'][robotId] = { isConnected: true } as any;
 
-      const mockPublish = jest.fn();
-      (ROSLIB.Topic as unknown as jest.Mock).mockImplementation(() => ({
-        publish: mockPublish,
+      const mockCallService = jest.fn((request, callback) => {
+        callback({ success: true, message: 'Mission started' });
+      });
+      (ROSLIB.Service as jest.Mock).mockImplementation(() => ({
+        callService: mockCallService,
       }));
-      (ROSLIB.Message as jest.Mock).mockImplementation(() => ({}));
+      (ROSLIB.ServiceRequest as jest.Mock).mockImplementation(() => ({}));
 
       const result = service.startRobotMission(robotId);
 
-      expect(mockPublish).toHaveBeenCalledTimes(1);
-      expect(result).toEqual({ message: `Started mission for robot ${robotId}` });
+      expect(mockCallService).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ message: `Requested to start mission for robot ${robotId}` });
+    });
+
+    it('should handle service call failure', () => {
+      const robotId = '1';
+      service['rosConnections'][robotId] = { isConnected: true } as any;
+
+      const mockCallService = jest.fn((request, callback) => {
+        callback({ success: false, message: 'Failed to start mission' });
+      });
+      (ROSLIB.Service as jest.Mock).mockImplementation(() => ({
+        callService: mockCallService,
+      }));
+
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      service.startRobotMission(robotId);
+
+      expect(mockCallService).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Failed to start mission for robot ${robotId}: Failed to start mission`,
+      );
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should throw HttpException when robot is not connected', () => {
@@ -160,16 +185,41 @@ describe('RosService', () => {
       const robotId = '1';
       service['rosConnections'][robotId] = { isConnected: true } as any;
 
-      const mockPublish = jest.fn();
-      (ROSLIB.Topic as unknown as jest.Mock).mockImplementation(() => ({
-        publish: mockPublish,
+      const mockCallService = jest.fn((request, callback) => {
+        callback({ success: true, message: 'Mission stopped' });
+      });
+      (ROSLIB.Service as jest.Mock).mockImplementation(() => ({
+        callService: mockCallService,
       }));
-      (ROSLIB.Message as jest.Mock).mockImplementation(() => ({}));
+      (ROSLIB.ServiceRequest as jest.Mock).mockImplementation(() => ({}));
 
       const result = service.stopRobotMission(robotId);
 
-      expect(mockPublish).toHaveBeenCalledTimes(1);
-      expect(result).toEqual({ message: `Stopped mission for robot ${robotId}` });
+      expect(mockCallService).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ message: `Requested to stop mission for robot ${robotId}` });
+    });
+
+    it('should handle service call failure', () => {
+      const robotId = '1';
+      service['rosConnections'][robotId] = { isConnected: true } as any;
+
+      const mockCallService = jest.fn((request, callback) => {
+        callback({ success: false, message: 'Failed to stop mission' });
+      });
+      (ROSLIB.Service as jest.Mock).mockImplementation(() => ({
+        callService: mockCallService,
+      }));
+
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      service.stopRobotMission(robotId);
+
+      expect(mockCallService).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Failed to stop mission for robot ${robotId}: Failed to stop mission`,
+      );
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should throw HttpException when robot is not connected', () => {
