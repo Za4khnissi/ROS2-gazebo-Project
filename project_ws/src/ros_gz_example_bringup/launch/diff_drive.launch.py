@@ -90,12 +90,20 @@ def generate_launch_description():
             name='identify_service',
             output='screen',
         )
+    
+    mission_service = Node(
+            package='ros_gz_example_application',
+            executable='mission_service.py',
+            name='mission_service',
+            output='screen',
+        )
 
     return LaunchDescription([
         gz_sim,
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
         robot_state_publisher,
-        identify_service
+        identify_service,
+        mission_service
         # rviz
     ])
