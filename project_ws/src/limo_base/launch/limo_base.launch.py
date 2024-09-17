@@ -47,10 +47,26 @@ def generate_launch_description():
         }],
         remappings=remapping
         )
+    
+    identify_service = Node(
+            package='ros_gz_example_application',
+            executable='identify_service.py',
+            name='identify_service',
+            output='screen',
+        )
+    
+    mission_service = Node(
+            package='ros_gz_example_application',
+            executable='mission_service.py',
+            name='mission_service',
+            output='screen',
+        )
 
     return LaunchDescription([
         #DeclareLaunchArgument('pub_odom_tf',default_value=pub_odom_tf_arg_,description='TF'),
-        limo_base_node
+        limo_base_node,
+        identify_service,
+        mission_service
 
     ])
 
