@@ -37,14 +37,12 @@
 #include <atomic>
 #include <cstdlib>
 #include <chrono>
-
 #include "rclcpp/rclcpp.hpp"
 #include <rclcpp/executor.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <tf2_ros/transform_broadcaster.h>
-#include "tf2_ros/static_transform_broadcaster.h"
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <sensor_msgs/msg/imu.hpp>
 
 #include "std_msgs/msg/string.hpp"
@@ -112,8 +110,7 @@ private:
     //   light_cmd_sub_;
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-    std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster_;
-
+    
     // ros::Publisher odom_publisher_;
     // ros::Publisher status_publisher_;
     // ros::Publisher imu_publisher_;

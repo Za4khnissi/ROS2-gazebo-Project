@@ -29,49 +29,53 @@
  */
 
 #include "limo_base/limo_driver.h"
-
 int flag=0; 
 
 namespace AgileX {
 
 LimoDriver::LimoDriver(std::string node_name):rclcpp::Node(node_name),keep_running_(false){
 
-    std::string port_name="ttylimo";    
-    //声明参数
-    this->declare_parameter("port_name","ttylimo");
-    this->declare_parameter("odom_frame","odom");
-    this->declare_parameter("base_frame","base_link");
-    this->declare_parameter("control_rate",50);
-    this->declare_parameter("pub_odom_tf",false);
-    this->declare_parameter("use_mcnamu",false);
-    //获取参数   
-    this->get_parameter_or<std::string>("port_name", port_name, "ttylimo");
+    std::string port_name="ttyTHS1";    
+    this->declare_parameter("port_name", "ttyTHS1");   //声明参数
+    this->declare_parameter("odom_frame", "odom");
+    this->declare_parameter("base_frame", "base_link");
+    this->declare_parameter("pub_odom_tf", false);
+    this->declare_parameter("use_mcnamu", false);
+    this->declare_parameter("control_rate", 50);  
+
+    this->get_parameter_or<std::string>("port_name", port_name, "ttyTHS1");//获取参数
     this->get_parameter_or<std::string>("odom_frame", odom_frame_, "odom");
     this->get_parameter_or<std::string>("base_frame", base_frame_, "base_link");
-    this->get_parameter_or<bool>("pub_odom_tf", pub_odom_tf_, "false");
-    this->get_parameter_or<bool>("use_mcnamu", use_mcnamu_, "false");
-    
+    this->get_parameter_or<bool>("pub_odom_tf", pub_odom_tf_, false);
+    this->get_parameter_or<bool>("use_mcnamu", use_mcnamu_, false);
 
     std::cout << "Loading parameters: " << std::endl;
     std::cout << "- port name: " << port_name << std::endl;
     std::cout << "- odom frame name: " << odom_frame_ << std::endl;
     std::cout << "- base frame name: " << base_frame_ << std::endl;
     std::cout << "- odom topic name: " << pub_odom_tf_ << std::endl;
-
+        
+    // ros::NodeHandle nh;createQuaternionFromRPY
+    // ros::NodeHandle private_nh("~");
     
+    // private_nh.param<std::string>("port_name", port_name, std::string("ttyTHS1"));
+    // private_nh.param<std::string>("odom_frame", odom_frame_, std::string("odom"));
+    // private_nh.param<std::string>("base_frame", base_frame_, std::string("base_link"));
+    // private_nh.param<bool>("pub_odom_tf", pub_odom_tf_, false);
+    // private_nh.param<bool>("use_mcnamu", use_mcnamu_, false);
+    
+    // std::cout << "TEST:0 " << std::endl;
     if(use_mcnamu_) {
         motion_mode_ = MODE_MCNAMU;
     }
     tf_broadcaster_=std::make_shared<tf2_ros::TransformBroadcaster>(*this);
-    tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(*this);
-
     odom_publisher_=this->create_publisher<nav_msgs::msg::Odometry>("/odom",50);
     status_publisher_ = this->create_publisher<limo_msgs::msg::LimoStatus>("/limo_status",50);
     imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("/imu",10);
 
     motion_cmd_sub_= this->create_subscription<geometry_msgs::msg::Twist>(
         "/cmd_vel",10,std::bind(&LimoDriver::twistCmdCallback,this,std::placeholders::_1));
- 
+
     // odom_publisher_ = nh.advertise<nav_msgs::Odometry>("/odom", 50, true);
     // status_publisher_ = nh.advertise<limo_base::LimoStatus>("/limo_status", 10, true);
     // imu_publisher_ = nh.advertise<sensor_msgs::Imu>("/imu", 10, true);
@@ -517,23 +521,6 @@ void LimoDriver::publishIMUData(double stamp) {
     imu_msg.orientation_covariance[8] = 1e-6;
 
     imu_publisher_->publish(imu_msg);
-
-    geometry_msgs::msg::TransformStamped imu_tf;
-    rclcpp::Time now = this->get_clock()->now();
-    imu_tf.header.stamp = now;
-    imu_tf.header.frame_id = base_frame_;
-    imu_tf.child_frame_id = "imu_link";
-
-    imu_tf.transform.translation.x = 0.0;
-    imu_tf.transform.translation.y = 0.0;
-    imu_tf.transform.translation.z = 0.0;
-    imu_tf.transform.rotation.x = 0.0;
-    imu_tf.transform.rotation.y = 0.0;
-    imu_tf.transform.rotation.z = 0.0;
-    imu_tf.transform.rotation.w = 1.0;
-    tf_static_broadcaster_->sendTransform(imu_tf);
-
-
 }
 
 void LimoDriver::publishOdometry(double stamp, double linear_velocity,
@@ -592,18 +579,18 @@ void LimoDriver::publishOdometry(double stamp, double linear_velocity,
     // double limo_yaw;
     tf2::Quaternion limo_yaw;
     limo_yaw.setRPY(0,0,rad);
-
     geometry_msgs::msg::Quaternion odom_quat = tf2::toMsg(limo_yaw);
   
+    //std::cout<< "odom_quat:" << odom_quat<<std::endl;
     if (pub_odom_tf_) {
         rclcpp::Time now = this->get_clock()->now();
         geometry_msgs::msg::TransformStamped tf_msg;
-        geometry_msgs::msg::TransformStamped tf_laser;
+        
         // geometry_msgs::TransformStamped tf_msg;
         tf_msg.header.stamp = now;
         tf_msg.header.frame_id = odom_frame_;
         tf_msg.child_frame_id = base_frame_;
- 
+
         tf_msg.transform.translation.x = position_x_;
         tf_msg.transform.translation.y = position_y_;
         tf_msg.transform.translation.z = 0.0;

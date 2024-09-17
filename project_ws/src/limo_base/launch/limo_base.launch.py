@@ -23,7 +23,7 @@ def generate_launch_description():
     # pub_odom_tf_arg = DeclareLaunchArgument('pub_odom_tf', default_value='false',
     #                                              description='Odometry TF')
     
-    port_name_arg = LaunchConfiguration('port_name',default='ttylimo')
+    port_name_arg = LaunchConfiguration('port_name',default='ttyTHS1')
     odom_frame_arg = LaunchConfiguration('odom_frame',default='odom')
     base_link_frame_arg = LaunchConfiguration('base_frame',default='base_link')
     pub_odom_tf_arg_ = LaunchConfiguration('pub_odom_tf', default='true')
