@@ -9,8 +9,8 @@ export class RosService implements OnModuleInit {
   constructor(private configService: ConfigService) {}
 
   onModuleInit() {
-    this.connectToRobot('0', this.configService.get<string>('ROS_WS_URL_SIMULATION'));
-    //this.connectToRobot('1', this.configService.get<string>('ROS_WS_URL_ROBOT1'));
+    //this.connectToRobot('0', this.configService.get<string>('ROS_WS_URL_SIMULATION'));
+    this.connectToRobot('1', this.configService.get<string>('ROS_WS_URL_ROBOT1'));
     // this.connectToRobot('2', this.configService.get<string>('ROS_WS_URL_ROBOT2'));
   }
 
