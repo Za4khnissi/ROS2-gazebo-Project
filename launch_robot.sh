@@ -80,31 +80,31 @@ if [ "$ROBOT_ID" == "0" ]; then
     # Run command with namespace in background
     ros2 launch ros_gz_example_bringup diff_drive.launch.py &
     PID1=$!
-    ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
-    PID2=$!
-    # Echo message
-    echo "Simulation ready. Rosbridge ready. You can start interacting with the robot from the dashboard."
-    # Bring the second background process to the foreground
-    wait $PID2
+    # ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
+    # PID2=$!
+    # # Echo message
+    # echo "Simulation ready. Launch rosbridge to start interacting with the robot from the dashboard."
+    # # Bring the second background process to the foreground
+    wait $PID1
 elif [ "$ROBOT_ID" == "1" ]; then
     # Run first command with namespace in background
     ros2 launch limo_base limo_base.launch.py &
     LAUNCH_PID=$!
     # Echo message
-    echo "Robot 1 ready. Launch this bash file with robot_id = 2 on the second robot to start interacting from the dashboard."
+    echo "Robot 1 ready. Launch rosbridge to start interacting from the dashboard."
     # Bring the background process to the foreground
     wait $LAUNCH_PID
 elif [ "$ROBOT_ID" == "2" ]; then
     # Run first command with namespace in background
     ros2 launch limo_base limo_base.launch.py &
     PID1=$!
-    # Run second command with namespace in background
-    ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
-    PID2=$!
+    # # Run second command with namespace in background
+    # ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
+    # PID2=$!
     # Echo message
-    echo "Robot 2 ready. Rosbridge ready. You can start interacting with the robot from the dashboard."
+    echo "Robot 2 ready. Launch rosbridge to start start interacting with the robot from the dashboard."
     # Bring the second background process to the foreground
-    wait $PID2
+    wait $PID1
 else
     echo "Invalid ROBOT_ID. Please provide ROBOT_ID as 0, 1, or 2."
     exit 1

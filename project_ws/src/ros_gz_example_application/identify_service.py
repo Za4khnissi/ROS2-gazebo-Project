@@ -9,7 +9,7 @@ class IdentifyService(Node):
         super().__init__('identify_service')
         self.srv = self.create_service(Trigger, 'identify', self.identify_callback)
 
-        self.sound_file = os.path.join(os.path.dirname(__file__), 'sound.wav')
+        self.sound_file = os.path.join(os.path.dirname(__file__), 'sound.mp3')
 
         if not os.path.exists(self.sound_file):
             self.get_logger().error(f"Sound file not found: {self.sound_file}")
