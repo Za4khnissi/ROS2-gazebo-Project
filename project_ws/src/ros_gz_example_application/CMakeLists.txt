@@ -14,6 +14,7 @@ install(PROGRAMS
 )
 
 install(FILES
+  sound.mp3
   sound.wav
   DESTINATION lib/${PROJECT_NAME}
 )
