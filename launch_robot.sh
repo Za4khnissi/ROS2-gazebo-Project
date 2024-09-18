@@ -64,7 +64,7 @@ cd "$HOME/inf3995/project_ws"
 
 # Build the workspace
 if [ "$ROBOT_ID" == "0" ]; then
-	colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_msgs voice_control ydlidar_ros2_driver limo_base
+	colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base
 else
 	colcon build --cmake-args -DBUILD_TESTING=ON
 fi
