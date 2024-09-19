@@ -17,7 +17,7 @@ def generate_launch_description():
 
     ros_namespace = ['limo_105_', EnvironmentVariable('ROBOT_ID')]
 
-    namespace_string = f'/{ros_namespace[0]}/{ROBOT_ID}'
+    remapped_cmd_vel = f'/{ros_namespace[0]}{ROBOT_ID}/cmd_vel'
 
     port_name_arg = DeclareLaunchArgument('port_name', default_value='ttyUSB1',
                                           description='usb bus name, e.g. ttyUSB1')
@@ -39,7 +39,7 @@ def generate_launch_description():
 
     remapping = [
         ('odom', '/wheel/odom'),
-        ('/cmd_vel', namespace_string),
+        ('/cmd_vel', remapped_cmd_vel),
     ]
 
     # Define limo_base_node with the namespace applied
