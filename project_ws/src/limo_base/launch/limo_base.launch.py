@@ -12,8 +12,10 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     # Define namespace based on the environment variable
-    ROBOT_ID = EnvironmentVariable('ROBOT_ID')
-    ros_namespace = ['limo_105_', ROBOT_ID]
+    # get env variable ROBOT_ID
+    ROBOT_ID = os.getenv('ROBOT_ID')
+
+    ros_namespace = ['limo_105_', EnvironmentVariable('ROBOT_ID')]
 
     namespace_string = f'/{ros_namespace[0]}/{ROBOT_ID}'
 
