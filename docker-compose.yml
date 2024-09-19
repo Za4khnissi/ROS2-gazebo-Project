@@ -34,5 +34,6 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ./project_ws:/app
+      - /dev/snd:/dev/snd
     privileged: true  
     network_mode: "host"

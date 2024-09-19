@@ -17,18 +17,14 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.actions import IncludeLaunchDescription
-from launch.conditions import IfCondition
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import EnvironmentVariable, PathJoinSubstitution
 
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    # Configure ROS nodes for launch
-
     # Setup project paths
     pkg_project_bringup = get_package_share_directory('ros_gz_example_bringup')
     pkg_project_gazebo = get_package_share_directory('ros_gz_example_gazebo')
@@ -39,6 +35,9 @@ def generate_launch_description():
     sdf_file = os.path.join(pkg_project_description, 'models', 'limo_diff_drive', 'model.sdf')
     with open(sdf_file, 'r') as infp:
         robot_desc = infp.read()
+
+    # Use ROS_NAMESPACE directly by setting it to 105_<ROBOT_ID>
+    ros_namespace = ['limo_105_', EnvironmentVariable('ROBOT_ID')]
 
     # Setup to launch the simulator and Gazebo world
     gz_sim = IncludeLaunchDescription(
@@ -57,6 +56,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='both',
+        namespace=ros_namespace,  # Use the ROS_NAMESPACE (105_<ROBOT_ID>)
         parameters=[
             {'use_sim_time': True},
             {'robot_description': robot_desc},
@@ -71,8 +71,6 @@ def generate_launch_description():
     #    condition=IfCondition(LaunchConfiguration('rviz'))
     # )
 
-
-
     # Bridge ROS topics and Gazebo messages for establishing communication
     bridge = Node(
         package='ros_gz_bridge',
@@ -81,21 +79,31 @@ def generate_launch_description():
             'config_file': os.path.join(pkg_project_bringup, 'config', 'ros_gz_example_bridge.yaml'),
             'qos_overrides./tf_static.publisher.durability': 'transient_local',
         }],
-        output='screen'
+        output='screen',
+        namespace=ros_namespace  # Use the ROS_NAMESPACE (105_<ROBOT_ID>)
     )
 
     identify_service = Node(
-            package='ros_gz_example_application',
-            executable='identify_service.py',
-            name='identify_service',
-            output='screen',
-        )
+        package='ros_gz_example_application',
+        executable='identify_service.py',
+        name='identify_service',
+        output='screen',
+        namespace=ros_namespace  # Use the ROS_NAMESPACE (105_<ROBOT_ID>)
+    )
+
+    mission_service = Node(
+        package='ros_gz_example_application',
+        executable='mission_service.py',
+        name='mission_service',
+        output='screen',
+        namespace=ros_namespace  # Use the ROS_NAMESPACE (105_<ROBOT_ID>)
+    )
 
     return LaunchDescription([
         gz_sim,
-        # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
         robot_state_publisher,
-        identify_service
-        # rviz
+        identify_service,
+        mission_service
     ])
+
