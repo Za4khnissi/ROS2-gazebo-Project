@@ -27,9 +27,9 @@ if ! is_apt_package_installed ros-humble-rosbridge-server; then
 fi
 
 # Install mpg123 if not installed
-if ! is_apt_package_installed mpg123; then
-    sudo apt install -y mpg123
-fi
+# if ! is_apt_package_installed mpg123; then
+#     sudo apt install -y mpg123
+# fi
 
 # Install python3-pip if not installed
 if ! is_apt_package_installed python3-pip; then

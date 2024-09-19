@@ -2,6 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from std_srvs.srv import Trigger
+import pygame
 import os
 
 class IdentifyService(Node):
@@ -9,7 +10,9 @@ class IdentifyService(Node):
         super().__init__('identify_service')
         self.srv = self.create_service(Trigger, 'identify', self.identify_callback)
 
-        self.sound_file = os.path.join(os.path.dirname(__file__), 'sound.mp3')
+        pygame.mixer.init()
+
+        self.sound_file = os.path.join(os.path.dirname(__file__), 'sound.wav')
 
         if not os.path.exists(self.sound_file):
             self.get_logger().error(f"Sound file not found: {self.sound_file}")
@@ -20,8 +23,8 @@ class IdentifyService(Node):
         self.get_logger().info('Identify service called. Playing sound...')
 
         if os.path.exists(self.sound_file):
-            command = f'mpg123 "{self.sound_file}"'
-            os.system(command)
+            pygame.mixer.music.load(self.sound_file)
+            pygame.mixer.music.play()
 
             response.success = True
             response.message = "Robot identification successful! Sound played."
