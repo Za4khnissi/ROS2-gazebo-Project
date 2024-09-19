@@ -9,8 +9,9 @@ export class RosService implements OnModuleInit {
   constructor(private configService: ConfigService) {}
 
   onModuleInit() {
-    this.connectToRobot('0', this.configService.get<string>('ROS_WS_URL_SIMULATION'));
-    //this.connectToRobot('1', this.configService.get<string>('ROS_WS_URL_ROBOT1'));
+    this.connectToRobot('3', this.configService.get<string>('ROS_WS_URL_SIMULATION1'));
+    this.connectToRobot('4', this.configService.get<string>('ROS_WS_URL_SIMULATION2'));
+    // this.connectToRobot('1', this.configService.get<string>('ROS_WS_URL_ROBOT1'));
     // this.connectToRobot('2', this.configService.get<string>('ROS_WS_URL_ROBOT2'));
   }
 
@@ -44,42 +45,50 @@ export class RosService implements OnModuleInit {
 
   startRobotMission(robotId: string) {
     this.validateRobotConnection(robotId);
-  
-    const topic = new ROSLIB.Topic({
+
+    const missionService = new ROSLIB.Service({
       ros: this.rosConnections[robotId],
-      name: `/cmd_vel`,
-      messageType: 'geometry_msgs/Twist',
-    });
-  
-    const twist = new ROSLIB.Message({
-      linear: { x: 0.5, y: 0, z: 0 },
-      angular: { x: 0, y: 0, z: 0 },
+      name: '/mission_service',
+      serviceType: 'example_interfaces/SetBool',
     });
 
-      topic.publish(twist);
-      console.log(`Robot ${robotId} started moving indefinitely`);
-      return { message: `Started mission for robot ${robotId} to move indefinitely` };
-    
+    const request = new ROSLIB.ServiceRequest({
+      data: true, 
+    });
+
+    missionService.callService(request, (result) => {
+      if (result.success) {
+        console.log(`Mission started for robot ${robotId}: ${result.message}`);
+      } else {
+        console.error(`Failed to start mission for robot ${robotId}: ${result.message}`);
+      }
+    });
+
+    return { message: `Requested to start mission for robot ${robotId}` };
   }
-  
-  
 
   stopRobotMission(robotId: string) {
     this.validateRobotConnection(robotId);
 
-    const topic = new ROSLIB.Topic({
+    const missionService = new ROSLIB.Service({
       ros: this.rosConnections[robotId],
-      name: `/cmd_vel`,
-      messageType: 'geometry_msgs/Twist',
+      name: '/mission_service',
+      serviceType: 'example_interfaces/SetBool',
     });
 
-    const stopTwist = new ROSLIB.Message({
-      linear: { x: 0, y: 0, z: 0 },
-      angular: { x: 0, y: 0, z: 0 },
+    const request = new ROSLIB.ServiceRequest({
+      data: false, 
     });
 
-    topic.publish(stopTwist);
-    return { message: `Stopped mission for robot ${robotId}` };
+    missionService.callService(request, (result) => {
+      if (result.success) {
+        console.log(`Mission stopped for robot ${robotId}: ${result.message}`);
+      } else {
+        console.error(`Failed to stop mission for robot ${robotId}: ${result.message}`);
+      }
+    });
+
+    return { message: `Requested to stop mission for robot ${robotId}` };
   }
 
   identifyRobot(robotId: string) {
