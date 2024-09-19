@@ -4,96 +4,144 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RosService implements OnModuleInit {
-  private rosConnections: Record<string, ROSLIB.Ros> = {};
+  private realRos: ROSLIB.Ros;
+  private simulationRos: ROSLIB.Ros;
 
   constructor(private configService: ConfigService) {}
 
   onModuleInit() {
-    this.connectToRobot('0', this.configService.get<string>('ROS_WS_URL_SIMULATION'));
-    //this.connectToRobot('1', this.configService.get<string>('ROS_WS_URL_ROBOT1'));
-    // this.connectToRobot('2', this.configService.get<string>('ROS_WS_URL_ROBOT2'));
+    this.connectToRobots();
   }
 
-  private connectToRobot(robotId: string, wsUrl: string) {
-    const ros = new ROSLIB.Ros({
-      url: wsUrl,
-    });
+  private connectToRobots() {
+    const simulationWsUrl =  undefined //this.configService.get<string>('ROS_WS_URL_SIMULATION');
+    const realWsUrl = this.configService.get<string>('ROS_WS_URL_REAL');
 
-    ros.on('connection', () => {
-      console.log(`Connected to Robot ${robotId} at WebSocket URL: ${wsUrl}`);
-    });
+    // Connect to simulation ROS
+    if (simulationWsUrl) {
+      this.simulationRos = new ROSLIB.Ros({
+        url: simulationWsUrl,
+      });
 
-    ros.on('error', (error) => {
-      console.error(`Error connecting to Robot ${robotId}:`, error);
-    });
+      this.simulationRos.on('connection', () => {
+        console.log(`Connected to simulation ROS at ${simulationWsUrl}`);
+      });
 
-    ros.on('close', () => {
-      console.log(`Connection to Robot ${robotId} closed`);
-    });
+      this.simulationRos.on('error', (error) => {
+        console.error(`Error connecting to simulation ROS:`, error);
+      });
 
+      this.simulationRos.on('close', () => {
+        console.log(`Connection to simulation ROS closed`);
+      });
+    }
 
-    this.rosConnections[robotId] = ros;
-  }
+    // Connect to real robots ROS
+    if (realWsUrl) {
+      this.realRos = new ROSLIB.Ros({
+        url: realWsUrl,
+      });
 
-  private validateRobotConnection(robotId: string): void {
-    const rosConnection = this.rosConnections[robotId];
-    if (!rosConnection || rosConnection.isConnected === false) {
-      throw new HttpException(`Cannot connect to Robot ${robotId}`, HttpStatus.SERVICE_UNAVAILABLE);
+      this.realRos.on('connection', () => {
+        console.log(`Connected to real robots ROS at ${realWsUrl}`);
+      });
+
+      this.realRos.on('error', (error) => {
+        console.error(`Error connecting to real robots ROS:`, error);
+      });
+
+      this.realRos.on('close', () => {
+        console.log(`Connection to real robots ROS closed`);
+      });
     }
   }
 
+  private validateRobotConnection(robotId: string): ROSLIB.Ros {
+    let rosConnection: ROSLIB.Ros;
+
+    if (robotId === '0') {
+      // Simulation robot
+      rosConnection = this.simulationRos;
+    } else {
+      // Real robot
+      rosConnection = this.realRos;
+    }
+
+    if (!rosConnection || rosConnection.isConnected === false) {
+      throw new HttpException(`Cannot connect to Robot ${robotId}`, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    return rosConnection;
+  }
+
   startRobotMission(robotId: string) {
-    this.validateRobotConnection(robotId);
-  
-    const topic = new ROSLIB.Topic({
-      ros: this.rosConnections[robotId],
-      name: `/cmd_vel`,
-      messageType: 'geometry_msgs/Twist',
-    });
-  
-    const twist = new ROSLIB.Message({
-      linear: { x: 0.5, y: 0, z: 0 },
-      angular: { x: 0, y: 0, z: 0 },
+    const rosConnection = this.validateRobotConnection(robotId);
+
+    const namespace = `limo_105_${robotId}`;
+    const serviceName = `/${namespace}/mission_service`;
+
+    const missionService = new ROSLIB.Service({
+      ros: rosConnection,
+      name: serviceName,
+      serviceType: 'example_interfaces/SetBool',
     });
 
-      topic.publish(twist);
-      console.log(`Robot ${robotId} started moving indefinitely`);
-      return { message: `Started mission for robot ${robotId} to move indefinitely` };
-    
+    const request = new ROSLIB.ServiceRequest({
+      data: true,
+    });
+
+    missionService.callService(request, (result) => {
+      if (result.success) {
+        console.log(`Mission started for robot ${robotId}: ${result.message}`);
+      } else {
+        console.error(`Failed to start mission for robot ${robotId}: ${result.message}`);
+      }
+    });
+
+    return { message: `Requested to start mission for robot ${robotId}` };
   }
-  
-  
 
   stopRobotMission(robotId: string) {
-    this.validateRobotConnection(robotId);
+    const rosConnection = this.validateRobotConnection(robotId);
 
-    const topic = new ROSLIB.Topic({
-      ros: this.rosConnections[robotId],
-      name: `/cmd_vel`,
-      messageType: 'geometry_msgs/Twist',
+    const namespace = `limo_105_${robotId}`;
+    const serviceName = `/${namespace}/mission_service`;
+
+    const missionService = new ROSLIB.Service({
+      ros: rosConnection,
+      name: serviceName,
+      serviceType: 'example_interfaces/SetBool',
     });
 
-    const stopTwist = new ROSLIB.Message({
-      linear: { x: 0, y: 0, z: 0 },
-      angular: { x: 0, y: 0, z: 0 },
+    const request = new ROSLIB.ServiceRequest({
+      data: false,
     });
 
-    topic.publish(stopTwist);
-    return { message: `Stopped mission for robot ${robotId}` };
+    missionService.callService(request, (result) => {
+      if (result.success) {
+        console.log(`Mission stopped for robot ${robotId}: ${result.message}`);
+      } else {
+        console.error(`Failed to stop mission for robot ${robotId}: ${result.message}`);
+      }
+    });
+
+    return { message: `Requested to stop mission for robot ${robotId}` };
   }
 
   identifyRobot(robotId: string) {
-    this.validateRobotConnection(robotId);
-  
+    const rosConnection = this.validateRobotConnection(robotId);
+
+    const namespace = `limo_105_${robotId}`;
+    const serviceName = `/${namespace}/identify`;
+
     const identifyService = new ROSLIB.Service({
-      ros: this.rosConnections[robotId],
-      name: `/identify`,  
-      serviceType: 'std_srvs/Trigger', 
+      ros: rosConnection,
+      name: serviceName,
+      serviceType: 'std_srvs/Trigger',
     });
-  
 
     const request = new ROSLIB.ServiceRequest({});
-  
+
     identifyService.callService(request, (result) => {
       if (result.success) {
         console.log(`Robot ${robotId} successfully identified: ${result.message}`);
@@ -101,8 +149,7 @@ export class RosService implements OnModuleInit {
         console.error(`Failed to identify Robot ${robotId}: ${result.message}`);
       }
     });
-  
+
     return { message: `Robot ${robotId} is identifying itself` };
   }
-  
 }

@@ -11,14 +11,14 @@ export class RobotService {
   constructor(private http: HttpClient) {}
 
   identifyRobot(robotId: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/identify/physical/${robotId}`, {});
+    return this.http.get<{ message: string }>(`${this.apiUrl}/robot/${robotId}/identify/`, {});
   }
 
   startMission(robotId: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/start-mission/physical/${robotId}`, {});
+    return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/start`, {});
   }
 
   stopMission(robotId: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/stop-mission/physical/${robotId}`, {});
+    return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/stop`, {});
   }
 }
