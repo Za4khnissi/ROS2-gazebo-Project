@@ -20,7 +20,7 @@ class MissionServiceNode(Node):
 
         self.srv = self.create_service(SetBool, 'mission_service', self.handle_mission_service)
 
-        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', QoSProfile(depth=10))
+        self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', QoSProfile(depth=10))
 
         self.mission_status = MissionStatus.STOP
 
