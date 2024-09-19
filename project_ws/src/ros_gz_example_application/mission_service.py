@@ -6,7 +6,7 @@ from geometry_msgs.msg import Twist
 from example_interfaces.srv import SetBool
 from enum import Enum
 
-PUBLISH_RATE = 1  # 1 Hz
+PUBLISH_RATE = 1/10  # 10 Hz
 
 
 class MissionStatus(Enum):
