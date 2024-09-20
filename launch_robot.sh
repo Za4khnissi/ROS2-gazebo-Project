@@ -63,8 +63,8 @@ cd "$HOME/inf3995/project_ws"
 
 
 # Build the workspace
-if [ "$ROBOT_ID" == "0" ]; then
-	colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base
+if [ "$ROBOT_ID" == "3" ] || [ "$ROBOT_ID" == "4" ]; then
+	olcon build --packages-select ros_gz_example_application ros_gz_example_description ros_gz_example_gazebo ros_gz_example_bringup --cmake-args -DBUILD_TESTING=ON
 else
 	colcon build --cmake-args -DBUILD_TESTING=ON
 fi
@@ -72,11 +72,12 @@ fi
 # Source the workspace
 source install/setup.sh
 
-# Set namespace
-export ROBOT_ID=${ROBOT_ID}
-
 # Run commands based on ROBOT_ID
-if [ "$ROBOT_ID" == "0" ]; then
+if [ "$ROBOT_ID" == "3" ] || [ "$ROBOT_ID" == "4" ]; then
+    # Set up the environment to include both simulated robots
+    export ROBOT_ID="3"
+    export ROBOT_ID="4"
+    echo "Launching Gazebo simulation with both Robot 3 and Robot 4."
     # Run command with namespace in background
     ros2 launch ros_gz_example_bringup diff_drive.launch.py &
     PID1=$!
@@ -87,6 +88,8 @@ if [ "$ROBOT_ID" == "0" ]; then
     # # Bring the second background process to the foreground
     wait $PID1
 elif [ "$ROBOT_ID" == "1" ]; then
+    # Set namespace
+    export ROBOT_ID=${ROBOT_ID}
     # Run first command with namespace in background
     ros2 launch limo_base limo_base.launch.py &
     LAUNCH_PID=$!
@@ -95,6 +98,8 @@ elif [ "$ROBOT_ID" == "1" ]; then
     # Bring the background process to the foreground
     wait $LAUNCH_PID
 elif [ "$ROBOT_ID" == "2" ]; then
+    # Set namespace
+    export ROBOT_ID=${ROBOT_ID}
     # Run first command with namespace in background
     ros2 launch limo_base limo_base.launch.py &
     PID1=$!
@@ -106,7 +111,7 @@ elif [ "$ROBOT_ID" == "2" ]; then
     # Bring the second background process to the foreground
     wait $PID1
 else
-    echo "Invalid ROBOT_ID. Please provide ROBOT_ID as 0, 1, or 2."
+    echo "Invalid ROBOT_ID. Please provide ROBOT_ID as 1, 2, 3 or 4"
     exit 1
 fi
 

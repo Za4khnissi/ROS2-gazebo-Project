@@ -10,15 +10,14 @@ export class RosService implements OnModuleInit {
   constructor(private configService: ConfigService) {}
 
   onModuleInit() {
-    this.connectToRobot('3', this.configService.get<string>('ROS_WS_URL_SIMULATION1'));
-    this.connectToRobot('4', this.configService.get<string>('ROS_WS_URL_SIMULATION2'));
+    this.connectToRobots();
     // this.connectToRobot('1', this.configService.get<string>('ROS_WS_URL_ROBOT1'));
     // this.connectToRobot('2', this.configService.get<string>('ROS_WS_URL_ROBOT2'));
   }
 
   private connectToRobots() {
-    const simulationWsUrl =  undefined //this.configService.get<string>('ROS_WS_URL_SIMULATION');
-    const realWsUrl = this.configService.get<string>('ROS_WS_URL_REAL');
+    const simulationWsUrl =  this.configService.get<string>('ROS_WS_URL_SIMULATION') //this.configService.get<string>('ROS_WS_URL_SIMULATION');
+     const realWsUrl = undefined // this.configService.get<string>('ROS_WS_URL_REAL');
 
     // Connect to simulation ROS
     if (simulationWsUrl) {
@@ -62,7 +61,7 @@ export class RosService implements OnModuleInit {
   private validateRobotConnection(robotId: string): ROSLIB.Ros {
     let rosConnection: ROSLIB.Ros;
 
-    if (robotId === '0') {
+    if (robotId === '3' || robotId === '4') {
       // Simulation robot
       rosConnection = this.simulationRos;
     } else {
