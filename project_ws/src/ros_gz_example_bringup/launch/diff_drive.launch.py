@@ -99,6 +99,7 @@ def generate_launch_description():
         namespace=ros_namespace  # Use the ROS_NAMESPACE (105_<ROBOT_ID>)
     )
 
+
     return LaunchDescription([
         gz_sim,
         bridge,

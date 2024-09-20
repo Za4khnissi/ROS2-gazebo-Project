@@ -64,7 +64,7 @@ cd "$HOME/inf3995/project_ws"
 
 # Build the workspace
 if [ "$ROBOT_ID" == "3" ] || [ "$ROBOT_ID" == "4" ]; then
-	olcon build --packages-select ros_gz_example_application ros_gz_example_description ros_gz_example_gazebo ros_gz_example_bringup --cmake-args -DBUILD_TESTING=ON
+    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base
 else
 	colcon build --cmake-args -DBUILD_TESTING=ON
 fi

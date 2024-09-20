@@ -63,7 +63,7 @@
         <uri>package://ros_gz_example_description/models/limo_diff_drive</uri>
         <name>limo_105_3</name>
         <ros>
-          <namespace>/limo_105_3</namespace>
+          <namespace>limo_105_3</namespace>
         </ros>
       </include>
     </model>
@@ -75,7 +75,7 @@
         <uri>package://ros_gz_example_description/models/limo_diff_drive</uri>
         <name>limo_105_4</name>
         <ros>
-          <namespace>/limo_105_4</namespace>
+          <namespace>limo_105_4</namespace>
         </ros>
       </include>
     </model>
