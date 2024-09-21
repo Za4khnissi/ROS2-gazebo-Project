@@ -54,6 +54,8 @@ Ce projet est composé de trois parties principales :
    ``` bash
    source ./launch_script.sh simulation
    ```
+   - Installer et lancer les dépendances du serveur
+   - Installer et lancer les dépendances du client
    - Ouvrez un navigateur et accédez à l'URL suivante : `http://localhost:4200`.
 
 ## Lancement des robots
