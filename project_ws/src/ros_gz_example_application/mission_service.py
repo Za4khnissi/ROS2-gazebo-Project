@@ -16,7 +16,7 @@ class MissionStatus(Enum):
 
 class MissionServiceNode(Node):
     def __init__(self):
-        super().__init__('mission_service')
+        super().__init__('mission_service_node')
 
         self.srv = self.create_service(SetBool, 'mission', self.handle_mission_service)
 
