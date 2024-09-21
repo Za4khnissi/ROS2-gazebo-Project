@@ -189,22 +189,6 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     ROSBRIDGE_PID=$!
     PIDS+=($ROSBRIDGE_PID)
 
-    wait 5
-
-    # Launch server
-    cd ~/inf3995/server
-    npm start &
-    SERVER_PID=$!
-    PIDS+=($SERVER_PID)
-
-    # Launch client
-    cd ~/inf3995/client
-    npm start &
-    CLIENT_PID=$!
-    PIDS+=($CLIENT_PID)
-
-    wait 2
-
     # Wait for all robot nodes and rosbridge_server
     for PID in "${PIDS[@]}"; do
         wait $PID
