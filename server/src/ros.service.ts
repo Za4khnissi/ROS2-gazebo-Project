@@ -11,13 +11,11 @@ export class RosService implements OnModuleInit {
 
   onModuleInit() {
     this.connectToRobots();
-    // this.connectToRobot('1', this.configService.get<string>('ROS_WS_URL_ROBOT1'));
-    // this.connectToRobot('2', this.configService.get<string>('ROS_WS_URL_ROBOT2'));
   }
 
   private connectToRobots() {
-    const simulationWsUrl =  this.configService.get<string>('ROS_WS_URL_SIMULATION') //this.configService.get<string>('ROS_WS_URL_SIMULATION');
-     const realWsUrl = undefined // this.configService.get<string>('ROS_WS_URL_REAL');
+    const simulationWsUrl = this.configService.get<string>('ROS_WS_URL_SIMULATION');
+    const realWsUrl = this.configService.get<string>('ROS_WS_URL_REAL');
 
     // Connect to simulation ROS
     if (simulationWsUrl) {
@@ -64,9 +62,11 @@ export class RosService implements OnModuleInit {
     if (robotId === '3' || robotId === '4') {
       // Simulation robot
       rosConnection = this.simulationRos;
-    } else {
+    } else if (robotId === '1' || robotId === '2') {
       // Real robot
       rosConnection = this.realRos;
+    } else {
+      throw new HttpException(`Invalid Robot ID ${robotId}`, HttpStatus.BAD_REQUEST);
     }
 
     if (!rosConnection || rosConnection.isConnected === false) {

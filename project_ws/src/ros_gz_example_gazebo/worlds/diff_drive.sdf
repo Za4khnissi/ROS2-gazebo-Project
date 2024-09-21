@@ -56,27 +56,19 @@
       </link>
     </model>
 
-    <!-- Robot 1 -->
+    <!-- Robot 3 -->
     <model name="limo_105_3">
       <pose>0 -0.5 0.35 0 0 0</pose>
-      <include>
-        <uri>package://ros_gz_example_description/models/limo_diff_drive</uri>
-        <name>limo_105_3</name>
-        <ros>
-          <namespace>limo_105_3</namespace>
-        </ros>
+      <include merge="true">
+        <uri>package://ros_gz_example_description/models/limo_105_3</uri>
       </include>
     </model>
 
-    <!-- Robot 2 -->
+    <!-- Robot 4 -->
     <model name="limo_105_4">
       <pose>0 0.5 0.35 0 0 0</pose>
-      <include>
-        <uri>package://ros_gz_example_description/models/limo_diff_drive</uri>
-        <name>limo_105_4</name>
-        <ros>
-          <namespace>limo_105_4</namespace>
-        </ros>
+      <include merge="true">
+        <uri>package://ros_gz_example_description/models/limo_105_4</uri>
       </include>
     </model>
 
