@@ -48,6 +48,14 @@ Ce projet est composé de trois parties principales :
 
 ### 3. Partie Embarquée
 
+## Lancement de la simulation
+
+   - Lancez le script de démarrage avec la commande suivante :
+   ``` bash
+   source ./launch_script.sh simulation
+   ```
+   - Ouvrez un navigateur et accédez à l'URL suivante : `http://localhost:4200`.
+
 ## Lancement des robots
 
 ### 1. Préparation des robots
