@@ -62,6 +62,13 @@
       <include merge="true">
         <uri>package://ros_gz_example_description/models/limo_105_3</uri>
       </include>
+      <ros>
+        <package>ros_gz_example_gazebo</package>
+        <type>ros_gz_example_gazebo::DiffDrivePlugin</type>
+        <name>diff_drive_plugin</name>
+        <output>screen</output>
+        <namespace>/limo_105_3</namespace>
+      </ros>
     </model>
 
     <!-- Robot 4 -->
@@ -70,6 +77,13 @@
       <include merge="true">
         <uri>package://ros_gz_example_description/models/limo_105_4</uri>
       </include>
+      <ros>
+        <package>ros_gz_example_gazebo</package>
+        <type>ros_gz_example_gazebo::DiffDrivePlugin</type>
+        <name>diff_drive_plugin</name>
+        <output>screen</output>
+        <namespace>/limo_105_4</namespace>
+      </ros>
     </model>
 
   </world>

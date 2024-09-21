@@ -16,9 +16,9 @@ class MissionStatus(Enum):
 
 class MissionServiceNode(Node):
     def __init__(self):
-        super().__init__('mission_service_node')
+        super().__init__('mission_service')
 
-        self.srv = self.create_service(SetBool, 'mission_service', self.handle_mission_service)
+        self.srv = self.create_service(SetBool, 'mission', self.handle_mission_service)
 
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', QoSProfile(depth=10))
 

@@ -10,9 +10,6 @@ from launch_ros.actions import Node
 def generate_launch_description():
     pkg_project_bringup = get_package_share_directory('ros_gz_example_bringup')
 
-    robot_id = LaunchConfiguration('ROBOT_ID')
-    ros_namespace = [TextSubstitution(text='limo_105_'), robot_id]
-
     # Bridge Node
     bridge = Node(
         package='ros_gz_bridge',
@@ -21,8 +18,7 @@ def generate_launch_description():
             'config_file': os.path.join(pkg_project_bringup, 'config', 'ros_gz_example_bridge.yaml'),
             'qos_overrides./tf_static.publisher.durability': 'transient_local',
         }],
-        output='screen',
-        namespace=ros_namespace
+        output='screen'
     )
 
     return LaunchDescription([

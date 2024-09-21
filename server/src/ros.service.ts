@@ -80,7 +80,7 @@ export class RosService implements OnModuleInit {
     const rosConnection = this.validateRobotConnection(robotId);
 
     const namespace = `limo_105_${robotId}`;
-    const serviceName = `/${namespace}/mission_service`;
+    const serviceName = `/${namespace}/mission`;
 
     const missionService = new ROSLIB.Service({
       ros: rosConnection,
@@ -107,7 +107,7 @@ export class RosService implements OnModuleInit {
     const rosConnection = this.validateRobotConnection(robotId);
 
     const namespace = `limo_105_${robotId}`;
-    const serviceName = `/${namespace}/mission_service`;
+    const serviceName = `/${namespace}/mission`;
 
     const missionService = new ROSLIB.Service({
       ros: rosConnection,
