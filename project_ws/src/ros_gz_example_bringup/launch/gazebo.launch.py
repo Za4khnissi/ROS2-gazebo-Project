@@ -14,11 +14,6 @@ def generate_launch_description():
     # Setup project paths
     pkg_project_gazebo = get_package_share_directory('ros_gz_example_gazebo')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    pkg_project_description = get_package_share_directory('ros_gz_example_description')
-
-    sdf_file = os.path.join(pkg_project_description, 'models', 'limo_diff_drive', 'model.sdf')
-    with open(sdf_file, 'r') as infp:
-        robot_desc = infp.read()
 
     # Include Gazebo simulation
     gz_sim = IncludeLaunchDescription(
