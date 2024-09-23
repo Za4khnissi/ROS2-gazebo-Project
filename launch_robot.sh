@@ -173,16 +173,9 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     # Give Gazebo time to start
     sleep 5
 
-    # Define an array of robot IDs
-    ROBOT_IDS=("3" "4")
-
-    for ID in "${ROBOT_IDS[@]}"; do
-        # Launch the robot instance without Gazebo
-        ros2 launch ros_gz_example_bringup diff_drive_sim.launch.py ROBOT_ID:="$ID" gazebo:=false &
-        PIDS+=($!)  # Collect the process ID
-
-        echo "Launched robot nodes for ROBOT_ID=$ID"
-    done
+    # Launch the robot instance without Gazebo
+    ros2 launch ros_gz_example_bringup diff_drive_sim.launch.py gazebo:=false &
+    PIDS+=($!)  # Collect the process ID
 
     # Launch rosbridge_server
     ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
