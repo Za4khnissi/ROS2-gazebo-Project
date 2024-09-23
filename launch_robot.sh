@@ -40,29 +40,29 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM EXIT
 
-kill_existing_services() {
-    echo "Killing existing identify and mission services..."
+# kill_existing_services() {
+#     echo "Killing existing identify and mission services..."
 
-    # Identify and kill any existing identify_service nodes
-    IDENTIFY_PIDS=$(ros2 node list | grep identify_service)
-    if [ ! -z "$IDENTIFY_PIDS" ]; then
-        for NODE in $IDENTIFY_PIDS; do
-            ros2 node kill $NODE
-            echo "Killed $NODE"
-        done
-    fi
+#     # Identify and kill any existing identify_service nodes
+#     IDENTIFY_PIDS=$(ros2 node list | grep identify_service)
+#     if [ ! -z "$IDENTIFY_PIDS" ]; then
+#         for NODE in $IDENTIFY_PIDS; do
+#             kill $NODE
+#             echo "Killed $NODE"
+#         done
+#     fi
 
-    # Identify and kill any existing mission_service nodes
-    MISSION_PIDS=$(ros2 node list | grep mission_service)
-    if [ ! -z "$MISSION_PIDS" ]; then
-        for NODE in $MISSION_PIDS; do
-            ros2 node kill $NODE
-            echo "Killed $NODE"
-        done
-    fi
-}
+#     # Identify and kill any existing mission_service nodes
+#     MISSION_PIDS=$(ros2 node list | grep mission_service)
+#     if [ ! -z "$MISSION_PIDS" ]; then
+#         for NODE in $MISSION_PIDS; do
+#             kill $NODE
+#             echo "Killed $NODE"
+#         done
+#     fi
+# }
 
-# Function to kill existing rosbridge_server processes
+# # Function to kill existing rosbridge_server processes
 kill_rosbridge_server() {
     # Adjust the pattern based on your actual process
     ROSBRIDGE_PIDS=$(pgrep -f 'rosbridge_websocket_launch')
@@ -90,6 +90,13 @@ kill_rosbridge_server() {
         fi
     fi
 }
+
+pkill -f ros2
+
+# Restart ROS 2 daemon
+ros2 daemon stop
+ros2 daemon start
+
 
 # Update package lists (uncomment if needed)
 # sudo apt update
@@ -121,9 +128,7 @@ if ! grep -q "export ROS_DOMAIN_ID=49" ~/.bashrc; then
     source ~/.bashrc
 fi
 
-# Restart ROS 2 daemon
-ros2 daemon stop
-ros2 daemon start
+
 
 # Go to user home directory
 cd "$HOME"
@@ -159,7 +164,7 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     kill_rosbridge_server
 
     # Kill existing services to avoid duplicates
-    kill_existing_services
+    #kill_existing_services
 
     # Launch the bridge once
     ros2 launch ros_gz_example_bringup bridge.launch.py &
