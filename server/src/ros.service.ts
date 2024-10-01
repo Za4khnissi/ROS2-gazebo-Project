@@ -1,6 +1,8 @@
 import { Injectable, OnModuleInit, HttpException, HttpStatus } from '@nestjs/common';
 import * as ROSLIB from 'roslib';
 import { ConfigService } from '@nestjs/config';
+import { exec } from 'child_process';
+import * as path from 'path';
 
 @Injectable()
 export class RosService implements OnModuleInit {
@@ -11,6 +13,26 @@ export class RosService implements OnModuleInit {
 
   onModuleInit() {
     this.connectToRobots();
+  }
+
+  private reconnectToSimulationRos() {
+    const simulationWsUrl = this.configService.get<string>('ROS_WS_URL_SIMULATION');
+
+      this.simulationRos = new ROSLIB.Ros({
+        url: simulationWsUrl,
+      });
+
+      this.simulationRos.on('connection', () => {
+        console.log(`Reconnected to simulation ROS at ${simulationWsUrl}`);
+      });
+
+      this.simulationRos.on('error', (error) => {
+        console.error(`Error reconnecting to simulation ROS:`, error);
+      });
+
+      this.simulationRos.on('close', () => {
+        console.log(`Connection to simulation ROS closed`);
+      });
   }
 
   private connectToRobots() {
@@ -74,6 +96,33 @@ export class RosService implements OnModuleInit {
     }
 
     return rosConnection;
+  }
+
+  launchSimulation(driveMode3: string, driveMode4: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const scriptPath = path.join(__dirname, '../../launch_robot.sh');
+      const command = `${scriptPath} simulation ${driveMode3} ${driveMode4}`;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error launching simulation: ${error.message}`);
+          reject(new HttpException('Failed to launch simulation', HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+          reject(new HttpException('Simulation stderr: ' + stderr, HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+
+        console.log(`stdout: ${stdout}`);
+
+        // Reconnect to the ROS bridge after launching the simulation
+        console.log('Reconnecting to ROS after simulation launch...');
+        this.reconnectToSimulationRos();
+
+        resolve({ stdout });
+      });
+    });
   }
 
   startRobotMission(robotId: string) {

@@ -12,6 +12,10 @@ export class SimulationComponent {
   robot2Status: string = 'Waiting';
   simulationStatus: boolean = false;
 
+  // Initial drive modes
+  driveMode3: string = 'Diff Drive';
+  driveMode4: string = 'Diff Drive';
+
   constructor(private simService: SimulationService, private router: Router) {}
 
   identifyRobot(robotId: number) {
@@ -55,6 +59,28 @@ export class SimulationComponent {
       },
       error: (error) => {
         console.error('Error stopping mission:', error);
+      }
+    });
+  }
+
+  toggleDriveMode(robotId: number) {
+    if (robotId === 3) {
+      this.driveMode3 = this.driveMode3 === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
+    } else if (robotId === 4) {
+      this.driveMode4 = this.driveMode4 === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
+    }
+  }
+
+  launchSimulation() {
+    const mode3 = this.driveMode3.toLowerCase().replace(' ', '_');
+    const mode4 = this.driveMode4.toLowerCase().replace(' ', '_');
+    this.simService.launchSimulation(mode3, mode4).subscribe({
+      next: (response) => {
+        console.log('Simulation launched:', response);
+        this.simulationStatus = true;
+      },
+      error: (error) => {
+        console.error('Error launching simulation:', error);
       }
     });
   }

@@ -7,6 +7,7 @@ import { HomeComponent } from '@app/pages/home/home.component';
 import { PhysicalRobotComponent } from '@app/pages/robot/physical/physical.component';
 import { SimulationComponent } from '@app/pages/robot/simulation/simulation.component';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 
 @NgModule({
@@ -19,7 +20,8 @@ import { CommonModule } from '@angular/common';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    CommonModule
+    CommonModule,
+    FormsModule
   ],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent]
