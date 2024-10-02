@@ -64,23 +64,22 @@ export class SimulationComponent {
   }
 
   toggleDriveMode(robotId: number) {
+    let newDriveMode = '';
     if (robotId === 3) {
       this.driveMode3 = this.driveMode3 === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
+      newDriveMode = this.driveMode3;
     } else if (robotId === 4) {
       this.driveMode4 = this.driveMode4 === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
+      newDriveMode = this.driveMode4;
     }
-  }
 
-  launchSimulation() {
-    const mode3 = this.driveMode3.toLowerCase().replace(' ', '_');
-    const mode4 = this.driveMode4.toLowerCase().replace(' ', '_');
-    this.simService.launchSimulation(mode3, mode4).subscribe({
+    // Send drive mode change request
+    this.simService.changeDriveMode(robotId, newDriveMode.toLowerCase().replace(' ', '_')).subscribe({
       next: (response) => {
-        console.log('Simulation launched:', response);
-        this.simulationStatus = true;
+        console.log(`Drive mode for Robot ${robotId} changed to ${newDriveMode}`);
       },
       error: (error) => {
-        console.error('Error launching simulation:', error);
+        console.error(`Error changing drive mode for Robot ${robotId}:`, error);
       }
     });
   }

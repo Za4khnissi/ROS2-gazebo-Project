@@ -67,6 +67,14 @@ kill_existing_services() {
             echo "Killed $NODE"
         done
     fi
+
+    DRIVE_MODE_PIDS=$(ros2 node list | grep change_drive_mode)
+    if [ ! -z "$DRIVE_MODE_PIDS" ]; then
+        for NODE in $DRIVE_MODE_PIDS; do
+            ros2 node kill $NODE
+            echo "Killed $NODE"
+        done
+    fi
 }
 
 kill_rosbridge_server() {
@@ -130,7 +138,7 @@ fi
 
 cd "$HOME/inf3995/project_ws"
 
-if [ "$ROBOT_ID" == "simulation" ]; then 
+if [ "$ROBOT_ID" == "simulation" ]; then
 colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base
 
 else colcon build --cmake-args -DBUILD_TESTING=ON

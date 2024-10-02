@@ -22,7 +22,7 @@ export class SimulationService {
     return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/stop`);
   }
 
-  launchSimulation(driveMode3: string, driveMode4: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/start-simulation`, { drive_mode_3: driveMode3, drive_mode_4: driveMode4 });
+  changeDriveMode(robotId: number, driveMode: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/robot/${robotId}/change_drive_mode`, { drive_mode: driveMode });
   }
 }

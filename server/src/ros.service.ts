@@ -1,14 +1,11 @@
 import { Injectable, OnModuleInit, HttpException, HttpStatus } from '@nestjs/common';
 import * as ROSLIB from 'roslib';
 import { ConfigService } from '@nestjs/config';
-import { exec, spawn, ChildProcess } from 'child_process';
-import * as path from 'path';
 
 @Injectable()
 export class RosService implements OnModuleInit {
   private realRos: ROSLIB.Ros;
   private simulationRos: ROSLIB.Ros;
-  private processes: ChildProcess[] = [];
 
   constructor(private configService: ConfigService) {}
 
@@ -16,51 +13,57 @@ export class RosService implements OnModuleInit {
     this.connectToRobots();
   }
 
-  onModuleDestroy() {
-    console.log('Shutting down server. Cleaning up launched processes...');
-    this.processes.forEach((process) => {
-      process.kill('SIGINT');
-    });
-    console.log('All launched processes have been terminated.');
-  }
-
-
   private connectToRobots() {
     const simulationWsUrl = this.configService.get<string>('ROS_WS_URL_SIMULATION');
     const realWsUrl = this.configService.get<string>('ROS_WS_URL_REAL');
 
+    // Connect to simulation ROS
     if (simulationWsUrl) {
-      this.simulationRos = new ROSLIB.Ros({ url: simulationWsUrl });
-      this.setupRosConnection(this.simulationRos, 'simulation');
+      this.simulationRos = new ROSLIB.Ros({
+        url: simulationWsUrl,
+      });
+
+      this.simulationRos.on('connection', () => {
+        console.log(`Connected to simulation ROS at ${simulationWsUrl}`);
+      });
+
+      this.simulationRos.on('error', (error) => {
+        console.error(`Error connecting to simulation ROS:`, error);
+      });
+
+      this.simulationRos.on('close', () => {
+        console.log(`Connection to simulation ROS closed`);
+      });
     }
 
+    // Connect to real robots ROS
     if (realWsUrl) {
-      this.realRos = new ROSLIB.Ros({ url: realWsUrl });
-      this.setupRosConnection(this.realRos, 'real');
+      this.realRos = new ROSLIB.Ros({
+        url: realWsUrl,
+      });
+
+      this.realRos.on('connection', () => {
+        console.log(`Connected to real robots ROS at ${realWsUrl}`);
+      });
+
+      this.realRos.on('error', (error) => {
+        console.error(`Error connecting to real robots ROS:`, error);
+      });
+
+      this.realRos.on('close', () => {
+        console.log(`Connection to real robots ROS closed`);
+      });
     }
   }
-
-  private setupRosConnection(ros: ROSLIB.Ros, type: string) {
-    ros.on('connection', () => {
-      console.log(`Connected to ${type} ROS.`);
-    });
-
-    ros.on('error', error => {
-      console.error(`Error connecting to ${type} ROS:`, error);
-    });
-
-    ros.on('close', () => {
-      console.log(`Connection to ${type} ROS closed.`);
-    });
-  }
-
 
   private validateRobotConnection(robotId: string): ROSLIB.Ros {
     let rosConnection: ROSLIB.Ros;
 
     if (robotId === '3' || robotId === '4') {
+      // Simulation robot
       rosConnection = this.simulationRos;
     } else if (robotId === '1' || robotId === '2') {
+      // Real robot
       rosConnection = this.realRos;
     } else {
       throw new HttpException(`Invalid Robot ID ${robotId}`, HttpStatus.BAD_REQUEST);
@@ -72,34 +75,6 @@ export class RosService implements OnModuleInit {
 
     return rosConnection;
   }
-
-  launchSimulation(driveMode3: string, driveMode4: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-        const scriptPath = path.join(__dirname, '../../launch_robot.sh');
-        const command = `${scriptPath} simulation ${driveMode3} ${driveMode4}`;
-        
-        const simulationProcess = exec(command, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Error launching simulation: ${error.message}`);
-                reject(new HttpException('Failed to launch simulation', HttpStatus.INTERNAL_SERVER_ERROR));
-                return;
-            }
-            if (stderr) {
-                console.error(`stderr: ${stderr}`);
-                reject(new HttpException('Simulation stderr: ' + stderr, HttpStatus.INTERNAL_SERVER_ERROR));
-                return;
-            }
-
-            console.log(`stdout: ${stdout}`);
-            setTimeout(() => {
-                this.connectToRobots();
-            }, 5000);
-            resolve({ stdout });
-        });
-
-        this.processes.push(simulationProcess);
-    });
-}
 
   startRobotMission(robotId: string) {
     const rosConnection = this.validateRobotConnection(robotId);
@@ -178,5 +153,32 @@ export class RosService implements OnModuleInit {
     });
 
     return { message: `Robot ${robotId} is identifying itself` };
+  }
+
+  changeDriveMode(robotId: string, driveMode: string) {
+    const rosConnection = this.validateRobotConnection(robotId);
+  
+    const namespace = `limo_105_${robotId}`;
+    const serviceName = `/${namespace}/drive_mode`;
+  
+    const driveModeService = new ROSLIB.Service({
+      ros: rosConnection,
+      name: serviceName,
+      serviceType: 'std_srvs/SetBool',
+    });
+  
+    const request = new ROSLIB.ServiceRequest({
+      data: driveMode === 'ackermann',
+    });
+  
+    driveModeService.callService(request, (result) => {
+      if (result.success) {
+        console.log(`Drive mode changed to ${driveMode} for robot ${robotId}`);
+      } else {
+        console.error(`Failed to change drive mode for robot ${robotId}: ${result.message}`);
+      }
+    });
+  
+    return { message: `Requested to change drive mode for robot ${robotId} to ${driveMode}` };
   }
 }

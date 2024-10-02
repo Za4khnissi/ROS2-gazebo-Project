@@ -1,30 +1,33 @@
-import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Param, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { RosService } from '../ros.service';
 import { ApiTags, ApiOperation, ApiOkResponse, ApiBadRequestResponse, ApiInternalServerErrorResponse } from '@nestjs/swagger';
 
 @ApiTags('Simulation')
-@Controller('start-simulation')
+@Controller('robot')
 export class SimulationController {
   constructor(private readonly rosService: RosService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Start simulation with specified drive modes' })
-  @ApiOkResponse({ description: 'Simulation launched successfully' })
-  @ApiBadRequestResponse({ description: 'Bad Request: Missing drive modes' })
-  @ApiInternalServerErrorResponse({ description: 'Internal Server Error: Failed to launch simulation' })
-  async startSimulation(@Body() body: { drive_mode_3: string, drive_mode_4: string }) {
-    const { drive_mode_3, drive_mode_4 } = body;
+  @Post(':robotId/change_drive_mode')
+  @ApiOperation({ summary: 'Change drive mode for a specific robot during simulation' })
+  @ApiOkResponse({ description: 'Drive mode changed successfully' })
+  @ApiBadRequestResponse({ description: 'Bad Request: Invalid Robot ID or drive mode' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error: Failed to change drive mode' })
+  async changeDriveMode(
+    @Param('robotId') robotId: string,
+    @Body() body: { drive_mode: string }
+  ) {
+    const { drive_mode } = body;
     
-    if (!drive_mode_3 || !drive_mode_4) {
-      throw new HttpException('Drive modes for both robots must be provided', HttpStatus.BAD_REQUEST);
+    if (!drive_mode || !['diff_drive', 'ackermann'].includes(drive_mode)) {
+      throw new HttpException('Invalid drive mode', HttpStatus.BAD_REQUEST);
     }
     
     try {
-      const result = await this.rosService.launchSimulation(drive_mode_3, drive_mode_4);
-      return { statusCode: HttpStatus.OK, message: 'Simulation launched successfully', result };
+      const result = await this.rosService.changeDriveMode(robotId, drive_mode);
+      return { statusCode: HttpStatus.OK, message: `Drive mode for Robot ${robotId} changed to ${drive_mode}`, result };
     } catch (error) {
-      console.error('Error launching simulation:', error);
-      throw new HttpException('Failed to launch simulation', HttpStatus.INTERNAL_SERVER_ERROR);
+      console.error(`Error changing drive mode for Robot ${robotId}:`, error);
+      throw new HttpException('Failed to change drive mode', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

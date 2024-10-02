@@ -5,11 +5,10 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition
 from launch.launch_context import LaunchContext
 
 def generate_launch_description():
-    # Arguments to choose the drive mode for each robot
+    # Arguments to choose the initial drive mode for each robot
     drive_mode_3 = LaunchConfiguration('drive_mode_3', default='diff_drive')
     drive_mode_4 = LaunchConfiguration('drive_mode_4', default='diff_drive')
 
@@ -96,6 +95,28 @@ def generate_launch_description():
         namespace='limo_105_4'
     )
 
+    drive_mode_service_3 = Node(
+        package='ros_gz_example_application',
+        executable='drive_mode_service.py',
+        name='drive_mode_service',
+        output='screen',
+        namespace='limo_105_3',
+        parameters=[{
+            'initial_drive_mode': drive_mode_3
+        }]
+    )
+
+    drive_mode_service_4 = Node(
+        package='ros_gz_example_application',
+        executable='drive_mode_service.py',
+        name='drive_mode_service',
+        output='screen',
+        namespace='limo_105_4',
+        parameters=[{
+            'initial_drive_mode': drive_mode_4
+        }]
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument('drive_mode_3', default_value='diff_drive'),
         DeclareLaunchArgument('drive_mode_4', default_value='diff_drive'),
@@ -104,5 +125,7 @@ def generate_launch_description():
         identify_service_3,
         mission_service_3,
         identify_service_4,
-        mission_service_4
+        mission_service_4,
+        drive_mode_service_3,
+        drive_mode_service_4
     ])
