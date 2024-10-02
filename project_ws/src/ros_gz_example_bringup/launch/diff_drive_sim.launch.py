@@ -43,7 +43,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='both',
-        namespace=f'limo_105_3_{drive_mode_3.perform(lc)}',
+        namespace='limo_105_3',
         parameters=[
             {'use_sim_time': True},
             {'robot_description': robot_105_3_desc},
@@ -56,7 +56,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='both',
-        namespace=f'limo_105_4_{drive_mode_4.perform(lc)}',
+        namespace='limo_105_4',
         parameters=[
             {'use_sim_time': True},
             {'robot_description': robot_105_4_desc},
@@ -69,7 +69,7 @@ def generate_launch_description():
         executable='identify_service.py',
         name='identify_service',
         output='screen',
-        namespace=f'limo_105_3_{drive_mode_3.perform(lc)}'
+        namespace='limo_105_3'
     )
 
     mission_service_3 = Node(
@@ -77,7 +77,7 @@ def generate_launch_description():
         executable='mission_service.py',
         name='mission_service',
         output='screen',
-        namespace=f'limo_105_3_{drive_mode_3.perform(lc)}'
+        namespace='limo_105_3'
     )
 
     identify_service_4 = Node(
@@ -85,7 +85,7 @@ def generate_launch_description():
         executable='identify_service.py',
         name='identify_service',
         output='screen',
-        namespace=f'limo_105_4_{drive_mode_4.perform(lc)}'
+        namespace='limo_105_4'
     )
 
     mission_service_4 = Node(
@@ -93,7 +93,7 @@ def generate_launch_description():
         executable='mission_service.py',
         name='mission_service',
         output='screen',
-        namespace=f'limo_105_4_{drive_mode_4.perform(lc)}'
+        namespace='limo_105_4'
     )
 
     return LaunchDescription([

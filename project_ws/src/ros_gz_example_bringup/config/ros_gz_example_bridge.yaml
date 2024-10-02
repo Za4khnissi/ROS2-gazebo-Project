@@ -1,13 +1,13 @@
 ---
 # Bridge configuration for Robot 3
-- ros_topic_name: "/limo_105_3_diff_drive/cmd_vel"
-  gz_topic_name: "/limo_105_3_diff_drive/cmd_vel"
+- ros_topic_name: "/limo_105_3/cmd_vel"
+  gz_topic_name: "/limo_105_3/cmd_vel"
   ros_type_name: "geometry_msgs/msg/Twist"
   gz_type_name: "gz.msgs.Twist"
   direction: ROS_TO_GZ
 
 # Bridge configuration for Robot 4
-- ros_topic_name: "/limo_105_4_diff_drive/cmd_vel"
+- ros_topic_name: "/limo_105_4/cmd_vel"
   gz_topic_name: "/limo_105_4/cmd_vel"
   ros_type_name: "geometry_msgs/msg/Twist"
   gz_type_name: "gz.msgs.Twist"
@@ -19,62 +19,62 @@
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS
 
-- ros_topic_name: "/limo_105_3_diff_drive/odom"
-  gz_topic_name: "/limo_105_3_diff_drive/odom"
+- ros_topic_name: "/limo_105_3/odom"
+  gz_topic_name: "/limo_105_3/odom"
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "gz.msgs.Odometry"
   direction: GZ_TO_ROS
 
-- ros_topic_name: "/limo_105_4_diff_drive/odom"
-  gz_topic_name: "/limo_105_4_diff_drive/odom"
+- ros_topic_name: "/limo_105_4/odom"
+  gz_topic_name: "/limo_105_4/odom"
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "gz.msgs.Odometry"
   direction: GZ_TO_ROS
 
-- ros_topic_name: "/limo_105_3_diff_drive/scan"
-  gz_topic_name: "/limo_105_3_diff_drive/scan"
+- ros_topic_name: "/limo_105_3/scan"
+  gz_topic_name: "/limo_105_3/scan"
   ros_type_name: "sensor_msgs/msg/LaserScan"
   gz_type_name: "gz.msgs.LaserScan"
   direction: GZ_TO_ROS
 
-- ros_topic_name: "/limo_105_4_diff_drive/scan"
-  gz_topic_name: "/limo_105_4_diff_drive/scan"
+- ros_topic_name: "/limo_105_4/scan"
+  gz_topic_name: "/limo_105_4/scan"
   ros_type_name: "sensor_msgs/msg/LaserScan"
   gz_type_name: "gz.msgs.LaserScan"
   direction: GZ_TO_ROS
 
-- ros_topic_name: "/limo_105_3_diff_drive/imu"
-  gz_topic_name: "/limo_105_3_diff_drive/imu"
+- ros_topic_name: "/limo_105_3/imu"
+  gz_topic_name: "/limo_105_3/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
-- ros_topic_name: "/limo_105_4_diff_drive/imu"
-  gz_topic_name: "/limo_105_4_diff_drive/imu"
+- ros_topic_name: "/limo_105_4/imu"
+  gz_topic_name: "/limo_105_4/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
 - ros_topic_name: "/tf"
-  gz_topic_name: "/model/limo_105_3_diff_drive/pose"
+  gz_topic_name: "/model/limo_105_3/pose"
   ros_type_name: "tf2_msgs/msg/TFMessage"
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
 
 - ros_topic_name: "/tf_static"
-  gz_topic_name: "/model/limo_105_3_diff_drive/pose_static"
+  gz_topic_name: "/model/limo_105_3/pose_static"
   ros_type_name: "tf2_msgs/msg/TFMessage"
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
 
 - ros_topic_name: "/tf"
-  gz_topic_name: "/model/limo_105_4_drive/pose"
+  gz_topic_name: "/model/limo_105_4/pose"
   ros_type_name: "tf2_msgs/msg/TFMessage"
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
 
 - ros_topic_name: "/tf_static"
-  gz_topic_name: "/model/limo_105_4_drive/pose_static"
+  gz_topic_name: "/model/limo_105_4/pose_static"
   ros_type_name: "tf2_msgs/msg/TFMessage"
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
@@ -140,86 +140,6 @@
   
 - ros_topic_name: "/tf_static"
   gz_topic_name: "/model/limo/pose_static"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
-  direction: GZ_TO_ROS
-
-# Bridge configuration for Robot 3
-- ros_topic_name: "/limo_105_3_ackermann/cmd_vel"
-  gz_topic_name: "/limo_105_3_ackermann/cmd_vel"
-  ros_type_name: "geometry_msgs/msg/Twist"
-  gz_type_name: "gz.msgs.Twist"
-  direction: ROS_TO_GZ
-
-# Bridge configuration for Robot 4
-- ros_topic_name: "/limo_105_4_ackermann/cmd_vel"
-  gz_topic_name: "/limo_105_4/cmd_vel"
-  ros_type_name: "geometry_msgs/msg/Twist"
-  gz_type_name: "gz.msgs.Twist"
-  direction: ROS_TO_GZ
-
-- ros_topic_name: "/clock"
-  gz_topic_name: "/clock"
-  ros_type_name: "rosgraph_msgs/msg/Clock"
-  gz_type_name: "gz.msgs.Clock"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/limo_105_3_ackermann/odom"
-  gz_topic_name: "/limo_105_3_ackermann/odom"
-  ros_type_name: "nav_msgs/msg/Odometry"
-  gz_type_name: "gz.msgs.Odometry"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/limo_105_4_ackermann/odom"
-  gz_topic_name: "/limo_105_4_ackermann/odom"
-  ros_type_name: "nav_msgs/msg/Odometry"
-  gz_type_name: "gz.msgs.Odometry"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/limo_105_3_ackermann/scan"
-  gz_topic_name: "/limo_105_3_ackermann/scan"
-  ros_type_name: "sensor_msgs/msg/LaserScan"
-  gz_type_name: "gz.msgs.LaserScan"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/limo_105_4_ackermann/scan"
-  gz_topic_name: "/limo_105_4_ackermann/scan"
-  ros_type_name: "sensor_msgs/msg/LaserScan"
-  gz_type_name: "gz.msgs.LaserScan"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/limo_105_3_ackermann/imu"
-  gz_topic_name: "/limo_105_3_ackermann/imu"
-  ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.IMU"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/limo_105_4_ackermann/imu"
-  gz_topic_name: "/limo_105_4_ackermann/imu"
-  ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.IMU"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/tf"
-  gz_topic_name: "/model/limo_105_3_ackermann/pose"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/tf_static"
-  gz_topic_name: "/model/limo_105_3_ackermann/pose_static"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/tf"
-  gz_topic_name: "/model/limo_105_4_ackermann/pose"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
-  direction: GZ_TO_ROS
-
-- ros_topic_name: "/tf_static"
-  gz_topic_name: "/model/limo_105_4_ackermann/pose_static"
   ros_type_name: "tf2_msgs/msg/TFMessage"
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS

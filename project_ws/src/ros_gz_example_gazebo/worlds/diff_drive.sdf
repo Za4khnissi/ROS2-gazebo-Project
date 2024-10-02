@@ -63,6 +63,10 @@
         <uri>package://ros_gz_example_description/models/limo_105_3_diff_drive</uri>
         <uri>package://ros_gz_example_description/models/limo_105_3_ackermann</uri>
       </include>
+      <ros>
+        <package>ros_gz_example_gazebo</package>
+        <output>screen</output>
+      </ros>
     </model>
 
     <!-- Robot 4 -->
@@ -72,6 +76,10 @@
         <uri>package://ros_gz_example_description/models/limo_105_4_diff_drive</uri>
         <uri>package://ros_gz_example_description/models/limo_105_4_ackermann</uri>
       </include>
+      <ros>
+        <package>ros_gz_example_gazebo</package>
+        <output>screen</output>
+      </ros>
     </model>
 
   </world>

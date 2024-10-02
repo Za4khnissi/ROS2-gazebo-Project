@@ -5,7 +5,6 @@ from rclpy.qos import QoSProfile
 from geometry_msgs.msg import Twist
 from example_interfaces.srv import SetBool
 from enum import Enum
-import random
 
 PUBLISH_RATE = 1/10  # 10 Hz
 
@@ -46,14 +45,14 @@ class MissionServiceNode(Node):
 
     def start(self):
         self.mission_status = MissionStatus.STARTED
-        self.get_logger().info('Starting the mission: publishing random velocities to /cmd_vel')
+        self.get_logger().info('Starting the mission: spinning the robot in place')
 
         # Create a timer to publish velocity at the defined rate
         self.publish_timer = self.create_timer(PUBLISH_RATE, self.publish_velocity)
 
     def stop(self):
         self.mission_status = MissionStatus.STOP
-        self.get_logger().info('Stopping the mission: stopping publishing to /cmd_vel')
+        self.get_logger().info('Stopping the mission: stopping the robot')
 
         # Cancel the timer to stop publishing velocity
         if self.publish_timer is not None:
@@ -64,12 +63,12 @@ class MissionServiceNode(Node):
     def publish_velocity(self):
         msg = Twist()
 
-        msg.linear.x = random.uniform(0.1, 0.5)
-
-        msg.angular.z = random.uniform(-0.5, 0.5)
+        msg.linear.x = 0.1  # Make sure the robot does not move forward or backward
+        msg.angular.z = 0.9  # Spin to the right at a constant angular velocity
 
         self.cmd_vel_pub.publish(msg)
         self.get_logger().info(f'Published random velocity: linear.x = {msg.linear.x}, angular.z = {msg.angular.z}')
+
 
 
 def main(args=None):
