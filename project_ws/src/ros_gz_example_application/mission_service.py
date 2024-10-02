@@ -5,6 +5,7 @@ from rclpy.qos import QoSProfile
 from geometry_msgs.msg import Twist
 from example_interfaces.srv import SetBool
 from enum import Enum
+import random
 
 PUBLISH_RATE = 1/10  # 10 Hz
 
@@ -29,7 +30,6 @@ class MissionServiceNode(Node):
         self.get_logger().info('Mission Service Node has been started')
 
     def handle_mission_service(self, request, response):
-
         if request.data and self.mission_status != MissionStatus.STARTED:
             self.start()
             response.success = True
@@ -45,15 +45,13 @@ class MissionServiceNode(Node):
         return response
 
     def start(self):
-
         self.mission_status = MissionStatus.STARTED
-        self.get_logger().info('Starting the mission: publishing to /cmd_vel')
+        self.get_logger().info('Starting the mission: publishing random velocities to /cmd_vel')
 
-        # Create a timer to publish velocity at a rate of 1 seconds (1 Hz)
+        # Create a timer to publish velocity at the defined rate
         self.publish_timer = self.create_timer(PUBLISH_RATE, self.publish_velocity)
 
     def stop(self):
-
         self.mission_status = MissionStatus.STOP
         self.get_logger().info('Stopping the mission: stopping publishing to /cmd_vel')
 
@@ -61,16 +59,17 @@ class MissionServiceNode(Node):
         if self.publish_timer is not None:
             self.publish_timer.cancel()
             self.publish_timer = None
-            self.cmd_vel_pub.publish(Twist())
+            self.cmd_vel_pub.publish(Twist())  # Publish zero velocity to stop the robot
 
     def publish_velocity(self):
-        # Create a Twist message with linear velocity x: 0.2
         msg = Twist()
-        msg.linear.x = 0.2
-        msg.angular.z = 0.0
+
+        msg.linear.x = random.uniform(0.1, 0.5)
+
+        msg.angular.z = random.uniform(-0.5, 0.5)
 
         self.cmd_vel_pub.publish(msg)
-        self.get_logger().info('Published velocity command: linear.x = 0.2')
+        self.get_logger().info(f'Published random velocity: linear.x = {msg.linear.x}, angular.z = {msg.angular.z}')
 
 
 def main(args=None):

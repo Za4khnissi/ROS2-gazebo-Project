@@ -50,6 +50,7 @@ trap cleanup SIGINT SIGTERM EXIT
 kill_existing_services() {
     echo "Killing existing identify and mission services..."
 
+    # Identify and kill any existing identify_service nodes
     IDENTIFY_PIDS=$(ros2 node list | grep identify_service)
     if [ ! -z "$IDENTIFY_PIDS" ]; then
         for NODE in $IDENTIFY_PIDS; do
@@ -58,6 +59,7 @@ kill_existing_services() {
         done
     fi
 
+    # Identify and kill any existing mission_service nodes
     MISSION_PIDS=$(ros2 node list | grep mission_service)
     if [ ! -z "$MISSION_PIDS" ]; then
         for NODE in $MISSION_PIDS; do
@@ -128,10 +130,11 @@ fi
 
 cd "$HOME/inf3995/project_ws"
 
-if [ "$ROBOT_ID" == "simulation" ]; then
-    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base
-else
-    colcon build --cmake-args -DBUILD_TESTING=ON
+if [ "$ROBOT_ID" == "simulation" ]; then 
+colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base
+
+else colcon build --cmake-args -DBUILD_TESTING=ON
+
 fi
 
 source install/setup.sh
@@ -140,6 +143,7 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     echo "Launching Gazebo simulation with Robot 3 and Robot 4."
 
     kill_rosbridge_server
+
     kill_existing_services
 
     ros2 launch ros_gz_example_bringup bridge.launch.py &
