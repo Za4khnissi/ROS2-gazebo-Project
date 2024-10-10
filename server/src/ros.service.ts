@@ -1,157 +1,158 @@
-import { Injectable, OnModuleInit, HttpException, HttpStatus } from '@nestjs/common';
-import * as ROSLIB from 'roslib';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
+import * as rclnodejs from 'rclnodejs';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class RosService implements OnModuleInit {
-  private realRos: ROSLIB.Ros;
-  private simulationRos: ROSLIB.Ros;
+export class RosService implements OnModuleInit, OnModuleDestroy {
+  private realRobotNode: rclnodejs.Node;
+  private simulationRobotNode: rclnodejs.Node;
 
   constructor(private configService: ConfigService) {}
 
-  onModuleInit() {
+  async onModuleInit() {
+
+    const rosDomainId = this.configService.get<string>('ROS_DOMAIN_ID') || '49';
+    process.env.ROS_DOMAIN_ID = rosDomainId;
+
+    console.log(`ROS_DOMAIN_ID is set to ${process.env.ROS_DOMAIN_ID}`);
+
+    // Initialize rclnodejs
+    await rclnodejs.init();
+
+    // Create nodes for real and simulation robots
     this.connectToRobots();
   }
 
   private connectToRobots() {
-    const simulationWsUrl = this.configService.get<string>('ROS_WS_URL_SIMULATION');
-    const realWsUrl = this.configService.get<string>('ROS_WS_URL_REAL');
 
-    // Connect to simulation ROS
-    if (simulationWsUrl) {
-      this.simulationRos = new ROSLIB.Ros({
-        url: simulationWsUrl,
-      });
+    this.simulationRobotNode = new rclnodejs.Node('simulation_robot_node');
+    this.realRobotNode = new rclnodejs.Node('real_robot_node');
 
-      this.simulationRos.on('connection', () => {
-        console.log(`Connected to simulation ROS at ${simulationWsUrl}`);
-      });
+    // Spin the nodes
+    this.simulationRobotNode.spin();
+    this.realRobotNode.spin();
 
-      this.simulationRos.on('error', (error) => {
-        console.error(`Error connecting to simulation ROS:`, error);
-      });
-
-      this.simulationRos.on('close', () => {
-        console.log(`Connection to simulation ROS closed`);
-      });
-    }
-
-    // Connect to real robots ROS
-    if (realWsUrl) {
-      this.realRos = new ROSLIB.Ros({
-        url: realWsUrl,
-      });
-
-      this.realRos.on('connection', () => {
-        console.log(`Connected to real robots ROS at ${realWsUrl}`);
-      });
-
-      this.realRos.on('error', (error) => {
-        console.error(`Error connecting to real robots ROS:`, error);
-      });
-
-      this.realRos.on('close', () => {
-        console.log(`Connection to real robots ROS closed`);
-      });
-    }
+    console.log('ROS 2 nodes initialized for simulation and real robots.');
   }
 
-  private validateRobotConnection(robotId: string): ROSLIB.Ros {
-    let rosConnection: ROSLIB.Ros;
-
+  private validateRobotConnection(robotId: string): rclnodejs.Node {
     if (robotId === '3' || robotId === '4') {
-      // Simulation robot
-      rosConnection = this.simulationRos;
+      return this.simulationRobotNode;
     } else if (robotId === '1' || robotId === '2') {
-      // Real robot
-      rosConnection = this.realRos;
+      return this.realRobotNode;
     } else {
       throw new HttpException(`Invalid Robot ID ${robotId}`, HttpStatus.BAD_REQUEST);
     }
+  }
 
-    if (!rosConnection || rosConnection.isConnected === false) {
-      throw new HttpException(`Cannot connect to Robot ${robotId}`, HttpStatus.SERVICE_UNAVAILABLE);
+  async startRobotMission(robotId: string) {
+    const node = this.validateRobotConnection(robotId);
+    const namespace = `limo_105_${robotId}`;
+    const serviceName = `/${namespace}/mission`;
+
+    // Create a client for the SetBool service
+    const client = node.createClient('example_interfaces/srv/SetBool', serviceName);
+
+    // Prepare the request
+    const RequestType = rclnodejs.require('example_interfaces/srv/SetBool').Request;
+    const request = new RequestType();
+    request.data = true;
+
+    // Wait for the service to become available
+    const serviceAvailable = await client.waitForService(5000);
+    if (!serviceAvailable) {
+      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    return rosConnection;
+    // Call the service
+    return new Promise((resolve, reject) => {
+      client.sendRequest(request, (response) => {
+        if (response.success) {
+          console.log(`Mission started for robot ${robotId}: ${response.message}`);
+          resolve({ message: `Requested to start mission for robot ${robotId}` });
+        } else {
+          console.error(`Failed to start mission for robot ${robotId}: ${response.message}`);
+          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+      });
+    });
   }
 
-  startRobotMission(robotId: string) {
-    const rosConnection = this.validateRobotConnection(robotId);
-
+  async stopRobotMission(robotId: string) {
+    const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
 
-    const missionService = new ROSLIB.Service({
-      ros: rosConnection,
-      name: serviceName,
-      serviceType: 'example_interfaces/SetBool',
-    });
+    // Create a client for the SetBool service
+    const client = node.createClient('example_interfaces/srv/SetBool', serviceName);
 
-    const request = new ROSLIB.ServiceRequest({
-      data: true,
-    });
+    // Prepare the request
+    const RequestType = rclnodejs.require('example_interfaces/srv/SetBool').Request;
+    const request = new RequestType();
+    request.data = false;
 
-    missionService.callService(request, (result) => {
-      if (result.success) {
-        console.log(`Mission started for robot ${robotId}: ${result.message}`);
-      } else {
-        console.error(`Failed to start mission for robot ${robotId}: ${result.message}`);
-      }
-    });
+    // Wait for the service to become available
+    const serviceAvailable = await client.waitForService(5000);
+    if (!serviceAvailable) {
+      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+    }
 
-    return { message: `Requested to start mission for robot ${robotId}` };
+    // Call the service
+    return new Promise((resolve, reject) => {
+      client.sendRequest(request, (response) => {
+        if (response.success) {
+          console.log(`Mission stopped for robot ${robotId}: ${response.message}`);
+          resolve({ message: `Requested to stop mission for robot ${robotId}` });
+        } else {
+          console.error(`Failed to stop mission for robot ${robotId}: ${response.message}`);
+          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+      });
+    });
   }
 
-  stopRobotMission(robotId: string) {
-    const rosConnection = this.validateRobotConnection(robotId);
-
-    const namespace = `limo_105_${robotId}`;
-    const serviceName = `/${namespace}/mission`;
-
-    const missionService = new ROSLIB.Service({
-      ros: rosConnection,
-      name: serviceName,
-      serviceType: 'example_interfaces/SetBool',
-    });
-
-    const request = new ROSLIB.ServiceRequest({
-      data: false,
-    });
-
-    missionService.callService(request, (result) => {
-      if (result.success) {
-        console.log(`Mission stopped for robot ${robotId}: ${result.message}`);
-      } else {
-        console.error(`Failed to stop mission for robot ${robotId}: ${result.message}`);
-      }
-    });
-
-    return { message: `Requested to stop mission for robot ${robotId}` };
-  }
-
-  identifyRobot(robotId: string) {
-    const rosConnection = this.validateRobotConnection(robotId);
-
+  async identifyRobot(robotId: string) {
+    const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/identify`;
 
-    const identifyService = new ROSLIB.Service({
-      ros: rosConnection,
-      name: serviceName,
-      serviceType: 'std_srvs/Trigger',
+    // Create a client for the Trigger service
+    const client = node.createClient('std_srvs/srv/Trigger', serviceName);
+
+    // Prepare the request
+    const RequestType = rclnodejs.require('std_srvs/srv/Trigger').Request;
+    const request = new RequestType();
+
+    // Wait for the service to become available
+    const serviceAvailable = await client.waitForService(5000);
+    if (!serviceAvailable) {
+      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    // Call the service
+    return new Promise((resolve, reject) => {
+      client.sendRequest(request, (response) => {
+        if (response.success) {
+          console.log(`Robot ${robotId} successfully identified: ${response.message}`);
+          resolve({ message: `Robot ${robotId} is identifying itself` });
+        } else {
+          console.error(`Failed to identify Robot ${robotId}: ${response.message}`);
+          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+      });
     });
+  }
 
-    const request = new ROSLIB.ServiceRequest({});
-
-    identifyService.callService(request, (result) => {
-      if (result.success) {
-        console.log(`Robot ${robotId} successfully identified: ${result.message}`);
-      } else {
-        console.error(`Failed to identify Robot ${robotId}: ${result.message}`);
-      }
-    });
-
-    return { message: `Robot ${robotId} is identifying itself` };
+  async onModuleDestroy() {
+    // Destroy nodes and shutdown rclnodejs
+    this.simulationRobotNode.destroy();
+    this.realRobotNode.destroy();
+    await rclnodejs.shutdown();
   }
 }

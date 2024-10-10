@@ -17,7 +17,7 @@ export class RobotController {
       if (!response) {
         throw new HttpException(`Robot ${robotId} not found`, HttpStatus.NOT_FOUND);
       }
-      return { statusCode: HttpStatus.OK, message: response.message };
+      return { statusCode: HttpStatus.OK, message: `Robot ${robotId} is identigying itself` };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
