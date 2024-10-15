@@ -164,7 +164,7 @@ export class RosService implements OnModuleInit {
     const driveModeService = new ROSLIB.Service({
       ros: rosConnection,
       name: serviceName,
-      serviceType: 'std_srvs/SetBool',
+      serviceType: 'std_srvs/SetBool', // Using SetBool service
     });
   
     const request = new ROSLIB.ServiceRequest({
@@ -175,10 +175,12 @@ export class RosService implements OnModuleInit {
       if (result.success) {
         console.log(`Drive mode changed to ${driveMode} for robot ${robotId}`);
       } else {
-        console.error(`Failed to change drive mode for robot ${robotId}: ${result.message}`);
+        console.error(`Failed to change drive mode for robot ${robotId}`);
       }
     });
   
     return { message: `Requested to change drive mode for robot ${robotId} to ${driveMode}` };
   }
+  
+  
 }

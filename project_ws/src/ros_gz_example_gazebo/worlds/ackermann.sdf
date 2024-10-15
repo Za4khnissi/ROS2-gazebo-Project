@@ -14,7 +14,7 @@
     <plugin filename="ignition-gazebo-scene-broadcaster-system" name="ignition::gazebo::systems::SceneBroadcaster"/>
     <plugin filename="ignition-gazebo-user-commands-system" name="ignition::gazebo::systems::UserCommands"/>
 
-    <light name="sun" type="directional">
+    <light name="sun_2" type="directional">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
@@ -60,7 +60,7 @@
     <model name="limo_105_3">
       <pose>0 -0.5 0.35 0 0 0</pose>
       <include merge="true">
-        <uri>package://ros_gz_example_description/models/limo_105_3_diff_drive</uri>
+        <uri>package://ros_gz_example_description/models/limo_105_3_ackermann</uri>
       </include>
       <ros>
         <package>ros_gz_example_gazebo</package>
@@ -72,7 +72,7 @@
     <model name="limo_105_4">
       <pose>0 0.5 0.35 0 0 0</pose>
       <include merge="true">
-        <uri>package://ros_gz_example_description/models/limo_105_4_diff_drive</uri>
+        <uri>package://ros_gz_example_description/models/limo_105_4_ackermann</uri>
       </include>
       <ros>
         <package>ros_gz_example_gazebo</package>

@@ -11,7 +11,7 @@ fi
 ROBOT_ID=$1
 
 # Set drive modes for robots 3 and 4 only in simulation
-if [ "$ROBOT_ID" == "simulation" ]; then
+if [ "$ROBOT_ID" == "simulation" ] || [ "$ROBOT_ID" == "gazebo" ]; then
     DRIVE_MODE_3=${2:-diff_drive}  # Default to 'diff_drive' if not provided
     DRIVE_MODE_4=${3:-diff_drive}  # Default to 'diff_drive' if not provided
 fi
@@ -27,54 +27,61 @@ is_pip_package_installed() {
 }
 
 cleanup() {
-    echo "Cleaning up..."
-    # Terminate all collected process IDs gracefully
-    for PID in "${PIDS[@]}"; do
-        if kill -0 $PID 2>/dev/null; then
-            kill $PID
-            wait $PID
+    echo "Attempting graceful shutdown of ROS nodes and processes..."
+
+    # Terminate by process names without using forceful kill immediately
+    pkill -f 'gzserver'
+    pkill -f 'gzclient'
+    pkill -f 'rosbridge_websocket'
+    pkill -f 'identify_service'
+    pkill -f 'mission_service'
+    pkill -f 'drive_mode_service'
+
+    # Allow time for processes to terminate gracefully
+    sleep 3
+
+    # Forcefully kill lingering processes if they still exist
+    for PROCESS in 'gzserver' 'gzclient' 'rosbridge_websocket' 'identify_service' 'mission_service' 'drive_mode_service'; do
+        if pgrep -f "$PROCESS" > /dev/null; then
+            echo "Force killing lingering $PROCESS processes..."
+            pkill -9 -f "$PROCESS"
         fi
     done
 
-    # Kill Gazebo if still running
-    if kill -0 $GAZEBO_PID 2>/dev/null; then
-        kill $GAZEBO_PID
-        wait $GAZEBO_PID
-    fi
-
-    echo "All processes terminated."
+    sleep 2
+    echo "Cleanup complete."
 }
 
-trap cleanup SIGINT SIGTERM EXIT
+cleanup_gazebo() {
+    echo "Stopping Gazebo processes..."
+    
+    # Attempt to gracefully stop Gazebo processes
+    pkill -f 'gzserver'
+    pkill -f 'gzclient'
+    sleep 2
 
-kill_existing_services() {
-    echo "Killing existing identify and mission services..."
-
-    # Identify and kill any existing identify_service nodes
-    IDENTIFY_PIDS=$(ros2 node list | grep identify_service)
-    if [ ! -z "$IDENTIFY_PIDS" ]; then
-        for NODE in $IDENTIFY_PIDS; do
-            ros2 node kill $NODE
-            echo "Killed $NODE"
-        done
+    # Forcefully kill any remaining Gazebo processes
+    if pgrep -f 'gzserver' > /dev/null || pgrep -f 'gzclient' > /dev/null; then
+        echo "Forcing Gazebo processes to stop..."
+        pkill -9 -f 'gzserver'
+        pkill -9 -f 'gzclient'
     fi
 
-    # Identify and kill any existing mission_service nodes
-    MISSION_PIDS=$(ros2 node list | grep mission_service)
-    if [ ! -z "$MISSION_PIDS" ]; then
-        for NODE in $MISSION_PIDS; do
-            ros2 node kill $NODE
-            echo "Killed $NODE"
-        done
-    fi
+    # Wait until processes are completely gone
+    while pgrep -f 'gzserver' > /dev/null || pgrep -f 'gzclient' > /dev/null; do
+        echo "Waiting for Gazebo processes to fully terminate..."
+        sleep 1
+    done
 
-    DRIVE_MODE_PIDS=$(ros2 node list | grep change_drive_mode)
-    if [ ! -z "$DRIVE_MODE_PIDS" ]; then
-        for NODE in $DRIVE_MODE_PIDS; do
-            ros2 node kill $NODE
-            echo "Killed $NODE"
-        done
-    fi
+    echo "Gazebo fully stopped."
+}
+
+launch_gazebo() {
+    echo "Launching Gazebo with drive modes: Robot 3: $DRIVE_MODE_3, Robot 4: $DRIVE_MODE_4"
+    ros2 launch ros_gz_example_bringup gazebo.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
+    GAZEBO_PID=$!
+    PIDS+=($GAZEBO_PID)
+    sleep 3
 }
 
 kill_rosbridge_server() {
@@ -100,6 +107,9 @@ kill_rosbridge_server() {
         fi
     fi
 }
+
+
+trap cleanup SIGINT SIGTERM EXIT
 
 # Ensure necessary dependencies are installed
 if ! is_apt_package_installed ros-humble-rosbridge-server; then
@@ -138,8 +148,9 @@ fi
 
 cd "$HOME/inf3995/project_ws"
 
-if [ "$ROBOT_ID" == "simulation" ]; then
-colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base
+if [ "$ROBOT_ID" == "simulation" ] || [ "$ROBOT_ID" == "gazebo" ]; then
+
+    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base limo_msgs limo_description limo_bringup
 
 else colcon build --cmake-args -DBUILD_TESTING=ON
 
@@ -148,24 +159,24 @@ fi
 source install/setup.sh
 
 if [ "$ROBOT_ID" == "simulation" ]; then
-    echo "Launching Gazebo simulation with Robot 3 and Robot 4."
+
+    cleanup
 
     kill_rosbridge_server
 
-    kill_existing_services
+    echo "Launching simulation with Robot 3 mode: $DRIVE_MODE_3 and Robot 4 mode: $DRIVE_MODE_4."
 
     ros2 launch ros_gz_example_bringup bridge.launch.py &
     BRIDGE_PID=$!
     PIDS+=($BRIDGE_PID)
 
-    ros2 launch ros_gz_example_bringup gazebo.launch.py &
+    ros2 launch ros_gz_example_bringup gazebo.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
     GAZEBO_PID=$!
+    PIDS+=($GAZEBO_PID)
 
-    sleep 5
-
-    # Launch the simulation with the drive modes for Robot 3 and 4
     ros2 launch ros_gz_example_bringup diff_drive_sim.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
     PIDS+=($!)
+
 
     ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
     ROSBRIDGE_PID=$!
@@ -175,7 +186,15 @@ if [ "$ROBOT_ID" == "simulation" ]; then
         wait $PID
     done
 
-    wait $GAZEBO_PID
+elif [ "$ROBOT_ID" == "gazebo" ]; then
+    echo "Restarting Gazebo with new drive modes."
+    cleanup_gazebo
+    sleep 4
+    launch_gazebo
+    LAUNCH_PID=$!
+    echo "Gazebo ready. Launch rosbridge to start interacting with the robot from the dashboard."
+    wait $LAUNCH_PID
+
 
 elif [ "$ROBOT_ID" == "1" ]; then
     ros2 launch limo_base limo_base.launch.py &
@@ -190,6 +209,6 @@ elif [ "$ROBOT_ID" == "2" ]; then
     wait $LAUNCH_PID
 
 else
-    echo "Invalid ROBOT_ID. Please provide ROBOT_ID as 1, 2, or 'simulation'"
+    echo "Invalid ROBOT_ID. Please provide ROBOT_ID as 1, 2, 'simulation', 'gazebo'."
     exit 1
 fi
