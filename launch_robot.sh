@@ -30,17 +30,16 @@ cleanup() {
     echo "Attempting graceful shutdown of ROS nodes and processes..."
 
     # Terminate by process names without using forceful kill immediately
-    pkill -f 'gzserver'
-    pkill -f 'gzclient'
     pkill -f 'rosbridge_websocket'
     pkill -f 'identify_service'
     pkill -f 'mission_service'
+    pkill -f 'drive_mode_service'
 
     # Allow time for processes to terminate gracefully
     sleep 1
 
     # Forcefully kill lingering processes if they still exist
-    for PROCESS in 'gzserver' 'gzclient' 'rosbridge_websocket' 'identify_service' 'mission_service'; do
+    for PROCESS in 'rosbridge_websocket' 'identify_service' 'mission_service' 'drive_mode_service'; do
         if pgrep -f "$PROCESS" > /dev/null; then
             echo "Force killing lingering $PROCESS processes..."
             pkill -9 -f "$PROCESS"
@@ -136,13 +135,8 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     BRIDGE_PID=$!
     PIDS+=($BRIDGE_PID)
 
-    ros2 launch ros_gz_example_bringup gazebo.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
-    GAZEBO_PID=$!
-    PIDS+=($GAZEBO_PID)
-
     ros2 launch ros_gz_example_bringup diff_drive_sim.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
     PIDS+=($!)
-
 
     ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
     ROSBRIDGE_PID=$!

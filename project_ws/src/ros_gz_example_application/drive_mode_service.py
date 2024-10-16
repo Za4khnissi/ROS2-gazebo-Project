@@ -46,8 +46,8 @@ class DriveModeService(Node):
 
     def restart_gazebo_with_current_modes(self):
         # Launch the Gazebo simulation with the updated drive modes for both robots
-        launch_script_path = os.path.expanduser("~/inf3995/launch_robot.sh")
-        command = [launch_script_path, "simulation", self.robot_3_mode, self.robot_4_mode]
+        launch_script_path = os.path.expanduser("~/inf3995/launch_gazebo.sh")
+        command = [launch_script_path, self.robot_3_mode, self.robot_4_mode]
         
         try:
             subprocess.run(command, check=True)
