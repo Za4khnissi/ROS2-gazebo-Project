@@ -8,7 +8,7 @@
     ros2 topic echo /limo/odometry
 -->
 <sdf version="1.8">
-  <world name="demo">
+  <world name="demo_1">
     <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics"/>
     <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors"><render_engine>ogre2</render_engine></plugin>
     <plugin filename="ignition-gazebo-scene-broadcaster-system" name="ignition::gazebo::systems::SceneBroadcaster"/>

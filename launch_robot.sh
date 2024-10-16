@@ -38,7 +38,7 @@ cleanup() {
     pkill -f 'drive_mode_service'
 
     # Allow time for processes to terminate gracefully
-    sleep 3
+    sleep 1
 
     # Forcefully kill lingering processes if they still exist
     for PROCESS in 'gzserver' 'gzclient' 'rosbridge_websocket' 'identify_service' 'mission_service' 'drive_mode_service'; do
@@ -48,40 +48,27 @@ cleanup() {
         fi
     done
 
-    sleep 2
+    sleep 1
     echo "Cleanup complete."
 }
 
 cleanup_gazebo() {
     echo "Stopping Gazebo processes..."
     
-    # Attempt to gracefully stop Gazebo processes
+    # Attempt to gracefully stop Gazebo processes with SIGINT
     pkill -f 'gzserver'
     pkill -f 'gzclient'
     sleep 2
 
-    # Forcefully kill any remaining Gazebo processes
-    if pgrep -f 'gzserver' > /dev/null || pgrep -f 'gzclient' > /dev/null; then
-        echo "Forcing Gazebo processes to stop..."
-        pkill -9 -f 'gzserver'
-        pkill -9 -f 'gzclient'
-    fi
-
-    # Wait until processes are completely gone
-    while pgrep -f 'gzserver' > /dev/null || pgrep -f 'gzclient' > /dev/null; do
-        echo "Waiting for Gazebo processes to fully terminate..."
-        sleep 1
+    # Forcefully kill any remaining Gazebo processes if they still exist
+    for PROCESS in 'gzserver' 'gzclient'; do
+        if pgrep -f "$PROCESS" > /dev/null; then
+            echo "Force killing lingering $PROCESS processes..."
+            pkill -9 -f "$PROCESS"
+        fi
     done
 
     echo "Gazebo fully stopped."
-}
-
-launch_gazebo() {
-    echo "Launching Gazebo with drive modes: Robot 3: $DRIVE_MODE_3, Robot 4: $DRIVE_MODE_4"
-    ros2 launch ros_gz_example_bringup gazebo.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
-    GAZEBO_PID=$!
-    PIDS+=($GAZEBO_PID)
-    sleep 3
 }
 
 kill_rosbridge_server() {
@@ -110,6 +97,7 @@ kill_rosbridge_server() {
 
 
 trap cleanup SIGINT SIGTERM EXIT
+
 
 # Ensure necessary dependencies are installed
 if ! is_apt_package_installed ros-humble-rosbridge-server; then
@@ -188,13 +176,12 @@ if [ "$ROBOT_ID" == "simulation" ]; then
 
 elif [ "$ROBOT_ID" == "gazebo" ]; then
     echo "Restarting Gazebo with new drive modes."
+    
     cleanup_gazebo
-    sleep 4
-    launch_gazebo
-    LAUNCH_PID=$!
-    echo "Gazebo ready. Launch rosbridge to start interacting with the robot from the dashboard."
-    wait $LAUNCH_PID
 
+    ros2 launch ros_gz_example_bringup gazebo.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
+    GAZEBO_PID=$!
+    PIDS+=($GAZEBO_PID)
 
 elif [ "$ROBOT_ID" == "1" ]; then
     ros2 launch limo_base limo_base.launch.py &
