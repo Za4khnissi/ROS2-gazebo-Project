@@ -25,6 +25,18 @@ cleanup() {
         fi
     done
 
+    GAZEBO_PID=$(pgrep -f 'gzserver')
+    if [ ! -z "$GAZEBO_PID" ]; then
+        echo "Force killing lingering Gazebo processes: $GAZEBO_PID"
+        kill -9 $GAZEBO_PID
+    fi
+
+    GAZEBO_PID=$(pgrep -f 'gzclient')
+    if [ ! -z "$GAZEBO_PID" ]; then
+        echo "Force killing lingering Gazebo processes: $GAZEBO_PID"
+        kill -9 $GAZEBO_PID
+    fi
+
     sleep 1
     echo "Cleanup complete."
 }
