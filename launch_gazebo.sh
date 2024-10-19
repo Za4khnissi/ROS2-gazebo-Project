@@ -43,8 +43,8 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM EXIT
 
-DRIVE_MODE_3=${2:-diff_drive}  # Default to 'diff_drive' if not provided
-DRIVE_MODE_4=${3:-diff_drive}  # Default to 'diff_drive' if not provided
+DRIVE_MODE_3=${2:-diff_drive}
+DRIVE_MODE_4=${3:-diff_drive}
 
 cd ~/inf3995/project_ws
 
@@ -52,6 +52,15 @@ source install/setup.sh
 
 cleanup
 
-ros2 launch ros_gz_example_bringup gazebo.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
+cd src/ros_gz_example_gazebo/worlds
+
+# Generate modified world file
+MODIFIED_WORLD_FILE="modified_world.sdf"
+python3 generate_world_with_obstacles.py $DRIVE_MODE_3 $DRIVE_MODE_4 $MODIFIED_WORLD_FILE
+
+cd ~/inf3995/project_ws
+
+# Launch Gazebo with the modified world file
+ros2 launch ros_gz_example_bringup gazebo.launch.py
 GAZEBO_PID=$!
 PIDS+=($GAZEBO_PID)

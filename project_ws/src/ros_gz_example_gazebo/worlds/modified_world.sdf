@@ -1,0 +1,705 @@
+<?xml version="1.0" ?>
+<!--
+  Try sending commands:
+    ign topic -t "/limo/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
+    ros2 topic pub /limo/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 5.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: -0.1}}"
+  Listen to odometry:
+    ign topic -e -t /limo/odometry
+    ros2 topic echo /limo/odometry
+-->
+<sdf version="1.8">
+  <world name="demo_3">
+    <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors"><render_engine>ogre2</render_engine></plugin>
+    <plugin filename="ignition-gazebo-scene-broadcaster-system" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="ignition-gazebo-user-commands-system" name="ignition::gazebo::systems::UserCommands"/>
+
+    <light name="sun_3" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100
+              </size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Robot 3 -->
+    <model name="limo_105_3">
+      <pose>0 -0.5 0.35 0 0 0</pose>
+      <include merge="true">
+        <uri>package://ros_gz_example_description/models/limo_105_3_ackermann</uri>
+      </include>
+      <ros>
+        <package>ros_gz_example_gazebo</package>
+        <output>screen</output>
+      </ros>
+    </model>
+
+    <!-- Robot 4 -->
+    <model name="limo_105_4">
+      <pose>0 0.5 0.35 0 0 0</pose>
+      <include merge="true">
+        <uri>package://ros_gz_example_description/models/limo_105_4_diff_drive</uri>
+      </include>
+      <ros>
+        <package>ros_gz_example_gazebo</package>
+        <output>screen</output>
+      </ros>
+    </model>
+
+  
+    <model name="random_cylinder_0.3987708652297872_4.199756821852818">
+      <pose>0.3987708652297872 4.199756821852818 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_5.203674230309224_1.3437825090960018">
+      <pose>5.203674230309224 1.3437825090960018 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_-2.4880261388347247_-4.400932514651639">
+      <pose>-2.4880261388347247 -4.400932514651639 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_2.549835662159399_8.9462101615729">
+      <pose>2.549835662159399 8.9462101615729 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_6.4849527658131905_-6.8630877388366995">
+      <pose>6.4849527658131905 -6.8630877388366995 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_8.289887230871788_2.7404259490941705">
+      <pose>8.289887230871788 2.7404259490941705 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_-8.653899101166054_-8.068816217558176">
+      <pose>-8.653899101166054 -8.068816217558176 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_-2.857707316401039_1.13525858122137">
+      <pose>-2.857707316401039 1.13525858122137 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_-6.866154790706116_9.754523151313101">
+      <pose>-6.866154790706116 9.754523151313101 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cylinder_3.213065535457229_3.980900888887737">
+      <pose>3.213065535457229 3.980900888887737 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_-6.180462137614297_4.573529162746244">
+      <pose>-6.180462137614297 4.573529162746244 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_-1.5051919520208212_-7.994192957577686">
+      <pose>-1.5051919520208212 -7.994192957577686 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_8.98152518191229_4.871367100700867">
+      <pose>8.98152518191229 4.871367100700867 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_0.28965022659920514_8.867779729900587">
+      <pose>0.28965022659920514 8.867779729900587 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_-3.593992613320558_7.473872940323957">
+      <pose>-3.593992613320558 7.473872940323957 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_5.985873129145869_-7.572351857984452">
+      <pose>5.985873129145869 -7.572351857984452 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_-3.708110396736428_5.64581511709472">
+      <pose>-3.708110396736428 5.64581511709472 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_5.858917356571876_2.6998920327102276">
+      <pose>5.858917356571876 2.6998920327102276 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_9.467639554982433_3.4100515034607852">
+      <pose>9.467639554982433 3.4100515034607852 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_0.7384157763792771_1.943578770068335">
+      <pose>0.7384157763792771 1.943578770068335 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_4.681875370681015_3.605817621924958">
+      <pose>4.681875370681015 3.605817621924958 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_8.218079668285554_-6.88492109764937">
+      <pose>8.218079668285554 -6.88492109764937 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_2.3789061300850207_-3.7115096079097576">
+      <pose>2.3789061300850207 -3.7115096079097576 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_-8.819608322917517_-0.4151950384277896">
+      <pose>-8.819608322917517 -0.4151950384277896 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_-5.657994001904331_9.432897156400138">
+      <pose>-5.657994001904331 9.432897156400138 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_0.06662283112899559_9.126295149235737">
+      <pose>0.06662283112899559 9.126295149235737 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_-5.831345352926993_2.679062456020036">
+      <pose>-5.831345352926993 2.679062456020036 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_-2.162045573158884_9.763212182256812">
+      <pose>-2.162045573158884 9.763212182256812 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_1.9990819222489087_5.403991150253633">
+      <pose>1.9990819222489087 5.403991150253633 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="random_cube_5.487240860593783_9.112410648181633">
+      <pose>5.487240860593783 9.112410648181633 0.0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    
+  </world>
+</sdf>
