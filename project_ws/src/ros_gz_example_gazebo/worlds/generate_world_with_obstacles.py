@@ -58,38 +58,93 @@ def generate_cube_sdf(x, y, z):
     </model>
     """
 
-def modify_world_with_obstacles(original_world_file, modified_world_file):
-    # Read the original world file content
-    with open(original_world_file, 'r') as f:
-        sdf_content = f.read()
+def generate_robot_model_sdf(robot_name, robot_mode, position):
+    return f"""
+    <model name="{robot_name}">
+      <pose>{position[0]} {position[1]} 0.35 0 0 0</pose>
+      <include merge="true">
+        <uri>package://ros_gz_example_description/models/{robot_name}_{robot_mode}</uri>
+      </include>
+      <ros>
+        <package>ros_gz_example_gazebo</package>
+        <output>screen</output>
+      </ros>
+    </model>
+    """
 
-    # Look for the closing </world> tag
-    closing_world_tag_index = sdf_content.rfind('</world>')
+def generate_world_with_obstacles_and_robots(drive_mode_3, drive_mode_4, modified_world_file):
+    # Create the initial part of the SDF world, with sun and ground
+    sdf_content = """<?xml version="1.0" ?>
+<sdf version="1.8">
+  <world name="demo">
+    <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors"><render_engine>ogre2</render_engine></plugin>
+    <plugin filename="ignition-gazebo-scene-broadcaster-system" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="ignition-gazebo-user-commands-system" name="ignition::gazebo::systems::UserCommands"/>
 
-    if closing_world_tag_index == -1:
-        raise ValueError("Invalid SDF: </world> tag not found")
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
 
-    # Extract the content up to the closing </world> tag
-    sdf_without_closing_tag = sdf_content[:closing_world_tag_index]
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    """
 
-    # Generate and append obstacles
+    # Add robot models based on drive modes
+    sdf_content += generate_robot_model_sdf("limo_105_3", drive_mode_3, (0, -0.5))
+    sdf_content += generate_robot_model_sdf("limo_105_4", drive_mode_4, (0, 0.5))
+
+    # Add random obstacles (10 cylinders and 20 cubes)
     for _ in range(10):
         x, y, z = generate_random_position()
-        sdf_without_closing_tag += generate_cylinder_sdf(x, y, z)
+        sdf_content += generate_cylinder_sdf(x, y, z)
 
     for _ in range(20):
         x, y, z = generate_random_position()
-        sdf_without_closing_tag += generate_cube_sdf(x, y, z)
+        sdf_content += generate_cube_sdf(x, y, z)
 
-    # Append the closing </world> and </sdf> tags with correct indentation
-    sdf_without_closing_tag += "\n  </world>\n</sdf>\n"
+    # Append the closing </world> and </sdf> tags
+    sdf_content += "\n  </world>\n</sdf>\n"
 
-
-    # Write the modified content to the new world file
+    # Write the generated content to the new world file
     with open(modified_world_file, 'w') as f:
-        f.write(sdf_without_closing_tag)
+        f.write(sdf_content)
 
-    print(f"Modified world file with obstacles at {modified_world_file}")
+    print(f"Modified world file with robots and obstacles at {modified_world_file}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
@@ -100,24 +155,4 @@ if __name__ == "__main__":
     drive_mode_4 = sys.argv[2]
     modified_world_file = sys.argv[3]
 
-    # Logic to select the world file based on drive modes
-    if drive_mode_3 == 'ackermann' and drive_mode_4 == 'diff_drive':
-        world_file_name = 'ackermann_diff.sdf'
-    elif drive_mode_3 == 'ackermann' and drive_mode_4 == 'ackermann':
-        world_file_name = 'ackermann.sdf'
-    elif drive_mode_3 == 'diff_drive' and drive_mode_4 == 'ackermann':
-        world_file_name = 'diff_ackermann.sdf'
-    else:
-        world_file_name = 'diff_drive.sdf'
-
-    # Adjust the path to your package directory
-    pkg_project_gazebo = os.path.join(
-        os.path.expanduser('~'),
-        'inf3995',
-        'project_ws',
-        'src',
-        'ros_gz_example_gazebo'
-    )
-    original_world_file = os.path.join(pkg_project_gazebo, 'worlds', world_file_name)
-
-    modify_world_with_obstacles(original_world_file, modified_world_file)
+    generate_world_with_obstacles_and_robots(drive_mode_3, drive_mode_4, modified_world_file)
