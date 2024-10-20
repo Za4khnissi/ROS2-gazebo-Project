@@ -4,53 +4,34 @@ import os
 import random
 import sys
 
+# Function to generate random positions for internal walls
 def generate_random_position():
-    x = random.uniform(-10, 10)
-    y = random.uniform(-10, 10)
+    x = random.uniform(-9, 9) 
+    y = random.uniform(-9, 9)
     z = 0.0
     return x, y, z
 
-def generate_cylinder_sdf(x, y, z):
-    return f"""
-    <model name="random_cylinder_{x}_{y}">
-      <pose>{x} {y} {z} 0 0 0</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <cylinder>
-              <radius>1</radius>
-              <length>2</length>
-            </cylinder>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <cylinder>
-              <radius>1</radius>
-              <length>2</length>
-            </cylinder>
-          </geometry>
-        </visual>
-      </link>
-    </model>
-    """
+# Function to generate random angles for internal walls
+def generate_random_angle():
+    return random.uniform(0, 3.14159)
 
-def generate_cube_sdf(x, y, z):
+# Function to generate a wall SDF
+def generate_wall_sdf(x, y, z, length, angle):
     return f"""
-    <model name="random_cube_{x}_{y}">
-      <pose>{x} {y} {z} 0 0 0</pose>
+    <model name="random_wall_{x}_{y}">
+      <pose>{x} {y} {z} 0 0 {angle}</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>{length} 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>{length} 0.5 1</size>
             </box>
           </geometry>
         </visual>
@@ -58,6 +39,30 @@ def generate_cube_sdf(x, y, z):
     </model>
     """
 
+# Function to generate the four border walls
+def generate_border_walls():
+    walls = ""
+    # Top wall
+    walls += generate_wall_sdf(0, 10, 0.5, 20, 0)
+    # Bottom wall
+    walls += generate_wall_sdf(0, -10, 0.5, 20, 0)
+    # Left wall
+    walls += generate_wall_sdf(-10, 0, 0.5, 20, 1.5708)  # 1.5708 rad = 90 degrees
+    # Right wall
+    walls += generate_wall_sdf(10, 0, 0.5, 20, 1.5708)
+    return walls
+
+# Function to generate the random internal walls
+def generate_internal_walls():
+    walls = ""
+    for _ in range(6):
+        x, y, z = generate_random_position()
+        angle = generate_random_angle()
+        length = random.uniform(5, 10)  # Length of the wall between 5 and 10 units
+        walls += generate_wall_sdf(x, y, z, length, angle)
+    return walls
+
+# Function to generate the robot models based on drive modes
 def generate_robot_model_sdf(robot_name, robot_mode, position):
     return f"""
     <model name="{robot_name}">
@@ -72,7 +77,8 @@ def generate_robot_model_sdf(robot_name, robot_mode, position):
     </model>
     """
 
-def generate_world_with_obstacles_and_robots(drive_mode_3, drive_mode_4, modified_world_file):
+# Function to generate the full SDF file content
+def generate_world_with_obstacles(drive_mode_3, drive_mode_4, modified_world_file):
     # Create the initial part of the SDF world, with sun and ground
     sdf_content = """<?xml version="1.0" ?>
 <sdf version="1.8">
@@ -128,14 +134,11 @@ def generate_world_with_obstacles_and_robots(drive_mode_3, drive_mode_4, modifie
     sdf_content += generate_robot_model_sdf("limo_105_3", drive_mode_3, (0, -0.5))
     sdf_content += generate_robot_model_sdf("limo_105_4", drive_mode_4, (0, 0.5))
 
-    # Add random obstacles (10 cylinders and 20 cubes)
-    for _ in range(10):
-        x, y, z = generate_random_position()
-        sdf_content += generate_cylinder_sdf(x, y, z)
+    # Add the border walls
+    sdf_content += generate_border_walls()
 
-    for _ in range(20):
-        x, y, z = generate_random_position()
-        sdf_content += generate_cube_sdf(x, y, z)
+    # Add the internal random walls
+    sdf_content += generate_internal_walls()
 
     # Append the closing </world> and </sdf> tags
     sdf_content += "\n  </world>\n</sdf>\n"
@@ -144,7 +147,7 @@ def generate_world_with_obstacles_and_robots(drive_mode_3, drive_mode_4, modifie
     with open(modified_world_file, 'w') as f:
         f.write(sdf_content)
 
-    print(f"Modified world file with robots and obstacles at {modified_world_file}")
+    print(f"Modified world file with robots, borders, and random walls at {modified_world_file}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
@@ -155,4 +158,4 @@ if __name__ == "__main__":
     drive_mode_4 = sys.argv[2]
     modified_world_file = sys.argv[3]
 
-    generate_world_with_obstacles_and_robots(drive_mode_3, drive_mode_4, modified_world_file)
+    generate_world_with_obstacles(drive_mode_3, drive_mode_4, modified_world_file)
