@@ -1,16 +1,43 @@
 import { Injectable, OnModuleInit, HttpException, HttpStatus } from '@nestjs/common';
 import * as ROSLIB from 'roslib';
 import { ConfigService } from '@nestjs/config';
+import * as fs from 'fs';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class RosService implements OnModuleInit {
   private realRos: ROSLIB.Ros;
   private simulationRos: ROSLIB.Ros;
+  private logs: any[] = [];
+  private logFile = this.configService.get<string>('PATH_TO_LOGS');
+  private logSubject = new Subject<any>();
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) {
+    this.loadLogs();
+  }
 
   onModuleInit() {
     this.connectToRobots();
+  }
+
+  private loadLogs() {
+    if (fs.existsSync(this.logFile)) {
+      this.logs = JSON.parse(fs.readFileSync(this.logFile, 'utf8'));
+    }
+  }
+
+  private saveLogs(log: any) {
+    this.logs.push(log);
+    fs.writeFileSync(this.logFile, JSON.stringify(this.logs, null, 2));
+    this.logSubject.next(log);
+  }
+
+  getOldLogs() {
+    return this.logs;
+  }
+
+  getLogStream() {
+    return this.logSubject.asObservable();
   }
 
   private connectToRobots() {
@@ -24,14 +51,20 @@ export class RosService implements OnModuleInit {
       });
 
       this.simulationRos.on('connection', () => {
+        const log = { event: 'connection', robot: 'simulation', timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.log(`Connected to simulation ROS at ${simulationWsUrl}`);
       });
 
       this.simulationRos.on('error', (error) => {
+        const log = { event: 'error', robot: 'simulation', timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.error(`Error connecting to simulation ROS:`, error);
       });
 
       this.simulationRos.on('close', () => {
+        const log = { event: 'close', robot: 'simulation', timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.log(`Connection to simulation ROS closed`);
       });
     }
@@ -43,14 +76,20 @@ export class RosService implements OnModuleInit {
       });
 
       this.realRos.on('connection', () => {
+        const log = { event: 'connection', robot: 'real', timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.log(`Connected to real robots ROS at ${realWsUrl}`);
       });
 
       this.realRos.on('error', (error) => {
+        const log = { event: 'error', robot: 'real', timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.error(`Error connecting to real robots ROS:`, error);
       });
 
       this.realRos.on('close', () => {
+        const log = { event: 'close', robot: 'real', timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.log(`Connection to real robots ROS closed`);
       });
     }
@@ -78,6 +117,8 @@ export class RosService implements OnModuleInit {
 
   startRobotMission(robotId: string) {
     const rosConnection = this.validateRobotConnection(robotId);
+    const log = { event: 'start_mission', robot: robotId, timestamp: new Date().toISOString() };
+    this.saveLogs(log);
 
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
@@ -94,8 +135,12 @@ export class RosService implements OnModuleInit {
 
     missionService.callService(request, (result) => {
       if (result.success) {
+        const log = { event: 'mission_started', robot: robotId, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.log(`Mission started for robot ${robotId}: ${result.message}`);
       } else {
+        const log = { event: 'mission_failed', robot: robotId, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.error(`Failed to start mission for robot ${robotId}: ${result.message}`);
       }
     });
@@ -105,6 +150,8 @@ export class RosService implements OnModuleInit {
 
   stopRobotMission(robotId: string) {
     const rosConnection = this.validateRobotConnection(robotId);
+    const log = { event: 'stop_mission', robot: robotId, timestamp: new Date().toISOString() };
+    this.saveLogs(log);
 
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
@@ -121,8 +168,12 @@ export class RosService implements OnModuleInit {
 
     missionService.callService(request, (result) => {
       if (result.success) {
+        const log = { event: 'mission_stopped', robot: robotId, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.log(`Mission stopped for robot ${robotId}: ${result.message}`);
       } else {
+        const log = { event: 'mission_stop_failed', robot: robotId, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.error(`Failed to stop mission for robot ${robotId}: ${result.message}`);
       }
     });
@@ -132,6 +183,8 @@ export class RosService implements OnModuleInit {
 
   identifyRobot(robotId: string) {
     const rosConnection = this.validateRobotConnection(robotId);
+    const log = { event: 'identify', robot: robotId, timestamp: new Date().toISOString() };
+    this.saveLogs(log);
 
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/identify`;
@@ -146,8 +199,12 @@ export class RosService implements OnModuleInit {
 
     identifyService.callService(request, (result) => {
       if (result.success) {
+        const log = { event: 'identified', robot: robotId, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.log(`Robot ${robotId} successfully identified: ${result.message}`);
       } else {
+        const log = { event: 'identification_failed', robot: robotId, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.error(`Failed to identify Robot ${robotId}: ${result.message}`);
       }
     });
@@ -157,6 +214,8 @@ export class RosService implements OnModuleInit {
 
   changeDriveMode(robotId: string, driveMode: string) {
     const rosConnection = this.validateRobotConnection(robotId);
+    const log = { event: 'change_drive_mode', robot: robotId, timestamp: new Date().toISOString() };
+    this.saveLogs(log);
   
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/robot_${robotId}_drive_mode`;
@@ -173,8 +232,12 @@ export class RosService implements OnModuleInit {
   
     driveModeService.callService(request, (result) => {
       if (result.success) {
+        const log = { event: 'drive_mode_changed', robot: robotId, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.log(`Drive mode changed to ${driveMode} for robot ${robotId}`);
       } else {
+        const log = { event: 'drive_mode_change_failed', robot: robotId, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
         console.error(`Failed to change drive mode for robot ${robotId}`);
       }
     });

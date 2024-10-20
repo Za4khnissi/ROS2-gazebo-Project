@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { SimulationComponent } from './simulation.component';
-import { SimulationService } from '@app/services/sim.service';
+import { RobotService } from '@app/services/robot.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 describe('SimulationComponent', () => {
   let component: SimulationComponent;
-  let simServiceSpy: jasmine.SpyObj<SimulationService>;
+  let simServiceSpy: jasmine.SpyObj<RobotService>;
   let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(() => {
@@ -16,14 +16,14 @@ describe('SimulationComponent', () => {
     TestBed.configureTestingModule({
       declarations: [SimulationComponent],
       providers: [
-        { provide: SimulationService, useValue: simSpy },
+        { provide: RobotService, useValue: simSpy },
         { provide: Router, useValue: routeSpy },
       ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(SimulationComponent);
     component = fixture.componentInstance;
-    simServiceSpy = TestBed.inject(SimulationService) as jasmine.SpyObj<SimulationService>;
+    simServiceSpy = TestBed.inject(RobotService) as jasmine.SpyObj<RobotService>;
     routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 

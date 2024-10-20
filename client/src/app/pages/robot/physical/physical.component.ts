@@ -1,16 +1,24 @@
-import { Component } from '@angular/core';
-import { RobotService } from '@app/services/phy-robot.service';
+import { Component, OnInit } from '@angular/core';
+import { RobotService } from '@app/services/robot.service';
 
 @Component({
   selector: 'app-physical-robot',
   templateUrl: './physical.component.html',
   styleUrls: ['./physical.component.css']
 })
-export class PhysicalRobotComponent {
+export class PhysicalRobotComponent implements OnInit {
   robot1Status: string = 'Waiting';
   robot2Status: string = 'Waiting';
 
+  logs: any[] = [];
+
   constructor(private robotService: RobotService) {}
+
+  ngOnInit(): void {
+    this.robotService.listenForLogs().subscribe((log) => {
+      this.logs.push(log);
+    });
+  }
 
   identifyRobot(robotId: number) {
     this.robotService.identifyRobot(robotId).subscribe({
@@ -56,4 +64,11 @@ export class PhysicalRobotComponent {
       }
     });
   }
+
+  loadOldLogs() {
+    this.robotService.getOldLogs().subscribe((logs) => {
+      this.logs = logs;
+    });
+  }
+
 }

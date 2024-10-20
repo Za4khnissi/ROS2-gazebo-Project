@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { PhysicalRobotComponent } from './physical.component';
-import { RobotService } from '@app/services/phy-robot.service';
+import { RobotService } from '@app/services/robot.service';
 import { of, throwError } from 'rxjs';
 
 describe('PhysicalRobotComponent', () => {

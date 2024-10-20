@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { SimulationService } from '@app/services/sim.service';
+import { Component, OnInit } from '@angular/core';
+import { RobotService } from '@app/services/robot.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css']
 })
-export class SimulationComponent {
+export class SimulationComponent implements OnInit {
   robot1Status: string = 'Waiting';
   robot2Status: string = 'Waiting';
   simulationStatus: boolean = false;
@@ -16,7 +16,15 @@ export class SimulationComponent {
   driveMode3: string = 'Diff Drive';
   driveMode4: string = 'Diff Drive';
 
-  constructor(private simService: SimulationService, private router: Router) {}
+  logs: any[] = [];
+
+  constructor(private simService: RobotService, private router: Router) {}
+
+  ngOnInit(): void {
+    this.simService.listenForLogs().subscribe((log) => {
+      this.logs.push(log);
+    });
+  }
 
   identifyRobot(robotId: number) {
     this.simService.identifyRobot(robotId).subscribe({
@@ -81,6 +89,12 @@ export class SimulationComponent {
       error: (error) => {
         console.error(`Error changing drive mode for Robot ${robotId}:`, error);
       }
+    });
+  }
+
+  loadOldLogs() {
+    this.simService.getOldLogs().subscribe((logs) => {
+      this.logs = logs;
     });
   }
 }
