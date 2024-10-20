@@ -159,7 +159,7 @@ export class RosService implements OnModuleInit {
     const rosConnection = this.validateRobotConnection(robotId);
   
     const namespace = `limo_105_${robotId}`;
-    const serviceName = `/${namespace}/drive_mode`;
+    const serviceName = `/${namespace}/robot_${robotId}_drive_mode`;
   
     const driveModeService = new ROSLIB.Service({
       ros: rosConnection,

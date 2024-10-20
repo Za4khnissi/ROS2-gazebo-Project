@@ -64,3 +64,9 @@ cd ~/inf3995/project_ws
 ros2 launch ros_gz_example_bringup gazebo.launch.py
 GAZEBO_PID=$!
 PIDS+=($GAZEBO_PID)
+
+wait $GAZEBO_PID    # Wait for Gazebo to exit
+
+# Cleanup
+
+cleanup
