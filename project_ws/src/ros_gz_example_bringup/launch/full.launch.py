@@ -13,7 +13,10 @@ def generate_launch_description():
     pkg_project_gazebo = get_package_share_directory('ros_gz_example_gazebo')
     pkg_project_description = get_package_share_directory('ros_gz_example_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
+
+    config = os.path.join(
+        get_package_share_directory("multirobot_map_merge"), "config", "params.yaml"
+    )
 
     # Load the SDF files
     sdf_file_3 = os.path.join(pkg_project_description, 'models', 'limo_105_3', 'model.sdf')
@@ -226,6 +229,19 @@ def generate_launch_description():
                     "use_sim_time": True
                 }],
                 output="screen",
+            ),
+             Node(
+                package="multirobot_map_merge",
+                name="map_merge",
+                #namespace=namespace,
+                executable="map_merge",
+                parameters=[
+                    config,
+                    {"use_sim_time": True},
+                    {"known_init_poses": True},
+                ],
+                output="screen",
+                #remappings=remappings,
             )
         ]
     )
