@@ -69,6 +69,38 @@ def generate_launch_description():
         ]
     )
 
+    identify_service_3 = Node(
+        package='ros_gz_example_application',
+        executable='identify_service.py',
+        name='identify_service',
+        output='screen',
+        namespace='/limo_105_3'
+    )
+
+    mission_service_3 = Node(
+        package='ros_gz_example_application',
+        executable='mission_service.py',
+        name='mission_service',
+        output='screen',
+        namespace='/limo_105_3'
+    )
+
+    identify_service_4 = Node(
+        package='ros_gz_example_application',
+        executable='identify_service.py',
+        name='identify_service',
+        output='screen',
+        namespace='/limo_105_4'
+    )
+
+    mission_service_4 = Node(
+        package='ros_gz_example_application',
+        executable='mission_service.py',
+        name='mission_service',
+        output='screen',
+        namespace='/limo_105_4'
+    )
+
     # Second group of nodes (SLAM) - Delayed by 5 seconds
     slam_nodes = TimerAction(
         period=5.0,
@@ -203,6 +235,10 @@ def generate_launch_description():
         gz_sim,
         robot_state_publisher_3,
         robot_state_publisher_4,
+        identify_service_3,
+        mission_service_3,
+        identify_service_4,
+        mission_service_4,
         slam_nodes,
         nav2_nodes,
         explore_nodes
