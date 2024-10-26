@@ -4,6 +4,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from geometry_msgs.msg import Twist
 from example_interfaces.srv import SetBool
+from std_msgs.msg import Bool
 from enum import Enum
 
 PUBLISH_RATE = 1/10  # 10 Hz
@@ -21,6 +22,7 @@ class MissionServiceNode(Node):
         self.srv = self.create_service(SetBool, 'mission', self.handle_mission_service)
 
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', QoSProfile(depth=10))
+        self.explore_resume_pub = self.create_publisher(Bool, 'explore/resume', 10)
 
         self.mission_status = MissionStatus.STOP
 
@@ -45,23 +47,22 @@ class MissionServiceNode(Node):
         return response
 
     def start(self):
-
         self.mission_status = MissionStatus.STARTED
-        self.get_logger().info('Starting the mission: publishing to /cmd_vel')
-
-        # Create a timer to publish velocity at a rate of 1 seconds (1 Hz)
-        self.publish_timer = self.create_timer(PUBLISH_RATE, self.publish_velocity)
+        self.get_logger().info('Starting the exploration: publishing True to explore/resume')
+        
+        # Create message and publish True to start exploration
+        explore_msg = Bool()
+        explore_msg.data = True
+        self.explore_resume_pub.publish(explore_msg)
 
     def stop(self):
-
         self.mission_status = MissionStatus.STOP
-        self.get_logger().info('Stopping the mission: stopping publishing to /cmd_vel')
-
-        # Cancel the timer to stop publishing velocity
-        if self.publish_timer is not None:
-            self.publish_timer.cancel()
-            self.publish_timer = None
-            self.cmd_vel_pub.publish(Twist())
+        self.get_logger().info('Stopping the exploration: publishing False to explore/resume')
+        
+        # Create message and publish False to stop exploration
+        explore_msg = Bool()
+        explore_msg.data = False
+        self.explore_resume_pub.publish(explore_msg)
 
     def publish_velocity(self):
         # Create a Twist message with linear velocity x: 0.2
