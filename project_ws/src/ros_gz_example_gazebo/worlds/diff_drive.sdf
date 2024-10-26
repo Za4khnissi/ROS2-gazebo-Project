@@ -58,7 +58,7 @@
 
     <!-- Robot 3 -->
     <model name="limo_105_3">
-      <pose>0 -0.5 0.35 0 0 0</pose>
+      <pose>1 -1 0.35 0 0 0</pose>
       <include merge="true">
         <uri>package://ros_gz_example_description/models/limo_105_3</uri>
       </include>
@@ -73,7 +73,7 @@
 
     <!-- Robot 4 -->
     <model name="limo_105_4">
-      <pose>0 0.5 0.35 0 0 0</pose>
+      <pose>1 1 0.35 0 0 0</pose>
       <include merge="true">
         <uri>package://ros_gz_example_description/models/limo_105_4</uri>
       </include>
