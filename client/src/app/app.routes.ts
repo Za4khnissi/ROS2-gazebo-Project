@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from '@app/pages/home/home.component';
-import { PhysicalRobotComponent } from '@app/pages/robot/physical/physical.component';
-import { SimulationComponent } from '@app/pages/robot/simulation/simulation.component';
+import { PhysicalRobotComponent } from '@app/pages/physical/physical.component';
+import { SimulationComponent } from '@app/pages/simulation/simulation.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },

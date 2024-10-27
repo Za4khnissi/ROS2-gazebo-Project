@@ -86,5 +86,65 @@
     "event": "identified",
     "robot": "4",
     "timestamp": "2024-10-20T18:40:45.352Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-27T16:32:05.605Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T16:32:28.725Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "timestamp": "2024-10-27T16:32:28.757Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-27T16:38:49.509Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T16:38:57.216Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "timestamp": "2024-10-27T16:38:57.239Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T16:41:29.835Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "timestamp": "2024-10-27T16:41:29.848Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-27T16:43:49.435Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T16:44:03.921Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "timestamp": "2024-10-27T16:44:03.930Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-27T16:45:47.885Z"
   }
 ]

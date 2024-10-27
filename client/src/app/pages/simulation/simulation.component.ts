@@ -11,8 +11,6 @@ export class SimulationComponent implements OnInit {
   robot1Status: string = 'Waiting';
   robot2Status: string = 'Waiting';
   simulationStatus: boolean = false;
-
-  // Initial drive modes
   driveMode3: string = 'Diff Drive';
   driveMode4: string = 'Diff Drive';
 
