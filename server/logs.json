@@ -304,5 +304,180 @@
     "event": "mission_stopped",
     "robot": "3",
     "timestamp": "2024-10-27T17:41:00.531Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-27T17:51:13.960Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:51:26.009Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "message": "Robot 3 identified successfully",
+    "timestamp": "2024-10-27T17:51:26.031Z"
+  },
+  {
+    "event": "identify",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:51:30.715Z"
+  },
+  {
+    "event": "identified",
+    "robot": "4",
+    "message": "Robot 4 identified successfully",
+    "timestamp": "2024-10-27T17:51:30.732Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:51:36.380Z"
+  },
+  {
+    "event": "mission_started",
+    "robot": "3",
+    "message": "Mission started successfully for robot 3",
+    "timestamp": "2024-10-27T17:51:36.401Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:51:39.144Z"
+  },
+  {
+    "event": "mission_stopped",
+    "robot": "3",
+    "message": "Mission stopped successfully for robot 3",
+    "timestamp": "2024-10-27T17:51:39.156Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:51:41.334Z"
+  },
+  {
+    "event": "mission_stop_failed",
+    "robot": "3",
+    "message": "Failed to stop mission for robot 3: No change in mission status",
+    "timestamp": "2024-10-27T17:51:41.344Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:52:03.284Z"
+  },
+  {
+    "event": "mission_stop_failed",
+    "robot": "3",
+    "message": "Failed to stop mission for robot 3: No change in mission status",
+    "timestamp": "2024-10-27T17:52:03.292Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-27T17:55:41.414Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:55:52.692Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "message": "Robot 3 identified successfully",
+    "timestamp": "2024-10-27T17:55:52.705Z"
+  },
+  {
+    "event": "identify",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:55:58.029Z"
+  },
+  {
+    "event": "identified",
+    "robot": "4",
+    "message": "Robot 4 identified successfully",
+    "timestamp": "2024-10-27T17:55:58.043Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T18:00:36.728Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "message": "Robot 3 identified successfully",
+    "timestamp": "2024-10-27T18:00:36.744Z"
+  },
+  {
+    "event": "identify",
+    "robot": "4",
+    "timestamp": "2024-10-27T18:00:38.630Z"
+  },
+  {
+    "event": "identified",
+    "robot": "4",
+    "message": "Robot 4 identified successfully",
+    "timestamp": "2024-10-27T18:00:38.646Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T18:00:41.553Z"
+  },
+  {
+    "event": "mission_started",
+    "robot": "3",
+    "message": "Mission started successfully for robot 3",
+    "timestamp": "2024-10-27T18:00:41.566Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T18:00:46.291Z"
+  },
+  {
+    "event": "mission_stopped",
+    "robot": "3",
+    "message": "Mission stopped successfully for robot 3",
+    "timestamp": "2024-10-27T18:00:46.301Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T18:13:03.917Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "message": "Robot 3 identified successfully",
+    "timestamp": "2024-10-27T18:13:03.938Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T18:13:38.541Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "message": "Robot 3 identified successfully",
+    "timestamp": "2024-10-27T18:13:38.568Z"
+  },
+  {
+    "event": "identify",
+    "robot": "4",
+    "timestamp": "2024-10-27T18:13:39.791Z"
+  },
+  {
+    "event": "identified",
+    "robot": "4",
+    "message": "Robot 4 identified successfully",
+    "timestamp": "2024-10-27T18:13:39.801Z"
   }
 ]

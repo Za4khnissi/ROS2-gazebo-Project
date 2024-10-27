@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { RobotService } from '@app/services/robot.service';
-import { Router } from '@angular/router';
-import { NgFor } from '@angular/common';
+import { NgFor, NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-simulation-robot',
-  standalone: true,
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css'],
-  imports: [NgFor]
+  standalone: true,
+  imports: [NgFor, NgClass]
 })
 export class SimulationComponent implements OnInit {
   robot1Status: string = 'Waiting';
@@ -18,25 +17,19 @@ export class SimulationComponent implements OnInit {
   driveMode4: string = 'Diff Drive';
 
   logs: any[] = [];
+  showOldLogs: boolean = false;
 
-  constructor(private simService: RobotService, private router: Router) {}
+  constructor(private simService: RobotService) {}
 
   ngOnInit(): void {
     this.simService.listenForLogs().subscribe((log) => {
-      console.log('New log received:', log);
+      log.isOld = false;
       this.logs.push(log);
     });
   }
 
   identifyRobot(robotId: number) {
     this.simService.identifyRobot(robotId).subscribe({
-      next: (response) => {
-        if (robotId === 3) {
-          this.robot1Status = 'Identifying... ' + response.message;
-        } else if (robotId === 4) {
-          this.robot2Status = 'Identifying... ' + response.message;
-        }
-      },
       error: (error) => {
         console.error('Error identifying robot:', error);
       }
@@ -45,13 +38,6 @@ export class SimulationComponent implements OnInit {
 
   startMission(robotId: number) {
     this.simService.startMission(robotId).subscribe({
-      next: (response) => {
-        if (robotId === 3) {
-          this.robot1Status = response.message;
-        } else if (robotId === 4) {
-          this.robot2Status = response.message;
-        }
-      },
       error: (error) => {
         console.error('Error starting mission:', error);
       }
@@ -60,13 +46,6 @@ export class SimulationComponent implements OnInit {
 
   stopMission(robotId: number) {
     this.simService.stopMission(robotId).subscribe({
-      next: (response) => {
-        if (robotId === 3) {
-          this.robot1Status = response.message;
-        } else if (robotId === 4) {
-          this.robot2Status = response.message;
-        }
-      },
       error: (error) => {
         console.error('Error stopping mission:', error);
       }
@@ -84,18 +63,24 @@ export class SimulationComponent implements OnInit {
     }
 
     this.simService.changeDriveMode(robotId, newDriveMode.toLowerCase().replace(' ', '_')).subscribe({
-      next: (response) => {
-        console.log(`Drive mode for Robot ${robotId} changed to ${newDriveMode}`);
-      },
       error: (error) => {
         console.error(`Error changing drive mode for Robot ${robotId}:`, error);
       }
     });
   }
 
-  loadOldLogs() {
-    this.simService.getOldLogs().subscribe((logs) => {
-      this.logs = logs;
-    });
+  toggleOldLogs() {
+    if (!this.showOldLogs) {
+      // Load old logs and display them
+      this.simService.getOldLogs().subscribe((logs) => {
+        logs.forEach((log) => (log.isOld = true));
+        this.logs = [...logs, ...this.logs];
+        this.showOldLogs = true;
+      });
+    } else {
+      // Hide old logs by filtering them out
+      this.logs = this.logs.filter((log) => !log.isOld);
+      this.showOldLogs = false;
+    }
   }
 }

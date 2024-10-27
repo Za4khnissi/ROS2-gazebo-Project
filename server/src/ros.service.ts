@@ -26,11 +26,11 @@ export class RosService implements OnModuleInit {
     }
   }
 
-  private saveLogs(log: any) {
+  private saveLogs(log: { event: string; robot: string; message?: string; timestamp: string }) {
     this.logs.push(log);
     fs.writeFileSync(this.logFile, JSON.stringify(this.logs, null, 2));
     this.logSubject.next(log);
-  }
+}
 
   getOldLogs() {
     return this.logs;
@@ -119,32 +119,36 @@ export class RosService implements OnModuleInit {
     const rosConnection = this.validateRobotConnection(robotId);
     const log = { event: 'start_mission', robot: robotId, timestamp: new Date().toISOString() };
     this.saveLogs(log);
-
+  
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
-
+  
     const missionService = new ROSLIB.Service({
       ros: rosConnection,
       name: serviceName,
       serviceType: 'example_interfaces/SetBool',
     });
-
+  
     const request = new ROSLIB.ServiceRequest({
       data: true,
     });
-
+  
     missionService.callService(request, (result) => {
-      if (result.success) {
-        const log = { event: 'mission_started', robot: robotId, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.log(`Mission started for robot ${robotId}: ${result.message}`);
-      } else {
-        const log = { event: 'mission_failed', robot: robotId, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.error(`Failed to start mission for robot ${robotId}: ${result.message}`);
-      }
+      const logMessage = result.success
+        ? `Mission started successfully for robot ${robotId}`
+        : `Failed to start mission for robot ${robotId}: No change in mission status`;
+      
+      const log = {
+        event: result.success ? 'mission_started' : 'mission_failed: No change in mission status',
+        robot: robotId,
+        message: logMessage,
+        timestamp: new Date().toISOString(),
+      };
+  
+      this.saveLogs(log);
+      console[result.success ? 'log' : 'error'](logMessage);
     });
-
+  
     return { message: `Requested to start mission for robot ${robotId}` };
   }
 
@@ -152,32 +156,36 @@ export class RosService implements OnModuleInit {
     const rosConnection = this.validateRobotConnection(robotId);
     const log = { event: 'stop_mission', robot: robotId, timestamp: new Date().toISOString() };
     this.saveLogs(log);
-
+  
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
-
+  
     const missionService = new ROSLIB.Service({
       ros: rosConnection,
       name: serviceName,
       serviceType: 'example_interfaces/SetBool',
     });
-
+  
     const request = new ROSLIB.ServiceRequest({
       data: false,
     });
-
+  
     missionService.callService(request, (result) => {
-      if (result.success) {
-        const log = { event: 'mission_stopped', robot: robotId, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.log(`Mission stopped for robot ${robotId}: ${result.message}`);
-      } else {
-        const log = { event: 'mission_stop_failed', robot: robotId, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.error(`Failed to stop mission for robot ${robotId}: ${result.message}`);
-      }
+      const logMessage = result.success
+        ? `Mission stopped successfully for robot ${robotId}`
+        : `Failed to stop mission for robot ${robotId}: No change in mission status`;
+  
+      const log = {
+        event: result.success ? 'mission_stopped' : 'mission_stop_failed: No change in mission status',
+        robot: robotId,
+        message: logMessage,
+        timestamp: new Date().toISOString(),
+      };
+  
+      this.saveLogs(log);
+      console[result.success ? 'log' : 'error'](logMessage);
     });
-
+  
     return { message: `Requested to stop mission for robot ${robotId}` };
   }
 
@@ -185,30 +193,34 @@ export class RosService implements OnModuleInit {
     const rosConnection = this.validateRobotConnection(robotId);
     const log = { event: 'identify', robot: robotId, timestamp: new Date().toISOString() };
     this.saveLogs(log);
-
+  
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/identify`;
-
+  
     const identifyService = new ROSLIB.Service({
       ros: rosConnection,
       name: serviceName,
       serviceType: 'std_srvs/Trigger',
     });
-
+  
     const request = new ROSLIB.ServiceRequest({});
-
+  
     identifyService.callService(request, (result) => {
-      if (result.success) {
-        const log = { event: 'identified', robot: robotId, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.log(`Robot ${robotId} successfully identified: ${result.message}`);
-      } else {
-        const log = { event: 'identification_failed', robot: robotId, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.error(`Failed to identify Robot ${robotId}: ${result.message}`);
-      }
+      const logMessage = result.success
+        ? `Robot ${robotId} identified successfully`
+        : `Failed to identify Robot ${robotId}`;
+  
+      const log = {
+        event: result.success ? 'identified' : 'identification_failed',
+        robot: robotId,
+        message: logMessage,
+        timestamp: new Date().toISOString(),
+      };
+  
+      this.saveLogs(log);
+      console[result.success ? 'log' : 'error'](logMessage);
     });
-
+  
     return { message: `Robot ${robotId} is identifying itself` };
   }
 
@@ -223,7 +235,7 @@ export class RosService implements OnModuleInit {
     const driveModeService = new ROSLIB.Service({
       ros: rosConnection,
       name: serviceName,
-      serviceType: 'std_srvs/SetBool', // Using SetBool service
+      serviceType: 'std_srvs/SetBool',
     });
   
     const request = new ROSLIB.ServiceRequest({
@@ -231,15 +243,19 @@ export class RosService implements OnModuleInit {
     });
   
     driveModeService.callService(request, (result) => {
-      if (result.success) {
-        const log = { event: 'drive_mode_changed', robot: robotId, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.log(`Drive mode changed to ${driveMode} for robot ${robotId}`);
-      } else {
-        const log = { event: 'drive_mode_change_failed', robot: robotId, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.error(`Failed to change drive mode for robot ${robotId}`);
-      }
+      const logMessage = result.success
+        ? `Drive mode changed to ${driveMode} for robot ${robotId}`
+        : `Failed to change drive mode for robot ${robotId}`;
+  
+      const log = {
+        event: result.success ? 'drive_mode_changed' : 'drive_mode_change_failed',
+        robot: robotId,
+        message: logMessage,
+        timestamp: new Date().toISOString(),
+      };
+  
+      this.saveLogs(log);
+      console[result.success ? 'log' : 'error'](logMessage);
     });
   
     return { message: `Requested to change drive mode for robot ${robotId} to ${driveMode}` };
