@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { RobotService } from '@app/services/robot.service';
 import { Router } from '@angular/router';
+import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-simulation-robot',
+  standalone: true,
   templateUrl: './simulation.component.html',
-  styleUrls: ['./simulation.component.css']
+  styleUrls: ['./simulation.component.css'],
+  imports: [NgFor]
 })
 export class SimulationComponent implements OnInit {
   robot1Status: string = 'Waiting';
@@ -20,6 +23,7 @@ export class SimulationComponent implements OnInit {
 
   ngOnInit(): void {
     this.simService.listenForLogs().subscribe((log) => {
+      console.log('New log received:', log);
       this.logs.push(log);
     });
   }
@@ -79,7 +83,6 @@ export class SimulationComponent implements OnInit {
       newDriveMode = this.driveMode4;
     }
 
-    // Send drive mode change request
     this.simService.changeDriveMode(robotId, newDriveMode.toLowerCase().replace(' ', '_')).subscribe({
       next: (response) => {
         console.log(`Drive mode for Robot ${robotId} changed to ${newDriveMode}`);

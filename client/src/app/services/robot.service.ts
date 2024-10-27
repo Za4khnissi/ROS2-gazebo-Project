@@ -33,7 +33,7 @@ export class RobotService {
 
   listenForLogs(): Observable<any> {
     const eventSource = new EventSource(`${this.apiUrl}/logs/stream`);
-
+    
     eventSource.onmessage = (event) => {
       const log = JSON.parse(event.data);
       this.logSubject.next(log);

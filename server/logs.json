@@ -146,5 +146,163 @@
     "event": "connection",
     "robot": "simulation",
     "timestamp": "2024-10-27T16:45:47.885Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:28:03.948Z",
+    "id": "1"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:28:03.973Z",
+    "id": "2"
+  },
+  {
+    "event": "identify",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:28:54.949Z",
+    "id": "1"
+  },
+  {
+    "event": "identified",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:28:54.969Z",
+    "id": "2"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:29:02.032Z",
+    "id": "3"
+  },
+  {
+    "event": "mission_started",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:29:02.061Z",
+    "id": "4"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:29:10.828Z",
+    "id": "5"
+  },
+  {
+    "event": "mission_stopped",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:29:10.842Z",
+    "id": "6"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:32:36.525Z",
+    "id": "1"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:32:36.544Z",
+    "id": "2"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:34:12.634Z",
+    "id": "1"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:34:12.648Z",
+    "id": "2"
+  },
+  {
+    "event": "identify",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:34:19.478Z",
+    "id": "3"
+  },
+  {
+    "event": "identified",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:34:19.496Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-27T17:39:38.469Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:40:02.494Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:40:02.507Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:40:38.850Z"
+  },
+  {
+    "event": "mission_started",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:40:38.866Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:40:44.399Z"
+  },
+  {
+    "event": "mission_failed",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:40:44.407Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:40:52.616Z"
+  },
+  {
+    "event": "mission_started",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:40:52.627Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:40:56.664Z"
+  },
+  {
+    "event": "mission_failed",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:40:56.671Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:40:58.747Z"
+  },
+  {
+    "event": "mission_stopped",
+    "robot": "4",
+    "timestamp": "2024-10-27T17:40:58.766Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:41:00.520Z"
+  },
+  {
+    "event": "mission_stopped",
+    "robot": "3",
+    "timestamp": "2024-10-27T17:41:00.531Z"
   }
 ]
