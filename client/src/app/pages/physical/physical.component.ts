@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RobotService } from '@app/services/robot.service';
+import { WebSocketService } from '@app/services/web-socket.service';
 import { NgFor, NgClass } from '@angular/common';
 
 @Component({
@@ -16,37 +17,38 @@ export class PhysicalRobotComponent implements OnInit {
   logs: any[] = [];
   showOldLogs: boolean = false;
 
-  constructor(private robotService: RobotService) {}
+  constructor(private robotService: RobotService, private webSocketService: WebSocketService) {}
 
   ngOnInit(): void {
     this.robotService.listenForLogs().subscribe((log) => {
       log.isOld = false;
       this.logs.push(log);
     });
+
+    this.webSocketService.listen('syncUpdate').subscribe((data) => {
+      console.log('Received sync update:', data);
+      this.handleSyncUpdate(data);
+    });
+  }
+
+  private handleSyncUpdate(data: any) {
+    this.logs.push(data);
+    if (data.robot && data.event) {
+      if (data.robot === '1') this.robot1Status = data.event;
+      if (data.robot === '2') this.robot2Status = data.event;
+    }
   }
 
   identifyRobot(robotId: number) {
-    this.robotService.identifyRobot(robotId).subscribe({
-      error: (error) => {
-        console.error('Error identifying robot:', error);
-      }
-    });
+    this.robotService.identifyRobot(robotId).subscribe();
   }
 
   startMission(robotId: number) {
-    this.robotService.startMission(robotId).subscribe({
-      error: (error) => {
-        console.error('Error starting mission:', error);
-      }
-    });
+    this.robotService.startMission(robotId).subscribe();
   }
 
   stopMission(robotId: number) {
-    this.robotService.stopMission(robotId).subscribe({
-      error: (error) => {
-        console.error('Error stopping mission:', error);
-      }
-    });
+    this.robotService.stopMission(robotId).subscribe();
   }
 
   toggleOldLogs() {

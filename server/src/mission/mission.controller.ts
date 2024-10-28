@@ -10,22 +10,22 @@ export class MissionController {
   @Get(':robotId/start')
   @ApiOkResponse({ description: 'Mission started successfully' })
   @ApiNotFoundResponse({ description: 'Robot not found' })
-  startMission(@Param('robotId') robotId: string) {
-    const response = this.rosService.startRobotMission(robotId);
-    if (!response) {
-      return { statusCode: HttpStatus.NOT_FOUND, message: `Robot ${robotId} not found` };
+  async startMission(@Param('robotId') robotId: string) {
+    const response = await this.rosService.startRobotMission(robotId);
+    if (!response.success) {
+      return { statusCode: HttpStatus.NOT_FOUND, message: `Robot ${robotId} not found or mission start failed` };
     }
-    return { statusCode: HttpStatus.OK, message: `Mission started for robot ${robotId}` };
+    return { statusCode: HttpStatus.OK, message: response.message };
   }
 
   @Get(':robotId/stop')
   @ApiOkResponse({ description: 'Mission stopped successfully' })
   @ApiNotFoundResponse({ description: 'Robot not found' })
-  stopMission(@Param('robotId') robotId: string) {
-    const response = this.rosService.stopRobotMission(robotId);
-    if (!response) {
-      return { statusCode: HttpStatus.NOT_FOUND, message: `Robot ${robotId} not found` };
+  async stopMission(@Param('robotId') robotId: string) {
+    const response = await this.rosService.stopRobotMission(robotId);
+    if (!response.success) {
+      return { statusCode: HttpStatus.NOT_FOUND, message: `Robot ${robotId} not found or mission stop failed` };
     }
-    return { statusCode: HttpStatus.OK, message: `Mission stopped for robot ${robotId}` };
+    return { statusCode: HttpStatus.OK, message: response.message };
   }
 }

@@ -479,5 +479,112 @@
     "robot": "4",
     "message": "Robot 4 identified successfully",
     "timestamp": "2024-10-27T18:13:39.801Z"
+  },
+  {
+    "event": "error",
+    "robot": "simulation",
+    "timestamp": "2024-10-28T02:07:27.355Z"
+  },
+  {
+    "event": "close",
+    "robot": "simulation",
+    "timestamp": "2024-10-28T02:07:27.357Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-28T02:08:05.701Z"
+  },
+  {
+    "event": "change_drive_mode",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:08:36.833Z"
+  },
+  {
+    "event": "identify",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:08:55.312Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:09:14.610Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "4",
+    "timestamp": "2024-10-28T02:09:24.420Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:10:40.043Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "4",
+    "timestamp": "2024-10-28T02:10:43.963Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:10:49.381Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "4",
+    "timestamp": "2024-10-28T02:10:50.699Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:10:53.643Z"
+  },
+  {
+    "event": "connection",
+    "robot": "simulation",
+    "timestamp": "2024-10-28T02:23:34.038Z"
+  },
+  {
+    "event": "identified",
+    "robot": "3",
+    "message": "Robot 3 identified successfully",
+    "timestamp": "2024-10-28T02:23:52.923Z"
+  },
+  {
+    "event": "identified",
+    "robot": "4",
+    "message": "Robot 4 identified successfully",
+    "timestamp": "2024-10-28T02:23:55.875Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:23:59.942Z"
+  },
+  {
+    "event": "mission_started",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:23:59.982Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:24:49.344Z"
+  },
+  {
+    "event": "mission_failed",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:24:49.361Z"
+  },
+  {
+    "event": "stop_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:24:58.915Z"
+  },
+  {
+    "event": "mission_stopped",
+    "robot": "3",
+    "timestamp": "2024-10-28T02:24:58.925Z"
   }
 ]

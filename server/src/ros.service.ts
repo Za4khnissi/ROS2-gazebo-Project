@@ -3,6 +3,7 @@ import * as ROSLIB from 'roslib';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import { Subject } from 'rxjs';
+import { SyncGateway } from './sync/sync.gateway';
 
 @Injectable()
 export class RosService implements OnModuleInit {
@@ -12,7 +13,7 @@ export class RosService implements OnModuleInit {
   private logFile = this.configService.get<string>('PATH_TO_LOGS');
   private logSubject = new Subject<any>();
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService, private syncGateway: SyncGateway) {
     this.loadLogs();
   }
 
@@ -133,23 +134,15 @@ export class RosService implements OnModuleInit {
       data: true,
     });
   
-    missionService.callService(request, (result) => {
-      const logMessage = result.success
-        ? `Mission started successfully for robot ${robotId}`
-        : `Failed to start mission for robot ${robotId}: No change in mission status`;
-      
-      const log = {
-        event: result.success ? 'mission_started' : 'mission_failed: No change in mission status',
-        robot: robotId,
-        message: logMessage,
-        timestamp: new Date().toISOString(),
-      };
-  
-      this.saveLogs(log);
-      console[result.success ? 'log' : 'error'](logMessage);
+    return new Promise<{ message: string; success: boolean }>((resolve) => {
+      missionService.callService(request, (result) => {
+        const success = result.success;
+        const message = success ? `Mission started for robot ${robotId}` : `Mission start failed for robot ${robotId}`;
+        this.syncGateway.broadcast('syncUpdate', { event: success ? 'mission_started' : 'mission_failed', robot: robotId });
+        this.saveLogs({ event: success ? 'mission_started' : 'mission_failed', robot: robotId, timestamp: new Date().toISOString() });
+        resolve({ message, success });
+      });
     });
-  
-    return { message: `Requested to start mission for robot ${robotId}` };
   }
 
   stopRobotMission(robotId: string) {
@@ -170,58 +163,42 @@ export class RosService implements OnModuleInit {
       data: false,
     });
   
-    missionService.callService(request, (result) => {
-      const logMessage = result.success
-        ? `Mission stopped successfully for robot ${robotId}`
-        : `Failed to stop mission for robot ${robotId}: No change in mission status`;
-  
-      const log = {
-        event: result.success ? 'mission_stopped' : 'mission_stop_failed: No change in mission status',
-        robot: robotId,
-        message: logMessage,
-        timestamp: new Date().toISOString(),
-      };
-  
-      this.saveLogs(log);
-      console[result.success ? 'log' : 'error'](logMessage);
+    return new Promise<{ message: string; success: boolean }>((resolve) => {
+      missionService.callService(request, (result) => {
+        const success = result.success;
+        const message = success ? `Mission stopped for robot ${robotId}` : `Mission stop failed for robot ${robotId}`;
+        this.syncGateway.broadcast('syncUpdate', { event: success ? 'mission_stopped' : 'mission_stop_failed', robot: robotId });
+        this.saveLogs({ event: success ? 'mission_stopped' : 'mission_stop_failed', robot: robotId, timestamp: new Date().toISOString() });
+        resolve({ message, success });
+      });
     });
-  
-    return { message: `Requested to stop mission for robot ${robotId}` };
   }
 
-  identifyRobot(robotId: string) {
+  identifyRobot(robotId: string): Promise<{ message: string; success: boolean }> {
     const rosConnection = this.validateRobotConnection(robotId);
-    const log = { event: 'identify', robot: robotId, timestamp: new Date().toISOString() };
-    this.saveLogs(log);
-  
     const namespace = `limo_105_${robotId}`;
-    const serviceName = `/${namespace}/identify`;
-  
     const identifyService = new ROSLIB.Service({
       ros: rosConnection,
-      name: serviceName,
+      name: `/${namespace}/identify`,
       serviceType: 'std_srvs/Trigger',
     });
-  
     const request = new ROSLIB.ServiceRequest({});
   
-    identifyService.callService(request, (result) => {
-      const logMessage = result.success
-        ? `Robot ${robotId} identified successfully`
-        : `Failed to identify Robot ${robotId}`;
+    return new Promise((resolve, reject) => {
+      identifyService.callService(request, (result) => {
+        const success = result.success;
+        const message = success
+          ? `Robot ${robotId} identified successfully`
+          : `Failed to identify Robot ${robotId}`;
   
-      const log = {
-        event: result.success ? 'identified' : 'identification_failed',
-        robot: robotId,
-        message: logMessage,
-        timestamp: new Date().toISOString(),
-      };
+        const event = success ? 'identified' : 'identification_failed';
+        const log = { event, robot: robotId, message, timestamp: new Date().toISOString() };
+        this.saveLogs(log);
+        this.syncGateway.broadcast('syncUpdate', log);
   
-      this.saveLogs(log);
-      console[result.success ? 'log' : 'error'](logMessage);
+        resolve({ message, success });
+      });
     });
-  
-    return { message: `Robot ${robotId} is identifying itself` };
   }
 
   changeDriveMode(robotId: string, driveMode: string) {
@@ -243,22 +220,11 @@ export class RosService implements OnModuleInit {
     });
   
     driveModeService.callService(request, (result) => {
-      const logMessage = result.success
-        ? `Drive mode changed to ${driveMode} for robot ${robotId}`
-        : `Failed to change drive mode for robot ${robotId}`;
-  
-      const log = {
-        event: result.success ? 'drive_mode_changed' : 'drive_mode_change_failed',
-        robot: robotId,
-        message: logMessage,
-        timestamp: new Date().toISOString(),
-      };
-  
+      const event = result.success ? 'drive_mode_changed' : 'drive_mode_change_failed';
+      const log = { event, robot: robotId, driveMode, timestamp: new Date().toISOString() };
       this.saveLogs(log);
-      console[result.success ? 'log' : 'error'](logMessage);
+      this.syncGateway.broadcast('syncUpdate', log);
     });
-  
-    return { message: `Requested to change drive mode for robot ${robotId} to ${driveMode}` };
   }
   
   

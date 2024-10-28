@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RobotService } from '@app/services/robot.service';
+import { WebSocketService } from '@app/services/web-socket.service';
 import { NgFor, NgClass } from '@angular/common';
 
 @Component({
@@ -19,54 +20,47 @@ export class SimulationComponent implements OnInit {
   logs: any[] = [];
   showOldLogs: boolean = false;
 
-  constructor(private simService: RobotService) {}
+  constructor(private simService: RobotService, private webSocketService: WebSocketService) {}
 
   ngOnInit(): void {
     this.simService.listenForLogs().subscribe((log) => {
       log.isOld = false;
       this.logs.push(log);
     });
+
+    this.webSocketService.listen('syncUpdate').subscribe((data) => {
+      console.log('Received sync update:', data);
+      this.handleSyncUpdate(data);
+    });
+  }
+
+  private handleSyncUpdate(data: any) {
+    this.logs.push(data);
+    if (data.robot && data.event) {
+      if (data.robot === '1') this.robot1Status = data.event;
+      if (data.robot === '2') this.robot2Status = data.event;
+      if (data.robot === '3') this.driveMode3 = data.driveMode || this.driveMode3;
+      if (data.robot === '4') this.driveMode4 = data.driveMode || this.driveMode4;
+    }
   }
 
   identifyRobot(robotId: number) {
-    this.simService.identifyRobot(robotId).subscribe({
-      error: (error) => {
-        console.error('Error identifying robot:', error);
-      }
-    });
+    this.simService.identifyRobot(robotId).subscribe();
   }
 
   startMission(robotId: number) {
-    this.simService.startMission(robotId).subscribe({
-      error: (error) => {
-        console.error('Error starting mission:', error);
-      }
-    });
+    this.simService.startMission(robotId).subscribe();
   }
 
   stopMission(robotId: number) {
-    this.simService.stopMission(robotId).subscribe({
-      error: (error) => {
-        console.error('Error stopping mission:', error);
-      }
-    });
+    this.simService.stopMission(robotId).subscribe();
   }
 
   toggleDriveMode(robotId: number) {
-    let newDriveMode = '';
-    if (robotId === 3) {
-      this.driveMode3 = this.driveMode3 === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
-      newDriveMode = this.driveMode3;
-    } else if (robotId === 4) {
-      this.driveMode4 = this.driveMode4 === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
-      newDriveMode = this.driveMode4;
-    }
+    let newDriveMode = robotId === 3 ? this.driveMode3 : this.driveMode4;
+    newDriveMode = newDriveMode === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
 
-    this.simService.changeDriveMode(robotId, newDriveMode.toLowerCase().replace(' ', '_')).subscribe({
-      error: (error) => {
-        console.error(`Error changing drive mode for Robot ${robotId}:`, error);
-      }
-    });
+    this.simService.changeDriveMode(robotId, newDriveMode.toLowerCase().replace(' ', '_')).subscribe();
   }
 
   toggleOldLogs() {

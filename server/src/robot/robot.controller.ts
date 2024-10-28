@@ -11,11 +11,11 @@ export class RobotController {
   @ApiOperation({ summary: 'Identify a specific robot by playing a sound' })
   @ApiOkResponse({ description: 'Robot identified successfully' })
   @ApiNotFoundResponse({ description: 'Robot not found' })
-  identifyRobot(@Param('robotId') robotId: string) {
+  async identifyRobot(@Param('robotId') robotId: string) {
     try {
-      const response = this.rosService.identifyRobot(robotId);
-      if (!response) {
-        throw new HttpException(`Robot ${robotId} not found`, HttpStatus.NOT_FOUND);
+      const response = await this.rosService.identifyRobot(robotId);
+      if (!response.success) {
+        throw new HttpException(`Failed to identify Robot ${robotId}`, HttpStatus.NOT_FOUND);
       }
       return { statusCode: HttpStatus.OK, message: response.message };
     } catch (error) {

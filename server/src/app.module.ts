@@ -5,11 +5,12 @@ import { RobotController } from './robot/robot.controller';
 import { RosService } from './ros.service';
 import { SimulationController } from './simulation/simulation.controller';
 import { LogsController } from './logs/logs.controller';
+import { SyncGateway } from './sync/sync.gateway';
 
 @Module({
   
   imports: [ConfigModule.forRoot({ isGlobal: true })],
   controllers: [MissionController, RobotController, SimulationController, LogsController],
-  providers: [RosService],
+  providers: [RosService, SyncGateway],
 })
 export class AppModule {}
