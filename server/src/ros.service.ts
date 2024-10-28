@@ -1,23 +1,47 @@
-import { Injectable, OnModuleInit, HttpException, HttpStatus } from '@nestjs/common';
-import * as ROSLIB from 'roslib';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
+import * as rclnodejs from 'rclnodejs';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import { Subject } from 'rxjs';
 import { SyncGateway } from './sync/sync.gateway';
 
+interface ServiceResponse {
+  success: boolean;
+  message?: string;
+}
+
 @Injectable()
-export class RosService implements OnModuleInit {
-  private realRos: ROSLIB.Ros;
-  private simulationRos: ROSLIB.Ros;
+export class RosService implements OnModuleInit, OnModuleDestroy {
+  private realRobotNode: rclnodejs.Node;
+  private simulationRobotNode: rclnodejs.Node;
   private logs: any[] = [];
   private logFile = this.configService.get<string>('PATH_TO_LOGS');
   private logSubject = new Subject<any>();
 
-  constructor(private configService: ConfigService, private syncGateway: SyncGateway) {
+  constructor(
+    private configService: ConfigService, 
+    private syncGateway: SyncGateway
+  ) {
     this.loadLogs();
   }
 
-  onModuleInit() {
+  async onModuleInit() {
+
+    const rosDomainId = this.configService.get<string>('ROS_DOMAIN_ID') || '49';
+    process.env.ROS_DOMAIN_ID = rosDomainId;
+
+    console.log(`ROS_DOMAIN_ID is set to ${process.env.ROS_DOMAIN_ID}`);
+
+    // Initialize rclnodejs
+    await rclnodejs.init();
+
+    // Create nodes for real and simulation robots
     this.connectToRobots();
   }
 
@@ -42,190 +66,141 @@ export class RosService implements OnModuleInit {
   }
 
   private connectToRobots() {
-    const simulationWsUrl = this.configService.get<string>('ROS_WS_URL_SIMULATION');
-    const realWsUrl = this.configService.get<string>('ROS_WS_URL_REAL');
+    this.simulationRobotNode = new rclnodejs.Node('simulation_robot_node');
+    this.realRobotNode = new rclnodejs.Node('real_robot_node');
+    this.simulationRobotNode.spin();
+    this.realRobotNode.spin();
 
-    // Connect to simulation ROS
-    if (simulationWsUrl) {
-      this.simulationRos = new ROSLIB.Ros({
-        url: simulationWsUrl,
-      });
-
-      this.simulationRos.on('connection', () => {
-        const log = { event: 'connection', robot: 'simulation', timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.log(`Connected to simulation ROS at ${simulationWsUrl}`);
-      });
-
-      this.simulationRos.on('error', (error) => {
-        const log = { event: 'error', robot: 'simulation', timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.error(`Error connecting to simulation ROS:`, error);
-      });
-
-      this.simulationRos.on('close', () => {
-        const log = { event: 'close', robot: 'simulation', timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.log(`Connection to simulation ROS closed`);
-      });
-    }
-
-    // Connect to real robots ROS
-    if (realWsUrl) {
-      this.realRos = new ROSLIB.Ros({
-        url: realWsUrl,
-      });
-
-      this.realRos.on('connection', () => {
-        const log = { event: 'connection', robot: 'real', timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.log(`Connected to real robots ROS at ${realWsUrl}`);
-      });
-
-      this.realRos.on('error', (error) => {
-        const log = { event: 'error', robot: 'real', timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.error(`Error connecting to real robots ROS:`, error);
-      });
-
-      this.realRos.on('close', () => {
-        const log = { event: 'close', robot: 'real', timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        console.log(`Connection to real robots ROS closed`);
-      });
-    }
+    console.log('ROS 2 nodes initialized for simulation and real robots.');
   }
 
-  private validateRobotConnection(robotId: string): ROSLIB.Ros {
-    let rosConnection: ROSLIB.Ros;
-
+  private validateRobotConnection(robotId: string): rclnodejs.Node {
     if (robotId === '3' || robotId === '4') {
-      // Simulation robot
-      rosConnection = this.simulationRos;
+      return this.simulationRobotNode;
     } else if (robotId === '1' || robotId === '2') {
-      // Real robot
-      rosConnection = this.realRos;
+      return this.realRobotNode;
     } else {
       throw new HttpException(`Invalid Robot ID ${robotId}`, HttpStatus.BAD_REQUEST);
     }
-
-    if (!rosConnection || rosConnection.isConnected === false) {
-      throw new HttpException(`Cannot connect to Robot ${robotId}`, HttpStatus.SERVICE_UNAVAILABLE);
-    }
-
-    return rosConnection;
   }
-
-  startRobotMission(robotId: string) {
-    const rosConnection = this.validateRobotConnection(robotId);
+  
+  async startRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
+    const node = this.validateRobotConnection(robotId);
+    const namespace = `limo_105_${robotId}`;
+    const serviceName = `/${namespace}/mission`;
+  
+    const client = node.createClient('example_interfaces/srv/SetBool', serviceName);
+    const RequestType = rclnodejs.require('example_interfaces/srv/SetBool').Request;
+    const request = new RequestType();
+    request.data = true;
+  
+    const serviceAvailable = await client.waitForService(5000);
+    if (!serviceAvailable) {
+      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+  
     const log = { event: 'start_mission', robot: robotId, timestamp: new Date().toISOString() };
     this.saveLogs(log);
   
-    const namespace = `limo_105_${robotId}`;
-    const serviceName = `/${namespace}/mission`;
-  
-    const missionService = new ROSLIB.Service({
-      ros: rosConnection,
-      name: serviceName,
-      serviceType: 'example_interfaces/SetBool',
-    });
-  
-    const request = new ROSLIB.ServiceRequest({
-      data: true,
-    });
-  
-    return new Promise<{ message: string; success: boolean }>((resolve) => {
-      missionService.callService(request, (result) => {
-        const success = result.success;
-        const message = success ? `Mission started for robot ${robotId}` : `Mission start failed for robot ${robotId}`;
-        this.syncGateway.broadcast('syncUpdate', { event: success ? 'mission_started' : 'mission_failed', robot: robotId });
-        this.saveLogs({ event: success ? 'mission_started' : 'mission_failed', robot: robotId, timestamp: new Date().toISOString() });
-        resolve({ message, success });
+    return new Promise((resolve, reject) => {
+      client.sendRequest(request, (response: ServiceResponse) => {
+        if (response.success) {
+          console.log(`Mission started for robot ${robotId}: ${response.message}`);
+          this.syncGateway.broadcast('syncUpdate', { event: 'mission_started', robot: robotId });
+          resolve({ message: `Mission started for robot ${robotId}`, success: true });
+        } else {
+          console.error(`Failed to start mission for robot ${robotId}: ${response.message}`);
+          this.syncGateway.broadcast('syncUpdate', { event: 'mission_failed', robot: robotId });
+          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+        }
       });
     });
   }
 
-  stopRobotMission(robotId: string) {
-    const rosConnection = this.validateRobotConnection(robotId);
+  async stopRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
+    const node = this.validateRobotConnection(robotId);
+    const namespace = `limo_105_${robotId}`;
+    const serviceName = `/${namespace}/mission`;
+  
+    const client = node.createClient('example_interfaces/srv/SetBool', serviceName);
+    const RequestType = rclnodejs.require('example_interfaces/srv/SetBool').Request;
+    const request = new RequestType();
+    request.data = false;
+  
+    const serviceAvailable = await client.waitForService(5000);
+    if (!serviceAvailable) {
+      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+  
     const log = { event: 'stop_mission', robot: robotId, timestamp: new Date().toISOString() };
     this.saveLogs(log);
   
-    const namespace = `limo_105_${robotId}`;
-    const serviceName = `/${namespace}/mission`;
-  
-    const missionService = new ROSLIB.Service({
-      ros: rosConnection,
-      name: serviceName,
-      serviceType: 'example_interfaces/SetBool',
-    });
-  
-    const request = new ROSLIB.ServiceRequest({
-      data: false,
-    });
-  
-    return new Promise<{ message: string; success: boolean }>((resolve) => {
-      missionService.callService(request, (result) => {
-        const success = result.success;
-        const message = success ? `Mission stopped for robot ${robotId}` : `Mission stop failed for robot ${robotId}`;
-        this.syncGateway.broadcast('syncUpdate', { event: success ? 'mission_stopped' : 'mission_stop_failed', robot: robotId });
-        this.saveLogs({ event: success ? 'mission_stopped' : 'mission_stop_failed', robot: robotId, timestamp: new Date().toISOString() });
-        resolve({ message, success });
+    return new Promise((resolve, reject) => {
+      client.sendRequest(request, (response: ServiceResponse) => {
+        if (response.success) {
+          console.log(`Mission stopped for robot ${robotId}: ${response.message}`);
+          this.syncGateway.broadcast('syncUpdate', { event: 'mission_stopped', robot: robotId });
+          resolve({ message: `Mission stopped for robot ${robotId}`, success: true });
+        } else {
+          console.error(`Failed to stop mission for robot ${robotId}: ${response.message}`);
+          this.syncGateway.broadcast('syncUpdate', { event: 'mission_stop_failed', robot: robotId });
+          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+        }
       });
     });
   }
 
-  identifyRobot(robotId: string): Promise<{ message: string; success: boolean }> {
-    const rosConnection = this.validateRobotConnection(robotId);
+  async identifyRobot(robotId: string): Promise<{ message: string; success: boolean }> {
+    const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
-    const identifyService = new ROSLIB.Service({
-      ros: rosConnection,
-      name: `/${namespace}/identify`,
-      serviceType: 'std_srvs/Trigger',
-    });
-    const request = new ROSLIB.ServiceRequest({});
+    const serviceName = `/${namespace}/identify`;
+  
+    const client = node.createClient('std_srvs/srv/Trigger', serviceName);
+    const RequestType = rclnodejs.require('std_srvs/srv/Trigger').Request;
+    const request = new RequestType();
+  
+    const serviceAvailable = await client.waitForService(5000);
+    if (!serviceAvailable) {
+      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+    }
   
     return new Promise((resolve, reject) => {
-      identifyService.callService(request, (result) => {
-        const success = result.success;
-        const message = success
-          ? `Robot ${robotId} identified successfully`
-          : `Failed to identify Robot ${robotId}`;
-  
-        const event = success ? 'identified' : 'identification_failed';
-        const log = { event, robot: robotId, message, timestamp: new Date().toISOString() };
-        this.saveLogs(log);
-        this.syncGateway.broadcast('syncUpdate', log);
-  
-        resolve({ message, success });
+      client.sendRequest(request, (response: ServiceResponse) => {
+        if (response.success) {
+          console.log(`Robot ${robotId} identified successfully: ${response.message}`);
+          this.syncGateway.broadcast('syncUpdate', { event: 'identified', robot: robotId });
+          resolve({ message: `Robot ${robotId} identified`, success: true });
+        } else {
+          console.error(`Failed to identify Robot ${robotId}: ${response.message}`);
+          this.syncGateway.broadcast('syncUpdate', { event: 'identification_failed', robot: robotId });
+          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+        }
       });
     });
-  }
-
-  changeDriveMode(robotId: string, driveMode: string) {
-    const rosConnection = this.validateRobotConnection(robotId);
-    const log = { event: 'change_drive_mode', robot: robotId, timestamp: new Date().toISOString() };
-    this.saveLogs(log);
+  }  
   
+  changeDriveMode(robotId: string, driveMode: string) {
+    const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/robot_${robotId}_drive_mode`;
-  
-    const driveModeService = new ROSLIB.Service({
-      ros: rosConnection,
-      name: serviceName,
-      serviceType: 'std_srvs/SetBool',
-    });
-  
-    const request = new ROSLIB.ServiceRequest({
-      data: driveMode === 'ackermann',
-    });
-  
-    driveModeService.callService(request, (result) => {
-      const event = result.success ? 'drive_mode_changed' : 'drive_mode_change_failed';
+    
+    const client = node.createClient('std_srvs/srv/SetBool', serviceName);
+    const RequestType = rclnodejs.require('std_srvs/srv/SetBool').Request;
+    const request = new RequestType();
+    request.data = driveMode === 'ackermann';
+    
+    client.sendRequest(request, (response) => {
+      const event = response.success ? 'drive_mode_changed' : 'drive_mode_change_failed';
       const log = { event, robot: robotId, driveMode, timestamp: new Date().toISOString() };
       this.saveLogs(log);
       this.syncGateway.broadcast('syncUpdate', log);
     });
   }
   
-  
+  async onModuleDestroy() {
+    // Destroy nodes and shutdown rclnodejs
+    this.simulationRobotNode.destroy();
+    this.realRobotNode.destroy();
+    await rclnodejs.shutdown();
+  }
 }

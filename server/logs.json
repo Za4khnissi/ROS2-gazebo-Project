@@ -586,5 +586,15 @@
     "event": "mission_stopped",
     "robot": "3",
     "timestamp": "2024-10-28T02:24:58.925Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T13:51:33.147Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "4",
+    "timestamp": "2024-10-28T13:51:53.854Z"
   }
 ]

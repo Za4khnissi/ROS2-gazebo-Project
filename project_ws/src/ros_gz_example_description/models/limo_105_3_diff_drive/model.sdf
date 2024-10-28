@@ -135,12 +135,12 @@
                 </material>
             </visual-->
             <sensor name='sensor_camera' type='depth_camera'>
-                <topic>/limo/depth/image_raw</topic>
+                <topic>/limo_105_3/depth/image_raw</topic>
                 <always_on>true</always_on>
                 <visualize>true</visualize>
                 <update_rate>10</update_rate>
                 <camera name='head'>
-                    <cameraInfoTopic>/limo/color/camera_info</cameraInfoTopic>
+                    <cameraInfoTopic>/limo_105_3/color/camera_info</cameraInfoTopic>
                     <horizontal_fov>1.3962634</horizontal_fov>
                     <image>
                         <width>640</width>
@@ -159,14 +159,14 @@
             </sensor>
             <gravity>true</gravity>
             <sensor name='imu_sensor' type='imu'>
-                <topic>/limo/imu</topic>
+                <topic>/limo_105_3/imu</topic>
                 <always_on>true</always_on>
                 <update_rate>8</update_rate>
                 <visualize>true</visualize>
                 <pose relative_to="imu_link">0 0 0 0 0 0</pose>
             </sensor>
             <sensor name='laser_sensor' type='gpu_lidar'>
-                <topic>/limo/scan</topic>
+                <topic>/limo_105_3/scan</topic>
                 <visualize>false</visualize>
                 <update_rate>8</update_rate>
                 <ray>

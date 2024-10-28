@@ -50,6 +50,31 @@ cleanup() {
     echo "Cleanup complete."
 }
 
+trap cleanup SIGINT SIGTERM EXIT
+
+# kill_existing_services() {
+#     echo "Killing existing identify and mission services..."
+
+#     # Identify and kill any existing identify_service nodes
+#     IDENTIFY_PIDS=$(ros2 node list | grep identify_service)
+#     if [ ! -z "$IDENTIFY_PIDS" ]; then
+#         for NODE in $IDENTIFY_PIDS; do
+#             kill $NODE
+#             echo "Killed $NODE"
+#         done
+#     fi
+
+#     # Identify and kill any existing mission_service nodes
+#     MISSION_PIDS=$(ros2 node list | grep mission_service)
+#     if [ ! -z "$MISSION_PIDS" ]; then
+#         for NODE in $MISSION_PIDS; do
+#             kill $NODE
+#             echo "Killed $NODE"
+#         done
+#     fi
+# }
+
+# # Function to kill existing rosbridge_server processes
 kill_rosbridge_server() {
     ROSBRIDGE_PIDS=$(pgrep -f 'rosbridge_websocket_launch')
     if [ -z "$ROSBRIDGE_PIDS" ];then
@@ -76,7 +101,17 @@ kill_rosbridge_server() {
     
 trap cleanup SIGINT SIGTERM EXIT
 
-# Ensure necessary dependencies are installed
+pkill -f ros2
+
+# Restart ROS 2 daemon
+ros2 daemon stop
+ros2 daemon start
+
+
+# Update package lists (uncomment if needed)
+# sudo apt update
+
+# Install ros-humble-rosbridge-server if not installed
 if ! is_apt_package_installed ros-humble-rosbridge-server; then
     sudo apt install -y ros-humble-rosbridge-server
 fi
@@ -98,8 +133,6 @@ if ! grep -q "export ROS_DOMAIN_ID=49" ~/.bashrc; then
     source ~/.bashrc
 fi
 
-ros2 daemon stop
-ros2 daemon start
 
 cd "$HOME"
 
@@ -129,7 +162,8 @@ if [ "$ROBOT_ID" == "simulation" ]; then
 
     kill_rosbridge_server
 
-    echo "Launching simulation with Robot 3 mode: $DRIVE_MODE_3 and Robot 4 mode: $DRIVE_MODE_4."
+    # Kill existing services to avoid duplicates
+    #kill_existing_services
 
     ros2 launch ros_gz_example_bringup bridge.launch.py &
     BRIDGE_PID=$!
