@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { RobotService } from '@app/services/robot.service';
 import { WebSocketService } from '@app/services/web-socket.service';
-import { NgFor, NgClass } from '@angular/common';
+import { NgFor, NgClass, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-simulation-robot',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css'],
   standalone: true,
-  imports: [NgFor, NgClass]
+  imports: [NgFor, NgClass, NgIf],
 })
 export class SimulationComponent implements OnInit {
   robot1Status: string = 'Waiting';
@@ -16,6 +16,7 @@ export class SimulationComponent implements OnInit {
   simulationStatus: boolean = false;
   driveMode3: string = 'Diff Drive';
   driveMode4: string = 'Diff Drive';
+  driveModeAvailable: boolean = false;
 
   logs: any[] = [];
   showOldLogs: boolean = false;

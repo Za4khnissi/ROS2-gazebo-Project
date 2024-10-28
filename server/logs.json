@@ -596,5 +596,15 @@
     "event": "start_mission",
     "robot": "4",
     "timestamp": "2024-10-28T13:51:53.854Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "3",
+    "timestamp": "2024-10-28T23:23:07.429Z"
+  },
+  {
+    "event": "start_mission",
+    "robot": "4",
+    "timestamp": "2024-10-28T23:23:26.389Z"
   }
 ]

@@ -27,30 +27,26 @@ is_pip_package_installed() {
 }
 
 cleanup() {
-    echo "Attempting graceful shutdown of ROS nodes and processes..."
-
-    # Terminate by process names without using forceful kill immediately
-    pkill -f 'rosbridge_websocket'
-    pkill -f 'identify_service'
-    pkill -f 'mission_service'
-    pkill -f 'drive_mode_service'
-
-    # Allow time for processes to terminate gracefully
-    sleep 1
-
-    # Forcefully kill lingering processes if they still exist
-    for PROCESS in 'rosbridge_websocket' 'identify_service' 'mission_service' 'drive_mode_service'; do
-        if pgrep -f "$PROCESS" > /dev/null; then
-            echo "Force killing lingering $PROCESS processes..."
-            pkill -9 -f "$PROCESS"
+    echo "Cleaning up..."
+    # Terminate all collected process IDs gracefully
+    for PID in "${PIDS[@]}"; do
+        if kill -0 $PID 2>/dev/null; then
+            kill $PID
+            wait $PID
         fi
     done
 
-    sleep 1
-    echo "Cleanup complete."
+    # Kill Gazebo if still running
+    if kill -0 $GAZEBO_PID 2>/dev/null; then
+        kill $GAZEBO_PID
+        wait $GAZEBO_PID
+    fi
+
+    echo "All processes terminated."
 }
 
 trap cleanup SIGINT SIGTERM EXIT
+
 
 # kill_existing_services() {
 #     echo "Killing existing identify and mission services..."
@@ -73,48 +69,23 @@ trap cleanup SIGINT SIGTERM EXIT
 #         done
 #     fi
 # }
-
-# # Function to kill existing rosbridge_server processes
-kill_rosbridge_server() {
-    ROSBRIDGE_PIDS=$(pgrep -f 'rosbridge_websocket_launch')
-    if [ -z "$ROSBRIDGE_PIDS" ];then
-        ROSBRIDGE_PIDS=$(pgrep -f 'rosbridge_websocket')
-    fi
-
-    if [ ! -z "$ROSBRIDGE_PIDS" ]; then
-        echo "Killing existing rosbridge_server processes: $ROSBRIDGE_PIDS"
-        kill $ROSBRIDGE_PIDS
-
-        sleep 2
-
-        ROSBRIDGE_PIDS=$(pgrep -f 'rosbridge_websocket_launch')
-        if [ -z "$ROSBRIDGE_PIDS" ]; then
-            ROSBRIDGE_PIDS=$(pgrep -f 'rosbridge_websocket')
-        fi
-
-        if [ ! -z "$ROSBRIDGE_PIDS" ]; then
-            echo "Force killing rosbridge_server processes: $ROSBRIDGE_PIDS"
-            kill -9 $ROSBRIDGE_PIDS
-        fi
-    fi
-}
     
 trap cleanup SIGINT SIGTERM EXIT
 
 pkill -f ros2
 
+
+
 # Restart ROS 2 daemon
 ros2 daemon stop
 ros2 daemon start
 
+# Clear any stale shared memory segments
+sudo rm -rf /dev/shm/*
+
 
 # Update package lists (uncomment if needed)
 # sudo apt update
-
-# Install ros-humble-rosbridge-server if not installed
-if ! is_apt_package_installed ros-humble-rosbridge-server; then
-    sudo apt install -y ros-humble-rosbridge-server
-fi
 
 if ! is_apt_package_installed python3-pip; then
     sudo apt install -y python3-pip
@@ -122,6 +93,25 @@ fi
 
 if ! is_pip_package_installed pygame; then
     pip install pygame
+fi
+
+
+# Install ROS 2 packages if not installed
+ROS_DISTRO="humble"
+
+# Install slam_toolbox
+if ! is_apt_package_installed "ros-$ROS_DISTRO-slam-toolbox"; then
+    sudo apt install -y "ros-$ROS_DISTRO-slam-toolbox"
+fi
+
+# Install nav2_bringup
+if ! is_apt_package_installed "ros-$ROS_DISTRO-nav2-bringup"; then
+    sudo apt install -y "ros-$ROS_DISTRO-nav2-bringup"
+fi
+
+# Install image_geometry
+if ! is_apt_package_installed "ros-$ROS_DISTRO-image-geometry"; then
+    sudo apt install -y "ros-$ROS_DISTRO-image-geometry"
 fi
 
 source /opt/ros/humble/setup.bash
@@ -148,7 +138,7 @@ cd "$HOME/inf3995/project_ws"
 
 if [ "$ROBOT_ID" == "simulation" ]; then
 
-    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control ydlidar_ros2_driver limo_base limo_msgs limo_description limo_bringup
+    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_msgs limo_description limo_bringup
 
 else colcon build --cmake-args -DBUILD_TESTING=ON
 
@@ -160,21 +150,16 @@ if [ "$ROBOT_ID" == "simulation" ]; then
 
     cleanup
 
-    kill_rosbridge_server
+    cd src/ros_gz_example_gazebo/worlds
 
-    # Kill existing services to avoid duplicates
-    #kill_existing_services
+    # Generate modified world file
+    MODIFIED_WORLD_FILE="modified_world.sdf"
+    python3 generate_world_with_obstacles.py $DRIVE_MODE_3 $DRIVE_MODE_4 $MODIFIED_WORLD_FILE
 
-    ros2 launch ros_gz_example_bringup bridge.launch.py &
-    BRIDGE_PID=$!
-    PIDS+=($BRIDGE_PID)
+    cd ~/inf3995/project_ws
 
-    ros2 launch ros_gz_example_bringup diff_drive_sim.launch.py drive_mode_3:=$DRIVE_MODE_3 drive_mode_4:=$DRIVE_MODE_4 &
+    ros2 launch ros_gz_example_bringup full.launch.py &
     PIDS+=($!)
-
-    ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
-    ROSBRIDGE_PID=$!
-    PIDS+=($ROSBRIDGE_PID)
 
     for PID in "${PIDS[@]}"; do
         wait $PID

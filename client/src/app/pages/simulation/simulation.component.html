@@ -19,7 +19,7 @@
         </button>
         <div class="mt-10 text-center">
           <label for="driveMode3">Drive Mode for Robot 3:</label>
-          <button (click)="toggleDriveMode(3)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
+          <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(3)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
             {{ driveMode3 }}
           </button>
         </div>
@@ -39,7 +39,7 @@
         </button>
         <div class="mt-10 text-center">
           <label for="driveMode4">Drive Mode for Robot 4:</label>
-          <button (click)="toggleDriveMode(4)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
+          <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(4)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
             {{ driveMode4 }}
           </button>
         </div>

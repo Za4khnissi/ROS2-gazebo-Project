@@ -52,6 +52,7 @@ def generate_border_walls():
     walls += generate_wall_sdf(10, 0, 0.5, 20, 1.5708)
     return walls
 
+
 # Function to generate the random internal walls
 def generate_internal_walls():
     walls = ""

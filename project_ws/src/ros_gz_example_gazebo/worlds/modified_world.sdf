@@ -149,120 +149,120 @@
       </link>
     </model>
     
-    <model name="random_wall_-1.726040826747619_-2.7561676676753732">
-      <pose>-1.726040826747619 -2.7561676676753732 0.0 0 0 0.7025542055186539</pose>
+    <model name="random_wall_-5.863339413969854_-0.1795722700948552">
+      <pose>-5.863339413969854 -0.1795722700948552 0.0 0 0 2.3568757321703937</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>8.675610208776906 0.5 1</size>
+              <size>7.488542566244306 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>8.675610208776906 0.5 1</size>
+              <size>7.488542566244306 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_-6.705009315663853_1.9121632517316591">
-      <pose>-6.705009315663853 1.9121632517316591 0.0 0 0 0.8467979904796807</pose>
+    <model name="random_wall_4.563530062153312_-7.258610897008724">
+      <pose>4.563530062153312 -7.258610897008724 0.0 0 0 0.20661946899302938</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>7.977118083994543 0.5 1</size>
+              <size>8.386604697284314 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>7.977118083994543 0.5 1</size>
+              <size>8.386604697284314 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_2.1545993090828883_-7.919306203493557">
-      <pose>2.1545993090828883 -7.919306203493557 0.0 0 0 1.3724601041720934</pose>
+    <model name="random_wall_-2.106477848816156_-3.18650050921804">
+      <pose>-2.106477848816156 -3.18650050921804 0.0 0 0 0.8421097997923432</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>5.143029251172447 0.5 1</size>
+              <size>7.486338927850774 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>5.143029251172447 0.5 1</size>
+              <size>7.486338927850774 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_-0.9467317184503958_-2.5466172038816115">
-      <pose>-0.9467317184503958 -2.5466172038816115 0.0 0 0 2.5425016758386816</pose>
+    <model name="random_wall_-8.810360761195026_-6.970589877203594">
+      <pose>-8.810360761195026 -6.970589877203594 0.0 0 0 0.1621527064641837</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>9.268308226127504 0.5 1</size>
+              <size>8.253687008451493 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>9.268308226127504 0.5 1</size>
+              <size>8.253687008451493 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_-2.044067528670019_4.446149000422928">
-      <pose>-2.044067528670019 4.446149000422928 0.0 0 0 1.7383725320319023</pose>
+    <model name="random_wall_7.745228285546773_8.503577773652857">
+      <pose>7.745228285546773 8.503577773652857 0.0 0 0 1.0033335622822042</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>7.770938801202009 0.5 1</size>
+              <size>5.82253450466514 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>7.770938801202009 0.5 1</size>
+              <size>5.82253450466514 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_-5.198640767292542_-7.461637632567136">
-      <pose>-5.198640767292542 -7.461637632567136 0.0 0 0 1.0137313161776689</pose>
+    <model name="random_wall_-0.24805923375106254_2.8049441678687703">
+      <pose>-0.24805923375106254 2.8049441678687703 0.0 0 0 2.2827970854142463</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>9.797366107051928 0.5 1</size>
+              <size>6.676151821920005 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>9.797366107051928 0.5 1</size>
+              <size>6.676151821920005 0.5 1</size>
             </box>
           </geometry>
         </visual>
