@@ -1,8 +1,8 @@
 map_merge:
   ros__parameters:
-    merging_rate: 1.0
-    discovery_rate: 0.5
-    estimation_rate: 0.5
+    merging_rate: 10.0 # Hz
+    discovery_rate: 0.1
+    estimation_rate: 1.0
     estimation_confidence: 0.6
     robot_map_topic: map
     robot_map_updates_topic: map_udpates
