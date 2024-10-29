@@ -109,6 +109,10 @@ if ! is_apt_package_installed "ros-$ROS_DISTRO-nav2-bringup"; then
     sudo apt install -y "ros-$ROS_DISTRO-nav2-bringup"
 fi
 
+if ! is_apt_package_installed "ros-$ROS_DISTRO-navigation2"; then
+    sudo apt install -y "ros-$ROS_DISTRO-navigation2"
+fi
+
 # Install image_geometry
 if ! is_apt_package_installed "ros-$ROS_DISTRO-image-geometry"; then
     sudo apt install -y "ros-$ROS_DISTRO-image-geometry"

@@ -1,6 +1,0 @@
-/home/zak/inf3995/build/nan/CMakeFiles/lint.dir
-/home/zak/inf3995/build/nan/CMakeFiles/test.dir
-/home/zak/inf3995/build/nan/CMakeFiles/forcetest.dir
-/home/zak/inf3995/build/nan/CMakeFiles/docs.dir
-/home/zak/inf3995/build/nan/CMakeFiles/edit_cache.dir
-/home/zak/inf3995/build/nan/CMakeFiles/rebuild_cache.dir

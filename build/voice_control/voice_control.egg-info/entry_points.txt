@@ -1,3 +1,0 @@
-[console_scripts]
-voice_control = voice_control.main:main
-
