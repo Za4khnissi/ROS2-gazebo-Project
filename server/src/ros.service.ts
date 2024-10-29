@@ -126,6 +126,55 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   private connectToRobots() {
     this.simulationRobotNode = new rclnodejs.Node('simulation_robot_node');
     this.realRobotNode = new rclnodejs.Node('real_robot_node');
+
+    const OccupancyGrid = rclnodejs.require('nav_msgs/msg/OccupancyGrid');
+
+    // Add map subscription
+    this.simulationRobotNode.createSubscription(
+      OccupancyGrid as any,
+      '/map',
+      (message: any) => {
+        // Convert the message to a plain JavaScript object
+        const mapData = {
+          header: {
+            seq: message.header.seq,
+            stamp: {
+              sec: message.header.stamp.sec,
+              nsec: message.header.stamp.nsec
+            },
+            frame_id: message.header.frame_id
+          },
+          info: {
+            map_load_time: {
+              sec: message.info.map_load_time.sec,
+              nsec: message.info.map_load_time.nsec
+            },
+            resolution: message.info.resolution,
+            width: message.info.width,
+            height: message.info.height,
+            origin: {
+              position: {
+                x: message.info.origin.position.x,
+                y: message.info.origin.position.y,
+                z: message.info.origin.position.z
+              },
+              orientation: {
+                x: message.info.origin.orientation.x,
+                y: message.info.origin.orientation.y,
+                z: message.info.origin.orientation.z,
+                w: message.info.origin.orientation.w
+              }
+            }
+          },
+          data: Array.from(message.data) // Convert Int8Array to regular array
+        };
+
+        // Broadcast the map data through the WebSocket
+        this.syncGateway.broadcast('map_update', mapData);
+      }
+    );
+
+
     this.simulationRobotNode.spin();
     this.realRobotNode.spin();
 

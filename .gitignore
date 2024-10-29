@@ -58,3 +58,4 @@ project_ws/log/
 # Editors
 **/.idea
 **/.vscode
+server/missions_logs/
