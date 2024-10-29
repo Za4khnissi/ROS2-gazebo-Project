@@ -8,8 +8,9 @@ import {
 import * as rclnodejs from 'rclnodejs';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
-import { Subject } from 'rxjs';
+import { Subject, interval, Subscription, Observable } from 'rxjs';
 import { SyncGateway } from './sync/sync.gateway';
+import * as path from 'path';
 
 interface ServiceResponse {
   success: boolean;
@@ -20,49 +21,107 @@ interface ServiceResponse {
 export class RosService implements OnModuleInit, OnModuleDestroy {
   private realRobotNode: rclnodejs.Node;
   private simulationRobotNode: rclnodejs.Node;
+  private logsFolder = this.configService.get<string>('PATH_TO_LOGS_FOLDER');
   private logs: any[] = [];
-  private logFile = this.configService.get<string>('PATH_TO_LOGS');
   private logSubject = new Subject<any>();
+  private missionActive = false;
+  private logInterval: Subscription;
+  private currentLogs: any[] = [];
+  private currentLogFilePath: string;
+  private logFilePaths = new Map<string, string>();
 
   constructor(
     private configService: ConfigService, 
     private syncGateway: SyncGateway
   ) {
-    this.loadLogs();
+    this.ensureLogsFolderExists();
   }
 
   async onModuleInit() {
-
     const rosDomainId = this.configService.get<string>('ROS_DOMAIN_ID') || '49';
     process.env.ROS_DOMAIN_ID = rosDomainId;
 
     console.log(`ROS_DOMAIN_ID is set to ${process.env.ROS_DOMAIN_ID}`);
 
-    // Initialize rclnodejs
     await rclnodejs.init();
 
-    // Create nodes for real and simulation robots
     this.connectToRobots();
+
+    // Subscribe to /rosout topic to capture logs from all nodes
+    const rosoutNode = new rclnodejs.Node('log_listener');
+    rosoutNode.createSubscription(
+      'rcl_interfaces/msg/Log',
+      '/rosout',
+      (msg) => this.handleLogMessage(msg)
+    );
+    rosoutNode.spin();
   }
 
-  private loadLogs() {
-    if (fs.existsSync(this.logFile)) {
-      this.logs = JSON.parse(fs.readFileSync(this.logFile, 'utf8'));
+  private ensureLogsFolderExists() {
+    if (!fs.existsSync(this.logsFolder)) {
+      fs.mkdirSync(this.logsFolder);
     }
   }
 
-  private saveLogs(log: { event: string; robot: string; message?: string; timestamp: string }) {
-    this.logs.push(log);
-    fs.writeFileSync(this.logFile, JSON.stringify(this.logs, null, 2));
-    this.logSubject.next(log);
-}
-
-  getOldLogs() {
-    return this.logs;
+  private formatTimestamp(date: Date): string {
+    return date.toLocaleString('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
   }
 
-  getLogStream() {
-    return this.logSubject.asObservable();
+  private startMissionLogFile(robotId: string) {
+    const timestamp = this.formatTimestamp(new Date()).replace(/[: ]/g, '-');
+    const logFilePath = path.join(this.logsFolder, `mission_${robotId}_${timestamp}.json`);
+    this.logFilePaths.set(robotId, logFilePath);
+    console.log(`Logging to ${logFilePath} for robot ${robotId}`);
+  }
+
+  private saveLogToFile(log: any) {
+    const logFilePath = this.logFilePaths.get(log.robot.split('_')[2]);
+    if (logFilePath) {
+      log.timestamp = this.formatTimestamp(new Date(log.timestamp));
+      fs.appendFileSync(logFilePath, JSON.stringify(log) + '\n');
+      this.logSubject.next(log);
+    }
+  }
+
+  private handleLogMessage(msg: any) {
+    const namespace = msg.name.split('.')[0];
+    if (namespace === 'limo_105_3' || namespace === 'limo_105_4') {
+      const logEntry = {
+        robot: namespace,
+        level: msg.level,
+        message: msg.msg,
+        timestamp: this.formatTimestamp(new Date()),
+      };
+      this.currentLogs.push(logEntry);
+    }
+  }
+
+
+  private startLogging() {
+    this.logInterval = interval(1000).subscribe(() => {
+      if (this.missionActive && this.currentLogs.length > 0) {
+        this.currentLogs.forEach((log) => {
+          this.saveLogToFile(log);
+          this.syncGateway.broadcast('syncUpdate', log);
+        });
+        this.currentLogs = [];
+      }
+    });
+  }
+
+
+  private stopLogging() {
+    if (this.logInterval) {
+      this.logInterval.unsubscribe();
+    }
+    this.logFilePaths.clear();
   }
 
   private connectToRobots() {
@@ -85,6 +144,10 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   }
   
   async startRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
+    this.missionActive = true;
+    this.startMissionLogFile(robotId); // Start a new log file for the mission
+    this.startLogging();
+
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
@@ -99,8 +162,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
   
-    const log = { event: 'start_mission', robot: robotId, timestamp: new Date().toISOString() };
-    this.saveLogs(log);
+    const log = { event: 'start_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
+    this.saveLogToFile(log);
   
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
@@ -118,6 +181,9 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   }
 
   async stopRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
+    this.missionActive = false;
+    this.stopLogging();
+
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
@@ -132,8 +198,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
   
-    const log = { event: 'stop_mission', robot: robotId, timestamp: new Date().toISOString() };
-    this.saveLogs(log);
+    const log = { event: 'stop_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
+    this.saveLogToFile(log);
   
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
@@ -192,9 +258,27 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     client.sendRequest(request, (response) => {
       const event = response.success ? 'drive_mode_changed' : 'drive_mode_change_failed';
       const log = { event, robot: robotId, driveMode, timestamp: new Date().toISOString() };
-      this.saveLogs(log);
+      this.saveLogToFile(log);
       this.syncGateway.broadcast('syncUpdate', log);
     });
+  }
+
+  getOldMissions() {
+    const missionFiles = fs.readdirSync(this.logsFolder).filter(file => file.startsWith('mission_') && file.endsWith('.json'));
+    
+    const missions = missionFiles.map(file => {
+      const filePath = path.join(this.logsFolder, file);
+      const fileContent = fs.readFileSync(filePath, 'utf-8').split('\n').filter(line => line);
+      const logs = fileContent.map(line => JSON.parse(line));
+  
+      return { mission: file, logs };
+    });
+  
+    return missions;
+  }
+
+  getLogStream(): Observable<any> {
+    return this.logSubject.asObservable();
   }
   
   async onModuleDestroy() {

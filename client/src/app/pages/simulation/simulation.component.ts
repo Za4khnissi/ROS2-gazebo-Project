@@ -20,6 +20,7 @@ export class SimulationComponent implements OnInit {
 
   logs: any[] = [];
   showOldLogs: boolean = false;
+  missions: any[] = [];
 
   constructor(private simService: RobotService, private webSocketService: WebSocketService) {}
 
@@ -66,16 +67,20 @@ export class SimulationComponent implements OnInit {
 
   toggleOldLogs() {
     if (!this.showOldLogs) {
-      // Load old logs and display them
-      this.simService.getOldLogs().subscribe((logs) => {
-        logs.forEach((log) => (log.isOld = true));
-        this.logs = [...logs, ...this.logs];
+      this.simService.getOldLogs().subscribe((missions) => {
+        this.missions = missions.map((mission: any) => ({
+          ...mission,
+          expanded: false,
+        }));
         this.showOldLogs = true;
       });
     } else {
-      // Hide old logs by filtering them out
-      this.logs = this.logs.filter((log) => !log.isOld);
+      this.missions = [];
       this.showOldLogs = false;
     }
+  }
+
+  toggleMissionLogs(mission: any) {
+    mission.expanded = !mission.expanded;
   }
 }
