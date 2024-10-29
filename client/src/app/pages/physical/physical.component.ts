@@ -16,6 +16,7 @@ export class PhysicalRobotComponent implements OnInit {
 
   logs: any[] = [];
   showOldLogs: boolean = false;
+  missions: any[] = [];
 
   constructor(private robotService: RobotService, private webSocketService: WebSocketService) {}
 
@@ -53,17 +54,21 @@ export class PhysicalRobotComponent implements OnInit {
 
   toggleOldLogs() {
     if (!this.showOldLogs) {
-      // Load old logs and display them
-      this.robotService.getOldLogs().subscribe((logs) => {
-        logs.forEach((log) => (log.isOld = true));
-        this.logs = [...logs, ...this.logs];
+      this.robotService.getOldLogs().subscribe((missions) => {
+        this.missions = missions.map((mission: any) => ({
+          ...mission,
+          expanded: false,
+        }));
         this.showOldLogs = true;
       });
     } else {
-      // Hide old logs by filtering them out
-      this.logs = this.logs.filter((log) => !log.isOld);
+      this.missions = [];
       this.showOldLogs = false;
     }
+  }
+
+  toggleMissionLogs(mission: any) {
+    mission.expanded = !mission.expanded;
   }
 
 }
