@@ -160,6 +160,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     if (!serviceAvailable) {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
+
+    this.syncGateway.broadcast('syncUpdate', { event: 'mission_started', robot: robotId });
   
     const log = { event: 'start_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
     this.saveLogToFile(log);
@@ -196,6 +198,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     if (!serviceAvailable) {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
+
+    this.syncGateway.broadcast('syncUpdate', { event: 'mission_stopped', robot: robotId });
   
     const log = { event: 'stop_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
     this.saveLogToFile(log);
@@ -228,6 +232,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     if (!serviceAvailable) {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
+
+    this.syncGateway.broadcast('syncUpdate', { event: 'identifying', robot: robotId });
   
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
