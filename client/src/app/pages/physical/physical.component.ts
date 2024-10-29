@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { RobotService } from '@app/services/robot.service';
 import { WebSocketService } from '@app/services/web-socket.service';
-import { NgFor, NgClass } from '@angular/common';
+import { NgFor, NgClass, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-physical-robot',
   templateUrl: './physical.component.html',
   styleUrls: ['./physical.component.css'],
   standalone: true,
-  imports: [NgFor, NgClass]
+  imports: [NgFor, NgClass, NgIf],
 })
 export class PhysicalRobotComponent implements OnInit {
   robot1Status: string = 'Waiting';

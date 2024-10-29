@@ -1,15 +1,14 @@
 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
   <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-3xl text-center">
-
     <h1 class="text-4xl text-white font-bold mb-6">Simulation Control</h1>
 
     <app-map class="mb-8"></app-map>
 
     <div class="grid grid-cols-2 gap-8">
-      
       <!-- Robot 1 Controls -->
       <div class="bg-gray-700 p-20 rounded-lg shadow-inner flex flex-col items-center">
-        <h3 class="text-xl text-white mb-4">Robot 1 Control</h3>
+        <h3 class="text-xl text-white mb-4">Robot 3 Control</h3>
+        <p class="text-sm text-green-300 mb-4">Status: {{ robot1Status }}</p>
         <button (click)="identifyRobot(3)" class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg mb-3 w-full">
           Identify Robot
         </button>
@@ -20,7 +19,7 @@
           Stop Mission
         </button>
         <div class="mt-10 text-center">
-          <label for="driveMode3">Drive Mode for Robot 3:</label>
+          <label for="driveMode3">Drive Mode for Robot 3: diff_drive</label>
           <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(3)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
             {{ driveMode3 }}
           </button>
@@ -29,7 +28,8 @@
 
       <!-- Robot 2 Controls -->
       <div class="bg-gray-700 p-20 rounded-lg shadow-inner flex flex-col items-center">
-        <h3 class="text-xl text-white mb-4">Robot 2 Control</h3>
+        <h3 class="text-xl text-white mb-4">Robot 4 Control</h3>
+        <p class="text-sm text-green-300 mb-4">Status: {{ robot2Status }}</p>
         <button (click)="identifyRobot(4)" class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg mb-3 w-full">
           Identify Robot
         </button>
@@ -40,16 +40,15 @@
           Stop Mission
         </button>
         <div class="mt-10 text-center">
-          <label for="driveMode4">Drive Mode for Robot 4:</label>
+          <label for="driveMode4">Drive Mode for Robot 4: diff_drive</label>
           <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(4)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
             {{ driveMode4 }}
           </button>
         </div>
       </div>
     </div>
-
   </div>
-  
+
   <!-- Logs Panel -->
   <div class="fixed inset-y-0 right-0 bg-gray-800 text-white shadow-lg w-80 p-6 overflow-y-auto">
     <h3 class="text-xl font-bold mb-4">Robot Logs</h3>
@@ -84,5 +83,4 @@
       </li>
     </ul>
   </div>
-  
 </div>

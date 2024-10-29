@@ -1,7 +1,13 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: 'http://localhost:4200',  // Allow requests from Angular
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+})
 export class SyncGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -18,6 +24,7 @@ export class SyncGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   broadcast(event: string, payload: any): void {
+    console.log(`Broadcasting event: ${event}`, payload);
     this.server.emit(event, payload);
   }
 }

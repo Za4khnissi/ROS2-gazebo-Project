@@ -1,0 +1,138 @@
+{"robot":"limo_105_3","level":20,"message":"Stopping the exploration: publishing False to explore/resume","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":40,"message":"Failed to get result for follow_path in node halt!","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"Goal canceled","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":30,"message":"[navigate_to_pose] [ActionServer] Client requested to cancel the goal. Cancelling.","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"Goal was canceled. Stopping the robot.","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":30,"message":"[follow_path] [ActionServer] Client requested to cancel the goal. Cancelling.","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"StaticLayer: Resizing costmap to 207 X 297 at 0.050000 m/pix","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:00"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:01"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:02"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:03"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:04"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:05"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:06"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:07"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:08"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:09"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Identify service called. Playing sound...","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Received a 207 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Starting the exploration: publishing True to explore/resume","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Begin navigating from current location (0.00, 0.00) to (1.82, -0.18)","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Received a goal, begin computing control effort.","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Received a 218 X 297 map @ 0.050 m/pix","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"StaticLayer: Resizing costmap to 218 X 297 at 0.050000 m/pix","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 12:10"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 12:10"}
