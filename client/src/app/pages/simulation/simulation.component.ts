@@ -25,25 +25,26 @@ export class SimulationComponent implements OnInit {
   constructor(private simService: RobotService, private webSocketService: WebSocketService) {}
 
   ngOnInit(): void {
-    this.simService.listenForLogs().subscribe((log) => {
-      log.isOld = false;
-      this.logs.push(log);
-    });
+    this.webSocketService.listen('syncUpdate').subscribe((data: any) => {
+      this.logs.push(data);
 
-    this.webSocketService.listen('syncUpdate').subscribe((data) => {
-      console.log('Received sync update:', data);
-      this.handleSyncUpdate(data);
+      if (data.robot && data.event) {
+        switch (data.robot) {
+          case '1':
+            this.robot1Status = data.event;
+            break;
+          case '2':
+            this.robot2Status = data.event;
+            break;
+          case '3':
+            this.driveMode3 = data.driveMode || this.driveMode3;
+            break;
+          case '4':
+            this.driveMode4 = data.driveMode || this.driveMode4;
+            break;
+        }
+      }
     });
-  }
-
-  private handleSyncUpdate(data: any) {
-    this.logs.push(data);
-    if (data.robot && data.event) {
-      if (data.robot === '1') this.robot1Status = data.event;
-      if (data.robot === '2') this.robot2Status = data.event;
-      if (data.robot === '3') this.driveMode3 = data.driveMode || this.driveMode3;
-      if (data.robot === '4') this.driveMode4 = data.driveMode || this.driveMode4;
-    }
   }
 
   identifyRobot(robotId: number) {

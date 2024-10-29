@@ -47,7 +47,6 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
 
     this.connectToRobots();
 
-    // Subscribe to /rosout topic to capture logs from all nodes
     const rosoutNode = new rclnodejs.Node('log_listener');
     rosoutNode.createSubscription(
       'rcl_interfaces/msg/Log',
@@ -86,7 +85,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     if (logFilePath) {
       log.timestamp = this.formatTimestamp(new Date(log.timestamp));
       fs.appendFileSync(logFilePath, JSON.stringify(log) + '\n');
-      this.logSubject.next(log);
+      this.syncGateway.broadcast('syncUpdate', log);
     }
   }
 
@@ -109,9 +108,9 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       if (this.missionActive && this.currentLogs.length > 0) {
         this.currentLogs.forEach((log) => {
           this.saveLogToFile(log);
-          this.syncGateway.broadcast('syncUpdate', log);
+          this.syncGateway.broadcast('syncUpdate', log); 
         });
-        this.currentLogs = [];
+        this.currentLogs = []; 
       }
     });
   }
@@ -145,7 +144,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   
   async startRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
     this.missionActive = true;
-    this.startMissionLogFile(robotId); // Start a new log file for the mission
+    this.startMissionLogFile(robotId);
     this.startLogging();
 
     const node = this.validateRobotConnection(robotId);

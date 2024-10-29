@@ -10,10 +10,9 @@ export class WebSocketService {
   private readonly websocketUrl = 'http://localhost:3000';
 
   constructor() {
-    this.socket = io(this.websocketUrl);
+    this.socket = io(this.websocketUrl, { transports: ['websocket'] });
   }
 
-  // Listen for events
   listen(eventName: string): Observable<any> {
     return new Observable((subscriber) => {
       this.socket.on(eventName, (data) => {
@@ -22,7 +21,6 @@ export class WebSocketService {
     });
   }
 
-  // Emit events
   emit(eventName: string, data: any) {
     this.socket.emit(eventName, data);
   }

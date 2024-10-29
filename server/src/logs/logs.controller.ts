@@ -11,11 +11,4 @@ export class LogsController {
   getOldMissions() {
     return this.rosService.getOldMissions();
   }
-
-  @Sse('stream')
-  getLogStream(): Observable<MessageEvent> {
-    return this.rosService.getLogStream().pipe(
-      map(log => ({ data: log } as MessageEvent))
-    );
-  }
 }

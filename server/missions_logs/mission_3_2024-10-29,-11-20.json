@@ -1,0 +1,23 @@
+{"robot":"limo_105_3","level":20,"message":"Received a 216 X 190 map @ 0.050 m/pix","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Received a 216 X 190 map @ 0.050 m/pix","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Starting the exploration: publishing True to explore/resume","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Begin navigating from current location (0.00, 0.00) to (-1.24, -2.75)","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Received a goal, begin computing control effort.","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Received goal preemption request","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Begin navigating from current location (0.00, 0.00) to (-1.30, -2.56)","timestamp":"2024-10-29, 11:20"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"Received a 217 X 190 map @ 0.050 m/pix","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"StaticLayer: Resizing costmap to 217 X 190 at 0.050000 m/pix","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"Received goal preemption request","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"Begin navigating from current location (0.00, 0.00) to (3.19, 0.13)","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:21"}
+{"robot":"limo_105_3","level":20,"message":"Passing new path to controller.","timestamp":"2024-10-29, 11:21"}

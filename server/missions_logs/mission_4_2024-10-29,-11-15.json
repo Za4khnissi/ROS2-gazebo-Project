@@ -1,0 +1,30 @@
+{"robot":"limo_105_4","level":20,"message":"Starting the exploration: publishing True to explore/resume","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Begin navigating from current location (0.00, 0.00) to (1.90, -2.03)","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":40,"message":"Failed to create a plan from potential when a legal potential was found. This shouldn't happen.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"GridBased: failed to create plan with tolerance 0.50.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"Planning algorithm GridBased failed to generate a valid path to (1.90, -2.03)","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"[compute_path_to_pose] [ActionServer] Aborting handle.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Received a 146 X 176 map @ 0.050 m/pix","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Received request to clear entirely the global_costmap","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"createLaserObject","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":40,"message":"Failed to create a plan from potential when a legal potential was found. This shouldn't happen.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"GridBased: failed to create plan with tolerance 0.50.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"Planning algorithm GridBased failed to generate a valid path to (1.90, -2.03)","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"[compute_path_to_pose] [ActionServer] Aborting handle.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Received request to clear entirely the local_costmap","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Received request to clear entirely the global_costmap","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":40,"message":"Failed to create a plan from potential when a legal potential was found. This shouldn't happen.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"GridBased: failed to create plan with tolerance 0.50.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"Planning algorithm GridBased failed to generate a valid path to (1.90, -2.03)","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"[compute_path_to_pose] [ActionServer] Aborting handle.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Received request to clear entirely the global_costmap","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":40,"message":"Failed to create a plan from potential when a legal potential was found. This shouldn't happen.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"GridBased: failed to create plan with tolerance 0.50.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"Planning algorithm GridBased failed to generate a valid path to (1.90, -2.03)","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"[compute_path_to_pose] [ActionServer] Aborting handle.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Running spin","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":40,"message":"Current robot pose is not available.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Initial checks failed for spin","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":30,"message":"[spin] [ActionServer] Aborting handle.","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"Running wait","timestamp":"2024-10-29, 11:15"}
+{"robot":"limo_105_4","level":20,"message":"wait completed successfully","timestamp":"2024-10-29, 11:15"}
