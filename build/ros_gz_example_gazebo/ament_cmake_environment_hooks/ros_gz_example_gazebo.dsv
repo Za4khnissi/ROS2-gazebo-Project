@@ -1,2 +1,0 @@
-prepend-non-duplicate;IGN_GAZEBO_RESOURCE_PATH;share/ros_gz_example_gazebo/worlds
-prepend-non-duplicate;IGN_GAZEBO_SYSTEM_PLUGIN_PATH;lib/ros_gz_example_gazebo/
