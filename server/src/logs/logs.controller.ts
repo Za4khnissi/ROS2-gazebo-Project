@@ -1,7 +1,6 @@
 // logs.controller.ts
 import { Controller, Get, Sse } from '@nestjs/common';
 import { RosService } from '../ros.service';
-import { map, Observable } from 'rxjs';
 
 @Controller('logs')
 export class LogsController {
@@ -10,5 +9,10 @@ export class LogsController {
   @Get('old')
   getOldMissions() {
     return this.rosService.getOldMissions();
+  }
+
+  @Get('/last')
+  getLastStatus() {
+    return this.rosService.getLastStatus();
   }
 }

@@ -22,13 +22,15 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   private realRobotNode: rclnodejs.Node;
   private simulationRobotNode: rclnodejs.Node;
   private logsFolder = this.configService.get<string>('PATH_TO_LOGS_FOLDER');
-  private logs: any[] = [];
   private logSubject = new Subject<any>();
   private missionActive = false;
   private logInterval: Subscription;
   private currentLogs: any[] = [];
-  private currentLogFilePath: string;
   private logFilePaths = new Map<string, string>();
+  private lastRobotStatus = {
+    '3': 'Waiting',
+    '4': 'Waiting',
+  };
 
   constructor(
     private configService: ConfigService, 
@@ -71,6 +73,10 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       minute: '2-digit',
       hour12: false,
     });
+  }
+
+  getLastStatus() {
+    return this.lastRobotStatus;
   }
 
   private startMissionLogFile(robotId: string) {
@@ -210,6 +216,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    this.lastRobotStatus[robotId] = 'Moving';
     this.syncGateway.broadcast('syncUpdate', { event: 'mission_started', robot: robotId });
   
     const log = { event: 'start_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
@@ -218,17 +225,16 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
         if (response.success) {
-          console.log(`Mission started for robot ${robotId}: ${response.message}`);
           this.syncGateway.broadcast('syncUpdate', { event: 'mission_started', robot: robotId });
           resolve({ message: `Mission started for robot ${robotId}`, success: true });
         } else {
-          console.error(`Failed to start mission for robot ${robotId}: ${response.message}`);
           this.syncGateway.broadcast('syncUpdate', { event: 'mission_failed', robot: robotId });
           reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
         }
       });
     });
   }
+
 
   async stopRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
     this.missionActive = false;
@@ -248,6 +254,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    this.lastRobotStatus[robotId] = 'Stopped';
     this.syncGateway.broadcast('syncUpdate', { event: 'mission_stopped', robot: robotId });
   
     const log = { event: 'stop_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
@@ -282,6 +289,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    this.lastRobotStatus[robotId] = 'Identifying';
     this.syncGateway.broadcast('syncUpdate', { event: 'identifying', robot: robotId });
   
     return new Promise((resolve, reject) => {

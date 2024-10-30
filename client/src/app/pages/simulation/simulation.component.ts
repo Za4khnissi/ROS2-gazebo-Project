@@ -30,24 +30,32 @@ export class SimulationComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.webSocketService.listen('syncUpdate').subscribe((data: any) => {
-      console.log('Received event:', data);
-      this.logs.push(data);
+    this.simService.getLastStatus().subscribe((lastStatus) => {
+      this.robot1Status = lastStatus['3'];
+      this.robot2Status = lastStatus['4'];
+      this.cdr.detectChanges(); // Ensure view updates with the initial statuses
   
-      if (data.robot && data.event) {
-        const status = this.getStatusMessage(data.event);
-        switch (data.robot) {
-          case '3':
-            this.robot1Status = status;
-            console.log('Updated robot1Status to:', this.robot1Status);
-            break;
-          case '4':
-            this.robot2Status = status;
-            console.log('Updated robot2Status to:', this.robot2Status);
-            break;
+      // Start listening for real-time updates
+      this.webSocketService.listen('syncUpdate').subscribe((data: any) => {
+        console.log('Received event:', data);
+  
+        if (data.event !== 'drive_mode_changed' && data.event !== 'drive_mode_change_failed') {
+          this.logs.push(data);
         }
-        this.cdr.detectChanges();
-      }
+  
+        if (data.robot && data.event) {
+          const status = this.getStatusMessage(data.event);
+          switch (data.robot) {
+            case '3':
+              this.robot1Status = status;
+              break;
+            case '4':
+              this.robot2Status = status;
+              break;
+          }
+          this.cdr.detectChanges();
+        }
+      });
     });
   }
   

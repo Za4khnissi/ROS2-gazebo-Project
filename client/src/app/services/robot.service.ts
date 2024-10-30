@@ -35,4 +35,8 @@ export class RobotService {
   listenForLogs(): Observable<any> {
     return this.webSocketService.listen('syncUpdate'); 
   }
+
+  getLastStatus(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/logs/last`);
+  }
 }
