@@ -70,7 +70,7 @@ class RandomWalker(Node):
         self._goal_handle = None
 
         self.current_direction = None  # Current movement direction (angle)
-        self.direction_weight = 0.7    # How much to favor current direction (0-1)
+        self.direction_weight = 1    # How much to favor current direction (0-1)
         self.direction_variance = math.pi/4  # Maximum angle deviation (45 degrees)
         self.consecutive_failures = 0  # Track failures to know when to change direction
         self.max_failures_before_direction_change = 3  # When to significantly change direction
