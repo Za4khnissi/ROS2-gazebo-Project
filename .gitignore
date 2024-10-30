@@ -59,3 +59,4 @@ project_ws/log/
 **/.idea
 **/.vscode
 server/missions_logs/
+frames_*
