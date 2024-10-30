@@ -36,7 +36,7 @@ class RandomWalker(Node):
                 ('map_frame', 'map'),
                 ('pose_topic', 'amcl_pose'),
                 ('nav_action_server', '/navigate_to_pose'),
-                ('min_distance_from_current', 1.0),
+                ('min_distance_from_current', 0.1),
                 ('max_attempts', 10),
                 ('return_to_init', False),
                 ('progress_timeout', 30.0)
@@ -73,7 +73,7 @@ class RandomWalker(Node):
         self.direction_weight = 1    # How much to favor current direction (0-1)
         self.direction_variance = math.pi/6  # Maximum angle deviation (45 degrees)
         self.consecutive_failures = 0  # Track failures to know when to change direction
-        self.max_failures_before_direction_change = 1  # When to significantly change direction
+        self.max_failures_before_direction_change = 3 # When to significantly change direction
         
         # Create action client
         self.nav_client = ActionClient(
@@ -209,8 +209,8 @@ class RandomWalker(Node):
         cached_robot_pose = None
         
         # Initialize direction if none exists
-        if self.current_direction is None:
-            self.current_direction = random.uniform(-math.pi, math.pi)
+        # if self.current_direction is None:
+        #     self.current_direction = random.uniform(-math.pi, math.pi)
         
         while attempts < max_attempts:
 

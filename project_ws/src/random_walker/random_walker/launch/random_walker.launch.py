@@ -31,7 +31,7 @@ def generate_launch_description():
                 'robot_frame': LaunchConfiguration('robot_frame'),
                 'nav_action_server': '/limo_105_3/navigate_to_pose',
                 'goal_tolerance': 0.5,
-                'min_distance_from_current': 0.1,
+                'min_distance_from_current': 2.0,
                 'max_attempts': 50,
                 'goal_delay': 100.0,
                 'return_to_init': False,
