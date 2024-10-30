@@ -28,7 +28,7 @@ class RandomWalker(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('goal_delay', 5.0),  # Used as timeout for navigation
+                ('goal_delay', 10.0),  # Used as timeout for navigation
                 ('min_x', -5.0),
                 ('max_x', 5.0),
                 ('min_y', -5.0),
@@ -71,9 +71,9 @@ class RandomWalker(Node):
 
         self.current_direction = None  # Current movement direction (angle)
         self.direction_weight = 1    # How much to favor current direction (0-1)
-        self.direction_variance = math.pi/4  # Maximum angle deviation (45 degrees)
+        self.direction_variance = math.pi/6  # Maximum angle deviation (45 degrees)
         self.consecutive_failures = 0  # Track failures to know when to change direction
-        self.max_failures_before_direction_change = 3  # When to significantly change direction
+        self.max_failures_before_direction_change = 1  # When to significantly change direction
         
         # Create action client
         self.nav_client = ActionClient(
@@ -187,15 +187,23 @@ class RandomWalker(Node):
         if success:
             # If successful, maintain current direction
             self.consecutive_failures = 0
+            self.get_logger().debug('Successful movement, maintaining direction')
         else:
             self.consecutive_failures += 1
+            self.get_logger().info(f'Failed movement, failures: {self.consecutive_failures}')
             if self.consecutive_failures >= self.max_failures_before_direction_change:
-                # Change direction significantly after multiple failures
+                # Change direction with random angle after reaching failure threshold
+                old_direction = self.current_direction
                 self.current_direction = random.uniform(-math.pi, math.pi)
                 self.consecutive_failures = 0
+                self.get_logger().info(
+                    f'Changed direction from {math.degrees(old_direction):.2f} to '
+                    f'{math.degrees(self.current_direction):.2f} degrees after '
+                    f'{self.max_failures_before_direction_change} failures'
+                )
 
     def generate_random_goal(self):
-        """Generate a goal position using momentum-based direction."""
+        """Generate a goal position using fixed step size along current direction."""
         max_attempts = self.max_attempts
         attempts = 0
         cached_robot_pose = None
@@ -205,30 +213,22 @@ class RandomWalker(Node):
             self.current_direction = random.uniform(-math.pi, math.pi)
         
         while attempts < max_attempts:
-            # Generate angle with bias towards current direction
-            if random.random() < self.direction_weight:
-                # Use current direction with some variance
-                angle = self.current_direction + random.uniform(
-                    -self.direction_variance, 
-                    self.direction_variance
-                )
+
+            if self.current_direction is None:
+                direction = random.uniform(-math.pi, math.pi)
             else:
-                # Sometimes choose completely random direction
-                angle = random.uniform(-math.pi, math.pi)
+                direction = self.current_direction
+
+            # Use fixed step size (min_distance_from_current)
+            distance = self.min_distance_from_current
             
-            # Generate distance
-            distance = random.uniform(
-                self.min_distance_from_current,
-                min(5.0, self.max_x - self.min_x)  # Use reasonable maximum distance
-            )
-            
-            # Calculate position
+            # Calculate position using exact direction (no randomness)
             robot_pose = self.get_robot_pose()
             if robot_pose is None:
                 return None
                 
-            x = robot_pose.position.x + distance * math.cos(angle)
-            y = robot_pose.position.y + distance * math.sin(angle)
+            x = robot_pose.position.x + distance * math.cos(direction)
+            y = robot_pose.position.y + distance * math.sin(direction)
             
             # Ensure within bounds
             x = max(self.min_x, min(self.max_x, x))
@@ -241,18 +241,14 @@ class RandomWalker(Node):
             isValidGoal, robot_pose = self.is_valid_goal(x, y, cached_robot_pose)
             
             if isValidGoal and not self.is_goal_blacklisted(point):
-                # Update direction based on chosen point
-                self.current_direction = math.atan2(
-                    y - robot_pose.position.y,
-                    x - robot_pose.position.x
-                )
+                self.current_direction = direction
                 return (x, y)
             elif robot_pose is not None:
                 cached_robot_pose = robot_pose
             
             attempts += 1
         
-        self.get_logger().warn('Failed to find valid goal position')
+        self.get_logger().warn('Failed to find valid goal')
         return None
 
     def make_plan(self):
