@@ -32,10 +32,11 @@ def generate_launch_description():
                 'nav_action_server': '/limo_105_3/navigate_to_pose',
                 'goal_tolerance': 0.5,
                 'min_distance_from_current': 1.0,
-                'max_attempts': 10,
-                'timeout_delay': 10.0,
+                'max_attempts': 100,
+                'timeout_delay': 5.0,
                 'return_to_init': False,
-                'progress_timeout': 30.0
+                'progress_timeout': 30.0,
+                'pose_topic': '/limo_105_3/amcl_pose'
             }]
         )
     ])
