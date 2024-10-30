@@ -68,6 +68,12 @@ class RandomWalker(Node):
         self._timeout_timer = None
         self.current_pose = None
         self._goal_handle = None
+
+        self.current_direction = None  # Current movement direction (angle)
+        self.direction_weight = 0.7    # How much to favor current direction (0-1)
+        self.direction_variance = math.pi/4  # Maximum angle deviation (45 degrees)
+        self.consecutive_failures = 0  # Track failures to know when to change direction
+        self.max_failures_before_direction_change = 3  # When to significantly change direction
         
         # Create action client
         self.nav_client = ActionClient(
@@ -175,24 +181,71 @@ class RandomWalker(Node):
             if math.sqrt(dx*dx + dy*dy) < tolerance:
                 return True
         return False
+    
+    def update_direction(self, success=True):
+        """Update movement direction based on success/failure."""
+        if success:
+            # If successful, maintain current direction
+            self.consecutive_failures = 0
+        else:
+            self.consecutive_failures += 1
+            if self.consecutive_failures >= self.max_failures_before_direction_change:
+                # Change direction significantly after multiple failures
+                self.current_direction = random.uniform(-math.pi, math.pi)
+                self.consecutive_failures = 0
 
     def generate_random_goal(self):
-        """Generate a random goal position within the specified boundaries."""
+        """Generate a goal position using momentum-based direction."""
         max_attempts = self.max_attempts
         attempts = 0
         cached_robot_pose = None
         
+        # Initialize direction if none exists
+        if self.current_direction is None:
+            self.current_direction = random.uniform(-math.pi, math.pi)
+        
         while attempts < max_attempts:
-            x = random.uniform(self.min_x, self.max_x)
-            y = random.uniform(self.min_y, self.max_y)
+            # Generate angle with bias towards current direction
+            if random.random() < self.direction_weight:
+                # Use current direction with some variance
+                angle = self.current_direction + random.uniform(
+                    -self.direction_variance, 
+                    self.direction_variance
+                )
+            else:
+                # Sometimes choose completely random direction
+                angle = random.uniform(-math.pi, math.pi)
+            
+            # Generate distance
+            distance = random.uniform(
+                self.min_distance_from_current,
+                min(5.0, self.max_x - self.min_x)  # Use reasonable maximum distance
+            )
+            
+            # Calculate position
+            robot_pose = self.get_robot_pose()
+            if robot_pose is None:
+                return None
+                
+            x = robot_pose.position.x + distance * math.cos(angle)
+            y = robot_pose.position.y + distance * math.sin(angle)
+            
+            # Ensure within bounds
+            x = max(self.min_x, min(self.max_x, x))
+            y = max(self.min_y, min(self.max_y, y))
             
             point = Point()
             point.x = x
             point.y = y
-
+            
             isValidGoal, robot_pose = self.is_valid_goal(x, y, cached_robot_pose)
             
             if isValidGoal and not self.is_goal_blacklisted(point):
+                # Update direction based on chosen point
+                self.current_direction = math.atan2(
+                    y - robot_pose.position.y,
+                    x - robot_pose.position.x
+                )
                 return (x, y)
             elif robot_pose is not None:
                 cached_robot_pose = robot_pose
@@ -289,8 +342,10 @@ class RandomWalker(Node):
         
         if status == 4:  # Succeeded
             self.get_logger().info('Goal succeeded!')
+            self.update_direction(success=True)
         else:
             self.get_logger().info(f'Goal failed with status: {status}')
+            self.update_direction(success=False)
             if hasattr(self, 'prev_goal'):
                 self.goal_blacklist.append(self.prev_goal)
 
