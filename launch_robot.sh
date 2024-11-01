@@ -9,6 +9,7 @@ if [ -z "$1" ]; then
 fi
 
 ROBOT_ID=$1
+MODIFIED_WORLD_FILE="modified_world.sdf"
 
 # Set drive modes for robots 3 and 4 only in simulation
 if [ "$ROBOT_ID" == "simulation" ]; then
@@ -142,7 +143,15 @@ cd "$HOME/inf3995/project_ws"
 
 if [ "$ROBOT_ID" == "simulation" ]; then
 
-    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_msgs limo_description limo_bringup
+    cd src/ros_gz_example_gazebo/worlds
+
+    # Generate modified world file
+    
+    python3 generate_world_with_obstacles.py $DRIVE_MODE_3 $DRIVE_MODE_4 $MODIFIED_WORLD_FILE
+
+    cd ~/inf3995/project_ws
+
+    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_msgs limo_description limo_bringup ydlidar_ros2_driver voice_control
 
 else colcon build --cmake-args -DBUILD_TESTING=ON
 
@@ -154,20 +163,7 @@ if [ "$ROBOT_ID" == "simulation" ]; then
 
     cleanup
 
-    cd src/ros_gz_example_gazebo/worlds
-
-    # Generate modified world file
-    MODIFIED_WORLD_FILE="modified_world.sdf"
-    python3 generate_world_with_obstacles.py $DRIVE_MODE_3 $DRIVE_MODE_4 $MODIFIED_WORLD_FILE
-
-    cd ~/inf3995/project_ws
-
-    ros2 launch ros_gz_example_bringup full.launch.py &
-    PIDS+=($!)
-
-    for PID in "${PIDS[@]}"; do
-        wait $PID
-    done
+    ros2 launch ros_gz_example_bringup full.launch.py
 
 elif [ "$ROBOT_ID" == "1" ]; then
     ros2 launch limo_base limo_base.launch.py &

@@ -60,3 +60,4 @@ project_ws/log/
 **/.vscode
 server/missions_logs/
 frames_*
+project_ws/src/ros_gz_example_gazebo/worlds/modified_world.sdf
