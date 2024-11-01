@@ -101,15 +101,21 @@ Ce projet est composé de trois parties principales :
      ```
 
 7. **Lancer le robot 1** :
-   - Lancez le script de démarrage avec la commande suivante :
+   - Lancez les commandes ci-dessous dans trois terminaux:
+   ATTENTION : Dans chaque nouvel terminal, avant de taper les commandes assurez vous de taper : export ROBOT_ID=X avec X = 1 ou 2
      ```bash
-     source ./launch_robot.sh 1
+     ros2 launch limo_bringup limo_start.launch.py
+     ros2 launch limo_bringup navigation2.launch.py 
+     ros2 launch random_walker random_walker.launch.py 
      ```
-     Cela va initialiser toutes les configurations nécessaires pour le robot 1.
+     N'oubliez pas de sourcer avant chaque commande en faisant:
+     ```bash
+     source /opt/ros/humble/setup.bash
+     source install/setup.bash 
+     ```
+     
      Faites pareil pour le robot 2 après avoir répété les étapes 3.1 à 3.4 en faisant:
-     ```bash
-     source ./launch_robot.sh 2
-     ```
+    
 
 
 2. **Configurer le domaine ROS** :
