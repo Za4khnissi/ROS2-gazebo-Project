@@ -38,8 +38,10 @@ Ce projet est composé de trois parties principales :
 
 2. **Démarrage du backend :**
 
-   - Pour démarrer le serveur Nest.js, exécutez :
+   - Pour démarrer le serveur Nest.js, exécutez les commandes suivantes:
+
      ```bash
+     source /opt/ros/humble/setup.bash
      npm start
      ```
 
@@ -109,11 +111,6 @@ Ce projet est composé de trois parties principales :
      source ./launch_robot.sh 2
      ```
 
-### 2. Lancement de `rosbridge`
-
-1. **Ouvrir un nouveau terminal sur le robot 1** :
-
-   - Depuis le robot 1 (ou l'un des deux robots), ouvrez un autre terminal ou utilisez votre session SSH existante.
 
 2. **Configurer le domaine ROS** :
 
@@ -122,8 +119,4 @@ Ce projet est composé de trois parties principales :
      export ROS_DOMAIN_ID=49
      ```
 
-3. **Lancer le serveur WebSocket de ROS** :
-   - Lancez `rosbridge` pour permettre la communication entre les robots et le frontend :
-     ```bash
-     ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-     ```
+
