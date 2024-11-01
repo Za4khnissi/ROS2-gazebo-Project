@@ -24,7 +24,8 @@ export class SyncGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   broadcast(event: string, payload: any): void {
-    console.log(`Broadcasting event: ${event}`, payload);
+    const payloadToDisplay = event == 'map_update' ? '...' : payload;
+    console.log(`Broadcasting event: ${event}`, payloadToDisplay);
     this.server.emit(event, payload);
   }
 }
