@@ -166,17 +166,24 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     ros2 launch ros_gz_example_bringup full.launch.py
 
 elif [ "$ROBOT_ID" == "1" ]; then
-    ros2 launch limo_base limo_base.launch.py &
-    LAUNCH_PID=$!
-    echo "Robot 1 ready. Launch rosbridge to start interacting from the dashboard."
-    wait $LAUNCH_PID
+    ros2 launch limo_bringup limo_start.launch.py &
+    PIDS+=($!)
+    ros2 launch random_walker random_walker.launch.py &
+    PIDS+=($!)
+    for PID in "${PIDS[@]}"; do
+        wait $PID
+    done
+    ros2 launch limo_bringup navigation2.launch.py 
 
 elif [ "$ROBOT_ID" == "2" ]; then
-    ros2 launch limo_base limo_base.launch.py &
-    LAUNCH_PID=$!
-    echo "Robot 2 ready. Launch rosbridge to start interacting with the robot from the dashboard."
-    wait $LAUNCH_PID
-
+    ros2 launch limo_bringup limo_start.launch.py &
+    PIDS+=($!)
+    ros2 launch random_walker random_walker.launch.py &
+    PIDS+=($!)
+    for PID in "${PIDS[@]}"; do
+        wait $PID
+    done
+    ros2 launch limo_bringup navigation2.launch.py 
 else
     echo "Invalid ROBOT_ID. Please provide ROBOT_ID as 1, 2, 'simulation', 'gazebo'."
     exit 1
