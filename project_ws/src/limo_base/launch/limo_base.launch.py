@@ -16,6 +16,7 @@ def generate_launch_description():
     ROBOT_ID = os.getenv('ROBOT_ID')
 
     ros_namespace = ['limo_105_', EnvironmentVariable('ROBOT_ID')]
+    absolute_namespace = f'/{ros_namespace[0]}{ROBOT_ID}'
 
     remapped_cmd_vel = f'/{ros_namespace[0]}{ROBOT_ID}/cmd_vel'
 
@@ -53,9 +54,10 @@ def generate_launch_description():
         parameters=[{
             # 'use_sim_time': launch.substitutions.LaunchConfiguration('use_sim_time'),
             'port_name': port_name_arg,
-            'odom_frame': odom_frame_arg,
-            'base_frame': base_link_frame_arg,
+            'odom_frame': f'{ros_namespace[0]}{ROBOT_ID}/odom',
+            'base_frame': f'{ros_namespace[0]}{ROBOT_ID}/base_link',
             'pub_odom_tf': pub_odom_tf_arg_,
+            'odom_topic': f'{absolute_namespace}/odom',
             'use_mcnamu': False
         }],
         remappings=remapping

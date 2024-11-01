@@ -4,9 +4,17 @@ import sys
 import launch
 import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
-
+from launch.substitutions import LaunchConfiguration, EnvironmentVariable
+from launch.actions import TimerAction
 
 def generate_launch_description():
+    ROBOT_ID = os.getenv('ROBOT_ID')
+
+    ros_namespace = ['limo_105_', EnvironmentVariable('ROBOT_ID')]
+    absolute_namespace = f'/{ros_namespace[0]}{ROBOT_ID}'
+    namespace=f'{ros_namespace[0]}{ROBOT_ID}'
+
+
     ld = launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(name='port_name',
                                              default_value='ttyTHS1'),
@@ -25,7 +33,8 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='base_link_to_imu',
-            arguments="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /imu_link".split(
+            namespace=absolute_namespace,
+            arguments=f'0.0 0.0 0.0 0.0 0.0 0.0 {ros_namespace[0]}{ROBOT_ID}/base_link {ros_namespace[0]}{ROBOT_ID}/imu_link'.split(
                 ' ')),
         # launch_ros.actions.Node(
         #     package='robot_pose_ekf',
@@ -53,7 +62,35 @@ def generate_launch_description():
          launch.actions.IncludeLaunchDescription(
              launch.launch_description_sources.PythonLaunchDescriptionSource(
                  os.path.join(get_package_share_directory('limo_base'),
-                              'launch','open_ydlidar_launch.py')))
+                              'launch','open_ydlidar_launch.py'))),
+
+        TimerAction(
+            period=10.0,
+            actions=[
+                launch_ros.actions.Node(
+                    package='slam_toolbox',
+                    executable='async_slam_toolbox_node',
+                    name='slam_toolbox_1',
+                    namespace=absolute_namespace,
+                    output='screen',
+                    parameters=[{
+                        'use_sim_time': False,
+                        'map_frame': 'map',
+                        'odom_frame': f"{namespace}/odom",
+                        'base_frame': f"{namespace}/base_link",
+                        'scan_topic': f"{absolute_namespace}/scan"
+                    }],
+                    remappings=[
+                        ('/map', f'{absolute_namespace}/map'),
+                        ('/map_metadata', f'{absolute_namespace}/map_metadata'),
+                        ('/scan', f'{absolute_namespace}/scan'),
+                        ('/tf', '/tf'),
+                        ('/tf_static', '/tf_static'),
+                        ('/odom', f'{absolute_namespace}/odom')
+                    ]
+                )
+            ]
+        )
     ])
     return ld
 

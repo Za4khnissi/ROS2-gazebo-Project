@@ -18,43 +18,90 @@ from launch import LaunchDescription
 from launch_ros.actions import LifecycleNode
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, EnvironmentVariable
 from launch.actions import LogInfo
+from launch_ros.descriptions import ParameterFile
+from nav2_common.launch import RewrittenYaml, ReplaceString
+
 
 import lifecycle_msgs.msg
 import os
 
 
 def generate_launch_description():
-    share_dir = get_package_share_directory('limo_bringup')
-    parameter_file = LaunchConfiguration('params_file')
-    node_name = 'ydlidar_ros2_driver_node'
+    ROBOT_ID = os.getenv('ROBOT_ID')
 
-    params_declare = DeclareLaunchArgument(
-        'params_file',
-        default_value=os.path.join(share_dir, 'param', 'ydlidar.yaml'),
-        description='FPath to the ROS2 parameters file to use.')
+    ros_namespace = ['limo_105_', EnvironmentVariable('ROBOT_ID')]
+    absolute_namespace = f'/{ros_namespace[0]}{ROBOT_ID}'
+    namespace = f'{ros_namespace[0]}{ROBOT_ID}'
+
+    share_dir = get_package_share_directory('limo_bringup')
+    #parameter_file = LaunchConfiguration('params_file')
+    #node_name = 'ydlidar_ros2_driver_node'
+
+    params_file = os.path.join(share_dir, 'param', 'ydlidar.yaml')
+    # params_declare = DeclareLaunchArgument(
+    #     'params_file',
+    #     default_value=os.path.join(share_dir, 'param', 'ydlidar.yaml'),
+    #     description='FPath to the ROS2 parameters file to use.')
+    
+    # params_file = ReplaceString(
+    #     source_file=params_file,
+    #     replacements={'<robot_namespace>': (namespace)},
+    #     )
+
+    # configured_params = ParameterFile(
+    #     RewrittenYaml(
+    #         source_file=params_file,
+    #         root_key=ros_namespace,
+    #         param_rewrites={},
+    #         convert_types=True),
+    #     allow_substs=True)
+
 
     driver_node = LifecycleNode(
         package='ydlidar_ros2_driver',
-        namespace='/',
+        namespace=absolute_namespace,
         executable='ydlidar_ros2_driver_node',
         name='ydlidar_ros2_driver_node',
         output='screen',
         emulate_tty=True,
-        parameters=[parameter_file],
+        parameters=[{
+            'port': '/dev/ttyUSB0',
+            'frame_id': f'{namespace}/laser_frame',
+            'ignore_array': '',
+            'baudrate': 115200,
+            'lidar_type': 1,
+            'device_type': 0,
+            'sample_rate': 3,
+            'abnormal_check_count': 4,
+            'fixed_resolution': True,
+            'reversion': True,
+            'inverted': True,
+            'auto_reconnect': True,
+            'isSingleChannel': True,
+            'intensity': False,
+            'support_motor_dtr': True,
+            'angle_max': 180.0,
+            'angle_min': -180.0,
+            'range_max': 12.0,
+            'range_min': 0.1,
+            'frequency': 10.0,
+            'invalid_range_is_inf': False
+        }]
     )
     tf2_node = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
+        namespace=absolute_namespace,
         name='static_tf_pub_laser',
         arguments=[
-            '0', '0', '0.02', '0', '0', '0', '1', 'base_link', 'laser_frame'
+            '0', '0', '0.02', '0', '0', '0', '1', f'{ros_namespace[0]}{ROBOT_ID}/base_link', f'{ros_namespace[0]}{ROBOT_ID}/laser_frame'
         ],
     )
 
     return LaunchDescription([
-        params_declare,
+        #params_declare,
         driver_node,
         tf2_node,
     ])
