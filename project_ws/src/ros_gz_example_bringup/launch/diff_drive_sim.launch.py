@@ -100,6 +100,24 @@ def setup_robot_descriptions(context):
         parameters=[{'initial_drive_mode': drive_mode_4}]
     )
 
+    battery_node_3 = Node(
+        package='ros_gz_example_application',
+        executable='battery_manager.py',
+        name='battery_node',
+        output='screen',
+        namespace='limo_105_3',
+        parameters=[{'is_simulation': True}]
+    )
+
+    battery_node_4 = Node(
+        package='ros_gz_example_application',
+        executable='battery_manager.py',
+        name='battery_node',
+        output='screen',
+        namespace='limo_105_4',
+        parameters=[{'is_simulation': True}]
+    )
+
     return [
         robot_3_state_publisher,
         robot_4_state_publisher,
@@ -108,7 +126,9 @@ def setup_robot_descriptions(context):
         identify_service_4,
         mission_service_4,
         drive_mode_service_3,
-        drive_mode_service_4
+        drive_mode_service_4,
+        battery_node_3,
+        battery_node_4
     ]
 
 def generate_launch_description():

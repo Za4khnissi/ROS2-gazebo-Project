@@ -133,6 +133,13 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     this.simulationRobotNode = new rclnodejs.Node('simulation_robot_node');
     this.realRobotNode = new rclnodejs.Node('real_robot_node');
 
+    this.subscribeToBatteryLevel('limo_105_1', this.realRobotNode);
+    this.subscribeToBatteryLevel('limo_105_2', this.realRobotNode);
+    this.subscribeToBatteryLevel('limo_105_3', this.simulationRobotNode);
+    this.subscribeToBatteryLevel('limo_105_4', this.simulationRobotNode);
+
+    
+
     const OccupancyGrid = rclnodejs.require('nav_msgs/msg/OccupancyGrid');
 
     // Add map subscription
@@ -195,6 +202,31 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     } else {
       throw new HttpException(`Invalid Robot ID ${robotId}`, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  private subscribeToBatteryLevel(robotId: string, node: rclnodejs.Node) {
+    const topicName = `/${robotId}/battery_level`;
+    console.log(`Attempting to subscribe to ${topicName}`);
+
+    node.createSubscription(
+      'std_msgs/msg/Float32',
+      topicName,
+      (msg) => {
+        console.log(`Message received on ${topicName}`);
+        if (this.isFloat32(msg)) {
+          const batteryLevel = msg.data;
+          console.log(`Battery Level for ${robotId}: ${batteryLevel}%`);
+          this.syncGateway.broadcastBatteryUpdate(robotId, batteryLevel);
+        } else {
+          console.error(`Received message for ${robotId} is not of type Float32`);
+        }
+      }
+    );
+    console.log(`Subscribed to battery level topic for ${robotId}`);
+  }
+
+  private isFloat32(msg: any): msg is { data: number } {
+    return typeof msg.data === 'number';
   }
   
   async startRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
