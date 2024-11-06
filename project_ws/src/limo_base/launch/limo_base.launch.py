@@ -104,6 +104,6 @@ def generate_launch_description():
         limo_base_node,
         identify_service,
         mission_service,
-        battery_node_3,
-        battery_node_4
+        battery_node_1,
+        battery_node_2
     ])
