@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RobotService } from '@app/services/robot.service';
 import { WebSocketService } from '@app/services/web-socket.service';
 import { NgFor, NgClass, NgIf } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-physical-robot',
@@ -21,6 +22,7 @@ export class PhysicalRobotComponent implements OnInit {
   constructor(
     private robotService: RobotService, 
     private webSocketService: WebSocketService,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -72,7 +74,8 @@ export class PhysicalRobotComponent implements OnInit {
     this.robotService.identifyRobot(robotId).subscribe();
   }
 
-  startMission(robotId: number) {
+  startMission(robotId: number, IsSimu: boolean) {
+    this.router.navigate(['/mission', robotId, IsSimu]);
     this.robotService.startMission(robotId).subscribe();
   }
 

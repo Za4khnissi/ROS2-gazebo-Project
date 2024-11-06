@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 
 
 @Component({
@@ -14,12 +13,5 @@ import { Router } from '@angular/router';
 export class AppComponent {
   
   title = 'Robot Control Interface';
-  constructor(private router: Router) {}
-  
-  shoiwChoiceButton = false;
-  
-  startProcess() {
-    this.shoiwChoiceButton = true;
-  }
 
 }

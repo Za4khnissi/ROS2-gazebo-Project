@@ -3,6 +3,7 @@ import { RobotService } from '@app/services/robot.service';
 import { WebSocketService } from '@app/services/web-socket.service';
 import { NgFor, NgClass, NgIf } from '@angular/common';
 import { MapComponent } from '../../components/map/map.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-simulation-robot',
@@ -26,6 +27,7 @@ export class SimulationComponent implements OnInit {
   constructor(
     private simService: RobotService, 
     private webSocketService: WebSocketService,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -85,7 +87,8 @@ export class SimulationComponent implements OnInit {
     this.simService.identifyRobot(robotId).subscribe();
   }
 
-  startMission(robotId: number) {
+  startMission(robotId: number, IsSimu: boolean) {
+    this.router.navigate(['/mission', robotId, IsSimu]);
     this.simService.startMission(robotId).subscribe();
   }
 

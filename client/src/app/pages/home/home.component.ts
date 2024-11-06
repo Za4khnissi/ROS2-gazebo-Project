@@ -9,14 +9,9 @@ import { Router } from '@angular/router';
 })
 export class HomeComponent {
   constructor(private router: Router) {}
-  showModal = false;
 
-  goToPhysicalRobot() {
-    this.router.navigate(['/robot/physical'])
-  }
-
-  goToSimulation() {
-    this.router.navigate(['/robot/simulation']);
+  startProcess() {
+    this.router.navigate(['/choose-mode']);
   }
  
 }

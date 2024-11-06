@@ -1,1 +1,7 @@
-<p>battery-status works!</p>
+<div class="flex items-center">
+    <div class="w-60 h-10 border-2 border-gray-500 flex items-center p-1">
+      <div class="h-full" [ngStyle]="{ 'width': batteryLevel + '%', 'background-color': getBatteryColor() }"></div>
+    </div>
+    <p class="text-center text-white mt-2 font-bold">{{ batteryLevel }}%</p>
+  </div>
+  

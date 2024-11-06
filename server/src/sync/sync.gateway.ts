@@ -28,4 +28,9 @@ export class SyncGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     console.log(`Broadcasting event: ${event}`, payloadToDisplay);
     this.server.emit(event, payload);
   }
+
+  broadcastBatteryUpdate(robotId: string, batteryLevel: number): void {
+    this.server.emit('batteryUpdate', { robotId, batteryLevel });
+    console.log(`Battery level broadcasted for robot ${robotId}: ${batteryLevel}%`);
+  }
 }

@@ -24,4 +24,24 @@ export class WebSocketService {
   emit(eventName: string, data: any) {
     this.socket.emit(eventName, data);
   }
+
+  listenToBatteryStatus(robotId: number, mode: 'simulation' | 'physical'): Observable<number> {
+    this.emit('clientMessage', { robotId, mode });
+
+    return new Observable((observer) => {
+      this.listen('batteryUpdate').subscribe((data: any) => {
+        if (data.batteryLevel !== undefined) {
+          observer.next(data.batteryLevel);
+        } else {
+          console.error('Battery level not found in the message:', data);
+          observer.next(0);  
+        }
+      });
+
+      return () => {
+        this.socket.disconnect();
+        console.log('WebSocket connection closed.');
+      };
+    });
+  }
 }

@@ -6,7 +6,10 @@ import { AppRoutingModule } from './app.routes';
 import { HomeComponent } from '@app/pages/home/home.component';
 import { PhysicalRobotComponent } from '@app/pages/physical/physical.component';
 import { SimulationComponent } from '@app/pages/simulation/simulation.component';
+import { BatteryStatusComponent } from '@app/pages/battery-status/battery-status.component'; 
+import { ChooseModeComponent } from './pages/choose-mode/choose-mode.component';
 import { CommonModule } from '@angular/common';
+import {MissionComponent} from '@app/pages/mission/mission.component';
 import { FormsModule } from '@angular/forms';
 
 
@@ -14,7 +17,10 @@ import { FormsModule } from '@angular/forms';
   declarations: [
     AppComponent,
     HomeComponent,
+    BatteryStatusComponent,
+    ChooseModeComponent,
     PhysicalRobotComponent,
+    MissionComponent,
     SimulationComponent
   ],
   imports: [
