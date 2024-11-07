@@ -21,7 +21,7 @@ export class ChooseModeComponent {
 
   goToHistory()
   {
-    //this.router.navigate(['/robot/history']);
+    this.router.navigate(['/robot/history']);
   }
 
 

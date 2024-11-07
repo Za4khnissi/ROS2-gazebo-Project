@@ -1,11 +1,14 @@
-import { Controller, Param, Get, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import { Controller, Param, Get,Post, Body, HttpStatus, HttpException ,InternalServerErrorException } from '@nestjs/common';
+import { ApiTags, ApiOkResponse, ApiNotFoundResponse, ApiOperation,ApiCreatedResponse } from '@nestjs/swagger';
 import { RosService } from '../ros.service';
+import {DatabaseService} from '../database/database.service';
+import { MissionModel } from './mission.model';
+
 
 @ApiTags('Mission')
 @Controller('mission')
 export class MissionController {
-  constructor(private readonly rosService: RosService) {}
+  constructor(private readonly rosService: RosService, private readonly databaseService : DatabaseService) {}
 
   @Get(':robotId/start')
   @ApiOkResponse({ description: 'Mission started successfully' })
@@ -28,4 +31,34 @@ export class MissionController {
     }
     return { statusCode: HttpStatus.OK, message: response.message };
   }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all missions' })
+  @ApiOkResponse({ description: 'List of all missions' })
+  async getAllMissions() {
+    const missions = await this.databaseService.getAllMissions();
+    return { statusCode: HttpStatus.OK, missions };
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a mission by ID' })
+  @ApiOkResponse({ description: 'Mission found' })
+  @ApiNotFoundResponse({ description: 'Mission not found' })
+  async getMissionById(@Param('id') missionId: string) {
+    const mission = await this.databaseService.getMissionById(missionId);
+    return { statusCode: HttpStatus.OK, mission };
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Create a new mission' })
+  @ApiCreatedResponse({ description: 'Mission created successfully' })
+  async createMission(@Body() missionDto: MissionModel) {
+    try {
+      const mission = await this.databaseService.createMission(missionDto);
+      return { statusCode: HttpStatus.CREATED, mission };
+    } catch (error) {
+      throw new HttpException('Failed to create mission', HttpStatus.BAD_REQUEST);
+    }
+  }
+
 }
