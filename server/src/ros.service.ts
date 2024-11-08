@@ -17,6 +17,8 @@ interface ServiceResponse {
   message?: string;
 }
 
+const BATTERY_THRESHOLD = parseInt(process.env.BATTERY_THRESHOLD || '30');
+
 @Injectable()
 export class RosService implements OnModuleInit, OnModuleDestroy {
   private realRobotNode: rclnodejs.Node;
@@ -216,7 +218,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
         if (this.isFloat32(msg)) {
           const batteryLevel = msg.data;
           console.log(`Battery Level for ${robotId}: ${batteryLevel}%`);
-          if (batteryLevel < 30) {
+          if (batteryLevel < BATTERY_THRESHOLD) {
             console.log(`Battery level for ${robotId} is low. Stopping Mission.`);
             this.stopRobotMission(robotId);
           }
