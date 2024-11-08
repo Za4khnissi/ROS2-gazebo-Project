@@ -80,7 +80,7 @@ public:
   ~Explore();
 
   void start();
-  void stop(bool finished_exploring = false);
+  void stop(bool finished_exploring = false, bool force_return=false);
   void resume();
 
   using NavigationGoalHandle =

@@ -195,7 +195,7 @@ def generate_launch_description():
                 namespace="limo_105_3",
                 parameters=[{
                     "robot_base_frame": "limo_105_3",
-                    "return_to_init": False,
+                    "return_to_init": True,
                     "costmap_topic": "/limo_105_3/global_costmap/costmap",
                     "visualize": False,
                     "planner_frequency": 0.15,
@@ -216,7 +216,7 @@ def generate_launch_description():
                 namespace="limo_105_4",
                 parameters=[{
                     "robot_base_frame": "limo_105_4",
-                    "return_to_init": False,
+                    "return_to_init": True,
                     "costmap_topic": "/limo_105_4/global_costmap/costmap",
                     "visualize": False,
                     "planner_frequency": 0.15,

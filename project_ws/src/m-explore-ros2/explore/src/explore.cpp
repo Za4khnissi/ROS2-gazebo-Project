@@ -141,7 +141,7 @@ void Explore::resumeCallback(const std_msgs::msg::Bool::SharedPtr msg)
   if (msg->data) {
     resume();
   } else {
-    stop();
+    stop(false, true); // we assume that it was stopped because of the mission ended
   }
 }
 
@@ -325,16 +325,33 @@ void Explore::makePlan()
 
 void Explore::returnToInitialPose()
 {
-  RCLCPP_INFO(logger_, "Returning to initial pose.");
-  auto goal = nav2_msgs::action::NavigateToPose::Goal();
-  goal.pose.pose.position = initial_pose_.position;
-  goal.pose.pose.orientation = initial_pose_.orientation;
-  goal.pose.header.frame_id = costmap_client_.getGlobalFrameID();
-  goal.pose.header.stamp = this->now();
+    RCLCPP_INFO(logger_, "Returning to initial pose.");
+    
+    // Get initial position before sending goal
+    auto initial_robot_pose = costmap_client_.getRobotPose();
 
-  auto send_goal_options =
-      rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
-  move_base_client_->async_send_goal(goal, send_goal_options);
+    auto goal = nav2_msgs::action::NavigateToPose::Goal();
+    goal.pose.pose.position = initial_pose_.position;
+    goal.pose.pose.orientation = initial_pose_.orientation;
+    goal.pose.header.frame_id = costmap_client_.getGlobalFrameID();
+    goal.pose.header.stamp = this->now();
+
+    auto send_goal_options =
+        rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
+    
+    move_base_client_->async_send_goal(goal, send_goal_options);
+
+    // Wait 2 seconds
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // Get new position after waiting
+    auto new_robot_pose = costmap_client_.getRobotPose();
+
+    // If position hasn't changed, retry
+    if (same_point(initial_robot_pose.position, new_robot_pose.position)) {
+        RCLCPP_WARN(logger_, "Robot hasn't moved, retrying to return to initial pose");
+        returnToInitialPose();
+    }
 }
 
 bool Explore::goalOnBlacklist(const geometry_msgs::msg::Point& goal)
@@ -394,13 +411,13 @@ void Explore::start()
   RCLCPP_INFO(logger_, "Exploration started.");
 }
 
-void Explore::stop(bool finished_exploring)
+void Explore::stop(bool finished_exploring, bool force_return)
 {
   RCLCPP_INFO(logger_, "Exploration stopped.");
   move_base_client_->async_cancel_all_goals();
   exploring_timer_->cancel();
 
-  if (return_to_init_ && finished_exploring) {
+  if (force_return || (return_to_init_ && finished_exploring)) {
     returnToInitialPose();
   }
 }
