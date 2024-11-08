@@ -216,6 +216,10 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
         if (this.isFloat32(msg)) {
           const batteryLevel = msg.data;
           console.log(`Battery Level for ${robotId}: ${batteryLevel}%`);
+          if (batteryLevel < 30) {
+            console.log(`Battery level for ${robotId} is low. Stopping Mission.`);
+            this.stopRobotMission(robotId);
+          }
           this.syncGateway.broadcastBatteryUpdate(robotId, batteryLevel);
         } else {
           console.error(`Received message for ${robotId} is not of type Float32`);
