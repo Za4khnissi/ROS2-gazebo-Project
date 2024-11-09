@@ -16,11 +16,11 @@ export const MissionSchema = new Schema<MissionModel>({
   },
   dateFin: {
     type: Date,
-    required: true,
+    required: false,
   },
   duration: {
     type: Number,
-    required: true,
+    required: false,
   },
   robots: {
     type: [String],
@@ -32,9 +32,8 @@ export const MissionSchema = new Schema<MissionModel>({
   },
   totalDistance: {
     type: Number,
-    required: true,
+    required: false,
   },
 }, { timestamps: true }); 
-
 
 export const Mission = { name: 'Mission', schema: MissionSchema };

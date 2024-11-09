@@ -4,13 +4,17 @@ import {
   OnModuleDestroy,
   HttpException,
   HttpStatus,
+  
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import * as rclnodejs from 'rclnodejs';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import { Subject, interval, Subscription, Observable } from 'rxjs';
 import { SyncGateway } from './sync/sync.gateway';
 import * as path from 'path';
+import { MissionModel } from './mission/mission.model';
+import { Model } from 'mongoose';
 
 interface ServiceResponse {
   success: boolean;
@@ -31,10 +35,13 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     '3': 'Waiting',
     '4': 'Waiting',
   };
+  private totalDistance: { [robotId: string]: number } = {};
+  private lastPosition: { [robotId: string]: { x: number, y: number } } = {};
 
   constructor(
     private configService: ConfigService, 
-    private syncGateway: SyncGateway
+    private syncGateway: SyncGateway,
+    @InjectModel('Mission') private missionModel: Model<MissionModel>
   ) {
     this.ensureLogsFolderExists();
   }
@@ -234,6 +241,19 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     this.startMissionLogFile(robotId);
     this.startLogging();
 
+    const newMission = new this.missionModel({ 
+      dateDebut: new Date(),
+      robots: [robotId],
+      isPhysical: robotId === '1' || robotId === '2',  
+      totalDistance: 0,
+      duration: 0,  
+    });
+
+    const savedMission = await newMission.save();
+    console.log(`Mission started and saved in DB with ID: ${savedMission._id}`);
+
+    this.watchDistance(robotId);
+
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
@@ -267,6 +287,26 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  private watchDistance(robotId: string) {
+    this.totalDistance[robotId] = 0;
+    const topicName = `/${robotId}/odom`;
+
+    const node = this.validateRobotConnection(robotId);
+    node.createSubscription('nav_msgs/msg/Odometry', topicName, (msg) => {
+        const odomMsg = msg as any;  
+        const currentPosition = { x: odomMsg.pose.pose.position.x, y: odomMsg.pose.pose.position.y };
+        
+        if (this.lastPosition[robotId]) {
+            const delta = Math.sqrt(
+                Math.pow(currentPosition.x - this.lastPosition[robotId].x, 2) +
+                Math.pow(currentPosition.y - this.lastPosition[robotId].y, 2)
+            );
+            this.totalDistance[robotId] += delta;
+        }
+        
+        this.lastPosition[robotId] = currentPosition;
+    });
+}
 
   async stopRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
     this.missionActive = false;
@@ -284,6 +324,18 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     const serviceAvailable = await client.waitForService(5000);
     if (!serviceAvailable) {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    // mettre a jour la db
+    const mission = await this.missionModel.findOne({ robots: robotId, dateFin: null });
+    if (mission) {
+      mission.dateFin = new Date();
+      mission.duration = (mission.dateFin.getTime() - mission.dateDebut.getTime()) / 1000;  
+      mission.totalDistance = this.totalDistance[robotId] || 0;  
+      await mission.save();
+      console.log(`Mission stopped and updated in DB with ID: ${mission._id}`);
+    } else {
+      console.log(`No active mission found for robot ${robotId}`);
     }
 
     this.lastRobotStatus[robotId] = 'Stopped';
