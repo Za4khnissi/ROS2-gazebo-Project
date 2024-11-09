@@ -4,13 +4,14 @@ import { WebSocketService } from '@app/services/web-socket.service';
 import { NgFor, NgClass, NgIf } from '@angular/common';
 import { MapComponent } from '../../components/map/map.component';
 import { Router } from '@angular/router';
+import { BatteryStatusComponent } from '../battery-status/battery-status.component';
 
 @Component({
   selector: 'app-simulation-robot',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css'],
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, MapComponent]
+  imports: [NgFor, NgClass, NgIf, MapComponent, BatteryStatusComponent]
 })
 export class SimulationComponent implements OnInit {
   robot1Status: string = 'Waiting';
@@ -19,6 +20,7 @@ export class SimulationComponent implements OnInit {
   driveMode3: string = 'Diff Drive';
   driveMode4: string = 'Diff Drive';
   driveModeAvailable: boolean = false;
+  mode: 'simulation' | 'physical' = 'simulation';
 
   logs: any[] = [];
   showOldLogs: boolean = false;
@@ -88,7 +90,6 @@ export class SimulationComponent implements OnInit {
   }
 
   startMission(robotId: number, IsSimu: boolean) {
-    this.router.navigate(['/mission', robotId, IsSimu]);
     this.simService.startMission(robotId).subscribe();
   }
 
