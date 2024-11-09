@@ -149,7 +149,7 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     
     python3 generate_world_with_obstacles.py $DRIVE_MODE_3 $DRIVE_MODE_4 $MODIFIED_WORLD_FILE
 
-    cd ~/inf3995/project_ws
+    cd ~/Desktop/testfinal/inf3995/project_ws
 
     colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_msgs limo_description limo_bringup ydlidar_ros2_driver voice_control
 

@@ -289,13 +289,14 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
 
   private watchDistance(robotId: string) {
     this.totalDistance[robotId] = 0;
-    const topicName = `/${robotId}/odom`;
+    const topicName = `limo_105_${robotId}/odom`;
+
 
     const node = this.validateRobotConnection(robotId);
     node.createSubscription('nav_msgs/msg/Odometry', topicName, (msg) => {
         const odomMsg = msg as any;  
         const currentPosition = { x: odomMsg.pose.pose.position.x, y: odomMsg.pose.pose.position.y };
-        
+        console.log("Good odom , currentPosition", currentPosition);
         if (this.lastPosition[robotId]) {
             const delta = Math.sqrt(
                 Math.pow(currentPosition.x - this.lastPosition[robotId].x, 2) +
