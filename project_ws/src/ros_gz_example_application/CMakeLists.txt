@@ -4,8 +4,10 @@ project(ros_gz_example_application)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclpy REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+rosidl_generate_interfaces(${PROJECT_NAME} "srv/MissionCommand.srv")
 
-file(GLOB PYTHON_FILES *.py)
+file(GLOB PYTHON_FILES ros_gz_example_application/*.py)
 
 install(PROGRAMS
   ${PYTHON_FILES}
