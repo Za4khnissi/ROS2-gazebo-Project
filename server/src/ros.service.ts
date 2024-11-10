@@ -37,6 +37,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   };
   private totalDistance: { [robotId: string]: number } = {};
   private lastPosition: { [robotId: string]: { x: number, y: number } } = {};
+  private mapData: any | null = null; 
 
   constructor(
     private configService: ConfigService, 
@@ -155,7 +156,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       '/map',
       (message: any) => {
         // Convert the message to a plain JavaScript object
-        const mapData = {
+        this.mapData = {
           header: {
             seq: message.header.seq,
             stamp: {
@@ -190,7 +191,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
         };
 
         // Broadcast the map data through the WebSocket
-        this.syncGateway.broadcast('map_update', mapData);
+        this.syncGateway.broadcast('map_update', this.mapData);
       }
     );
 
@@ -333,6 +334,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       mission.dateFin = new Date();
       mission.duration = (mission.dateFin.getTime() - mission.dateDebut.getTime()) / 1000;  
       mission.totalDistance = this.totalDistance[robotId] || 0;  
+      mission.mapData = this.mapData; 
       await mission.save();
       console.log(`Mission stopped and updated in DB with ID: ${mission._id}`);
     } else {

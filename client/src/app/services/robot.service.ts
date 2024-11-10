@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import {ApiMissionResponse } from '@app/models/mission.model';
 import { WebSocketService } from './web-socket.service';
+import { MissionModel } from '@app/models/mission.model';
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +31,7 @@ export class RobotService {
     return this.http.post(`${this.apiUrl}/robot/${robotId}/change_drive_mode`, { drive_mode: driveMode });
   }
 
+
   getOldLogs(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/logs/old`);
   }
@@ -42,8 +44,11 @@ export class RobotService {
     return this.http.get<any>(`${this.apiUrl}/logs/last`);
   }
 
-  getAllMissions(): Observable<ApiMissionResponse>{
+  getAllMissions(): Observable<ApiMissionResponse> {
     return this.http.get<ApiMissionResponse>(this.apiDataUrl);
   }
 
+  getMissionById(id: string): Observable<MissionModel> {
+    return this.http.get<MissionModel>(`${this.apiUrl}/missions/${id}`);
+  }
 }
