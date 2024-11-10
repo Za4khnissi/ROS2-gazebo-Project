@@ -220,7 +220,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
           console.log(`Battery Level for ${robotId}: ${batteryLevel}%`);
           if (batteryLevel < BATTERY_THRESHOLD) {
             console.log(`Battery level for ${robotId} is low. Stopping Mission.`);
-            this.stopRobotMission(robotId);
+            this.stopRobotMission(robotId, true);
           }
           this.syncGateway.broadcastBatteryUpdate(robotId, batteryLevel);
         } else {
