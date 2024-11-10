@@ -32,6 +32,17 @@ export class MissionController {
     return { statusCode: HttpStatus.OK, message: response.message };
   }
 
+  @Get(':robotId/return')
+  @ApiOkResponse({ description: 'Return process started successfully' })
+  @ApiNotFoundResponse({ description: 'Robot not found' })
+  async returnFromMission(@Param('robotId') robotId: string) {
+    const response = await this.rosService.stopRobotMission(robotId, true);
+    if (!response.success) {
+      return { statusCode: HttpStatus.NOT_FOUND, message: `Robot ${robotId} not found or return process failed` };
+    }
+    return { statusCode: HttpStatus.OK, message: response.message };
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all missions' })
   @ApiOkResponse({ description: 'List of all missions' })

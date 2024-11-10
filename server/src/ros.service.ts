@@ -243,12 +243,17 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
-  
-    const client = node.createClient('example_interfaces/srv/SetBool', serviceName);
-    const RequestType = rclnodejs.require('example_interfaces/srv/SetBool').Request;
+
+    const client = node.createClient(
+      'ros_gz_example_application/srv/MissionCommand',
+      serviceName
+    );
+
+    const RequestType = rclnodejs.require('ros_gz_example_application/srv/MissionCommand').Request;
     const request = new RequestType();
-    request.data = true;
-  
+
+    request.command = 1;  // Start mission
+
     const serviceAvailable = await client.waitForService(5000);
     if (!serviceAvailable) {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
@@ -256,10 +261,10 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
 
     this.lastRobotStatus[robotId] = 'Moving';
     this.syncGateway.broadcast('syncUpdate', { event: 'mission_started', robot: robotId });
-  
+
     const log = { event: 'start_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
     this.saveLogToFile(log);
-  
+
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
         if (response.success) {
@@ -273,40 +278,55 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-
-  async stopRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
+  async stopRobotMission(robotId: string, shouldReturn: boolean = false): Promise<{ message: string; success: boolean }> {
     this.missionActive = false;
     this.stopLogging();
 
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
-  
-    const client = node.createClient('example_interfaces/srv/SetBool', serviceName);
-    const RequestType = rclnodejs.require('example_interfaces/srv/SetBool').Request;
+
+    const client = node.createClient(
+      'ros_gz_example_application/srv/MissionCommand',
+      serviceName
+    );
+
+    const RequestType = rclnodejs.require('ros_gz_example_application/srv/MissionCommand').Request;
     const request = new RequestType();
-    request.data = false;
-  
+    request.command = shouldReturn ? 3 : 2;  // 3 for return, 2 for stop
+
     const serviceAvailable = await client.waitForService(5000);
     if (!serviceAvailable) {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    this.lastRobotStatus[robotId] = 'Stopped';
-    this.syncGateway.broadcast('syncUpdate', { event: 'mission_stopped', robot: robotId });
-  
-    const log = { event: 'stop_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
+    const status = shouldReturn ? 'Returning' : 'Stopped';
+    const event = shouldReturn ? 'robot_returning' : 'mission_stopped';
+    this.lastRobotStatus[robotId] = status;
+    this.syncGateway.broadcast('syncUpdate', { event, robot: robotId });
+
+    const log = { 
+      event: shouldReturn ? 'stop_and_return' : 'stop_mission', 
+      robot: robotId, 
+      timestamp: this.formatTimestamp(new Date()) 
+    };
     this.saveLogToFile(log);
-  
+
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
         if (response.success) {
-          console.log(`Mission stopped for robot ${robotId}: ${response.message}`);
-          this.syncGateway.broadcast('syncUpdate', { event: 'mission_stopped', robot: robotId });
-          resolve({ message: `Mission stopped for robot ${robotId}`, success: true });
+          console.log(`${shouldReturn ? 'Robot returning' : 'Mission stopped'} for robot ${robotId}: ${response.message}`);
+          this.syncGateway.broadcast('syncUpdate', { event, robot: robotId });
+          resolve({ 
+            message: shouldReturn 
+              ? `Robot ${robotId} is returning to start` 
+              : `Mission stopped for robot ${robotId}`, 
+            success: true 
+          });
         } else {
-          console.error(`Failed to stop mission for robot ${robotId}: ${response.message}`);
-          this.syncGateway.broadcast('syncUpdate', { event: 'mission_stop_failed', robot: robotId });
+          const failEvent = shouldReturn ? 'return_failed' : 'mission_stop_failed';
+          console.error(`Failed to ${shouldReturn ? 'initiate return' : 'stop mission'} for robot ${robotId}: ${response.message}`);
+          this.syncGateway.broadcast('syncUpdate', { event: failEvent, robot: robotId });
           reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
         }
       });
