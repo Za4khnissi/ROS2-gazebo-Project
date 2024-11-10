@@ -83,6 +83,10 @@ export class PhysicalRobotComponent implements OnInit {
     this.robotService.stopMission(robotId).subscribe();
   }
 
+  returnFromMission(robotId: number) {
+    this.robotService.returnFromMission(robotId).subscribe();
+  }
+
   toggleOldLogs() {
     if (!this.showOldLogs) {
       this.robotService.getOldLogs().subscribe((missions) => {

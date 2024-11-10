@@ -96,6 +96,10 @@ export class SimulationComponent implements OnInit {
     this.simService.stopMission(robotId).subscribe();
   }
 
+  returnFromMission(robotId: number) {
+    this.simService.returnFromMission(robotId).subscribe();
+  }
+
   toggleDriveMode(robotId: number) {
     let newDriveMode = robotId === 3 ? this.driveMode3 : this.driveMode4;
     newDriveMode = newDriveMode === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';

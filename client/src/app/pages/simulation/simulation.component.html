@@ -17,6 +17,9 @@
         <button (click)="stopMission(3)" class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full">
           Stop Mission
         </button>
+        <button (click)=returnFromMission(3) class="bg-red-600 hover:bg-red-500 text-white py-2 px-4 rounded-lg mb-3 w-full">
+          Return From Mission
+        </button>
         <div class="mt-10 text-center">
           <label for="driveMode3">Drive Mode for Robot 3: diff_drive</label>
           <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(3)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
@@ -37,6 +40,9 @@
         </button>
         <button (click)="stopMission(4)" class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full">
           Stop Mission
+        </button>
+        <button (click)=returnFromMission(4) class="bg-red-600 hover:bg-red-500 text-white py-2 px-4 rounded-lg mb-3 w-full">
+          Return From Mission
         </button>
         <div class="mt-10 text-center">
           <label for="driveMode4">Drive Mode for Robot 4: diff_drive</label>

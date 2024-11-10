@@ -26,6 +26,10 @@ export class RobotService {
     return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/stop`);
   }
 
+  returnFromMission(robotId: number): Observable<{ message: string }> {
+    return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/return`);
+  }
+
   changeDriveMode(robotId: number, driveMode: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/robot/${robotId}/change_drive_mode`, { drive_mode: driveMode });
   }
