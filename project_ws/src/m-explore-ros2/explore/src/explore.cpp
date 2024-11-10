@@ -40,6 +40,8 @@
 
 #include <thread>
 
+#include "std_msgs/msg/int8.hpp" 
+
 inline static bool same_point(const geometry_msgs::msg::Point& one,
                               const geometry_msgs::msg::Point& two)
 {
@@ -98,7 +100,7 @@ Explore::Explore()
   }
 
   // Subscription to resume or stop exploration
-  resume_subscription_ = this->create_subscription<std_msgs::msg::Bool>(
+  resume_subscription_ = this->create_subscription<std_msgs::msg::Int8>(
       "explore/resume", 10,
       std::bind(&Explore::resumeCallback, this, std::placeholders::_1));
 
@@ -136,12 +138,25 @@ Explore::~Explore()
   stop();
 }
 
-void Explore::resumeCallback(const std_msgs::msg::Bool::SharedPtr msg)
+void Explore::resumeCallback(const std_msgs::msg::Int8::SharedPtr msg)
 {
-  if (msg->data) {
-    resume();
-  } else {
-    stop(false, true); // we assume that it was stopped because of the mission ended
+  switch (msg->data)
+  {
+    case 1:  // Case 1: Resume exploration
+      resume();
+      break;
+    
+    case 2:  // Case 2: Stop exploration
+      stop();
+      break;
+    
+    case 3:  // Case 3: Stop exploration and force return
+      stop(false, true);
+      break;
+    
+    default:
+      RCLCPP_WARN(logger_, "Invalid command received on explore/resume topic. Valid values are: 1 (resume), 2 (stop), 3 (stop and return)");
+      break;
   }
 }
 

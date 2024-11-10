@@ -58,6 +58,8 @@
 #include "nav2_msgs/action/navigate_to_pose.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 
+#include "std_msgs/msg/int8.hpp" 
+
 using namespace std::placeholders;
 #ifdef ELOQUENT
 #define ACTION_NAME "NavigateToPose"
@@ -120,8 +122,8 @@ private:
   rclcpp::TimerBase::SharedPtr exploring_timer_;
   // rclcpp::TimerBase::SharedPtr oneshot_;
 
-  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr resume_subscription_;
-  void resumeCallback(const std_msgs::msg::Bool::SharedPtr msg);
+  rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr resume_subscription_;
+  void resumeCallback(const std_msgs::msg::Int8::SharedPtr msg);
 
   std::vector<geometry_msgs::msg::Point> frontier_blacklist_;
   geometry_msgs::msg::Point prev_goal_;
