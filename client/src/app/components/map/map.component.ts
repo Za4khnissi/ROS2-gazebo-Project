@@ -2,6 +2,27 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, HostListener } from '@angular/core';
 import { WebSocketService } from '@app/services/web-socket.service';
 
+interface Position {
+  x: number;
+  y: number;
+  z: number;
+}
+
+interface Orientation {
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+}
+
+interface RobotPosition {
+  robotId: string;
+  position: Position;
+  orientation: Orientation;
+  frame_id: string;
+  timestamp: number;
+}
+
 interface OccupancyGrid {
   header: {
     seq: number;
@@ -52,12 +73,25 @@ export class MapComponent implements OnInit, AfterViewInit {
   @ViewChild('mapContainer') containerRef!: ElementRef<HTMLDivElement>;
   private ctx!: CanvasRenderingContext2D;
   private currentMapData: OccupancyGrid | null = null;
+  private robotPositions: Map<string, RobotPosition> = new Map();
+  private scale: number = 1;
+  private robotColors: Map<string, string> = new Map([
+    ['limo_105_1', '#FF0000'], // Red
+    ['limo_105_2', '#00FF00'], // Green
+    ['limo_105_3', '#0000FF'], // Blue
+    ['limo_105_4', '#FFFF00']  // Yellow
+  ]);
 
   constructor(private webSocketService: WebSocketService) {}
 
   ngOnInit() {
     this.webSocketService.listen('map_update').subscribe((mapData: OccupancyGrid) => {
       this.currentMapData = mapData;
+      this.drawMap();
+    });
+
+    this.webSocketService.listen('robot_position_update').subscribe((positionData: RobotPosition) => {
+      this.robotPositions.set(positionData.robotId, positionData);
       this.drawMap();
     });
   }
@@ -89,13 +123,13 @@ export class MapComponent implements OnInit, AfterViewInit {
     // Calculate scale to fit map in container while maintaining aspect ratio
     const scaleX = containerWidth / mapWidth;
     const scaleY = containerHeight / mapHeight;
-    const scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 to add some padding
+    this.scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 to add some padding
 
     // Set canvas size based on scaled dimensions
     canvas.width = mapWidth;
     canvas.height = mapHeight;
-    canvas.style.width = `${mapWidth * scale}px`;
-    canvas.style.height = `${mapHeight * scale}px`;
+    canvas.style.width = `${mapWidth * this.scale}px`;
+    canvas.style.height = `${mapHeight * this.scale}px`;
 
     // Create ImageData
     const imageData = this.ctx.createImageData(mapWidth, mapHeight);
@@ -130,5 +164,52 @@ export class MapComponent implements OnInit, AfterViewInit {
     // Clear canvas and draw new image
     this.ctx.clearRect(0, 0, mapWidth, mapHeight);
     this.ctx.putImageData(imageData, 0, 0);
+
+    // Draw robots after map
+    this.drawRobots();
+  }
+
+  private drawRobots() {
+    if (!this.currentMapData) return;
+
+    const { resolution, origin } = this.currentMapData.info;
+
+    this.robotPositions.forEach((robotPosition, robotId) => {
+      // Convert robot position from world coordinates to pixel coordinates
+      const pixelX = (robotPosition.position.x - origin.position.x) / resolution;
+      const pixelY = this.currentMapData!.info.height - 
+                    (robotPosition.position.y - origin.position.y) / resolution;
+
+      // Draw robot
+      this.ctx.save();
+      this.ctx.beginPath();
+      this.ctx.arc(pixelX, pixelY, 5, 0, 2 * Math.PI);
+      this.ctx.fillStyle = this.robotColors.get(robotId) || '#FFFFFF';
+      this.ctx.fill();
+
+      // Draw robot direction (using orientation)
+      const angle = this.quaternionToYaw(robotPosition.orientation);
+      this.ctx.beginPath();
+      this.ctx.moveTo(pixelX, pixelY);
+      this.ctx.lineTo(
+        pixelX + Math.cos(angle) * 10,
+        pixelY - Math.sin(angle) * 10
+      );
+      this.ctx.strokeStyle = this.robotColors.get(robotId) || '#FFFFFF';
+      this.ctx.lineWidth = 2;
+      this.ctx.stroke();
+
+      // Draw robot ID
+      this.ctx.fillStyle = '#FFFFFF';
+      this.ctx.font = '12px Arial';
+      this.ctx.fillText(robotId, pixelX + 10, pixelY + 10);
+      
+      this.ctx.restore();
+    });
+  }
+
+  private quaternionToYaw(orientation: Orientation): number {
+    const { x, y, z, w } = orientation;
+    return Math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z));
   }
 }

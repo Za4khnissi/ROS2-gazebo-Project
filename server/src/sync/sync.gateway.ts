@@ -25,12 +25,12 @@ export class SyncGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   broadcast(event: string, payload: any): void {
     const payloadToDisplay = event == 'map_update' ? '...' : payload;
-    console.log(`Broadcasting event: ${event}`, payloadToDisplay);
+    //console.log(`Broadcasting event: ${event}`, payloadToDisplay);
     this.server.emit(event, payload);
   }
 
   broadcastBatteryUpdate(robotId: string, batteryLevel: number): void {
     this.server.emit('batteryUpdate', { robotId, batteryLevel });
-    console.log(`Battery level broadcasted for robot ${robotId}: ${batteryLevel}%`);
+    //console.log(`Battery level broadcasted for robot ${robotId}: ${batteryLevel}%`);
   }
 }

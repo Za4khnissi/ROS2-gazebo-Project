@@ -148,6 +148,12 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     this.subscribeToBatteryLevel('limo_105_3', this.simulationRobotNode);
     this.subscribeToBatteryLevel('limo_105_4', this.simulationRobotNode);
 
+    this.subscribeToRobotPosition('limo_105_1', this.realRobotNode);
+    this.subscribeToRobotPosition('limo_105_2', this.realRobotNode);
+    this.subscribeToRobotPosition('limo_105_3', this.simulationRobotNode);
+    this.subscribeToRobotPosition('limo_105_4', this.simulationRobotNode);
+
+
 
 
     const OccupancyGrid = rclnodejs.require('nav_msgs/msg/OccupancyGrid');
@@ -222,10 +228,10 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       'std_msgs/msg/Float32',
       topicName,
       (msg) => {
-        console.log(`Message received on ${topicName}`);
+        //console.log(`Message received on ${topicName}`);
         if (this.isFloat32(msg)) {
           const batteryLevel = msg.data;
-          console.log(`Battery Level for ${robotId}: ${batteryLevel}%`);
+          //console.log(`Battery Level for ${robotId}: ${batteryLevel}%`);
           if (batteryLevel < BATTERY_THRESHOLD) {
             console.log(`Battery level for ${robotId} is low. Stopping Mission.`);
             this.stopRobotMission(robotId, true);
@@ -238,6 +244,53 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     );
     console.log(`Subscribed to battery level topic for ${robotId}`);
   }
+
+  private subscribeToRobotPosition(robotId: string, node: rclnodejs.Node) {
+    const topicName = `/${robotId}/amcl_pose`;  // or your specific pose topic
+    console.log(`Attempting to subscribe to ${topicName}`);
+
+    const PoseWithCovarianceStamped = rclnodejs.require('geometry_msgs/msg/PoseWithCovarianceStamped');
+
+    node.createSubscription(
+        PoseWithCovarianceStamped as any,
+        topicName,
+        (msg: any) => {
+            //console.log(`Position message received on ${topicName}`);
+            
+            // Extract position and orientation from the message
+            const position = {
+                x: msg.pose.pose.position.x,
+                y: msg.pose.pose.position.y,
+                z: msg.pose.pose.position.z
+            };
+
+            const orientation = {
+                x: msg.pose.pose.orientation.x,
+                y: msg.pose.pose.orientation.y,
+                z: msg.pose.pose.orientation.z,
+                w: msg.pose.pose.orientation.w
+            };
+
+            // You can also extract covariance if needed
+            const covariance = msg.pose.covariance;
+
+            // Create a position update object
+            const positionUpdate = {
+                robotId: robotId,
+                position: position,
+                orientation: orientation,
+                // Include frame_id for reference frame information
+                frame_id: msg.header.frame_id,
+                // Convert ROS time to JavaScript timestamp
+                timestamp: msg.header.stamp.sec * 1000 + Math.floor(msg.header.stamp.nanosec / 1000000)
+            };
+
+            // Broadcast the position update through WebSocket
+            this.syncGateway.broadcast('robot_position_update', positionUpdate);
+        }
+    );
+    console.log(`Subscribed to position topic for ${robotId}`);
+}
 
   private isFloat32(msg: any): msg is { data: number } {
     return typeof msg.data === 'number';
@@ -308,7 +361,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     node.createSubscription('nav_msgs/msg/Odometry', topicName, (msg) => {
       const odomMsg = msg as any;
       const currentPosition = { x: odomMsg.pose.pose.position.x, y: odomMsg.pose.pose.position.y };
-      console.log("Good odom , currentPosition", currentPosition);
+      //console.log("Good odom , currentPosition", currentPosition);
       if (this.lastPosition[robotId]) {
         const delta = Math.sqrt(
           Math.pow(currentPosition.x - this.lastPosition[robotId].x, 2) +
