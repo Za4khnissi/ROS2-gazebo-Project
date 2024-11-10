@@ -104,6 +104,24 @@ def generate_launch_description():
         namespace='/limo_105_4'
     )
 
+    battery_node_3 = Node(
+        package='ros_gz_example_application',
+        executable='battery_manager.py',
+        name='battery_node',
+        output='screen',
+        namespace='limo_105_3',
+        parameters=[{'is_simulation': True}]
+    )
+
+    battery_node_4 = Node(
+        package='ros_gz_example_application',
+        executable='battery_manager.py',
+        name='battery_node',
+        output='screen',
+        namespace='limo_105_4',
+        parameters=[{'is_simulation': True}]
+    )
+
     # Second group of nodes (SLAM) - Delayed by 5 seconds
     slam_nodes = TimerAction(
         period=5.0,
@@ -255,6 +273,8 @@ def generate_launch_description():
         mission_service_3,
         identify_service_4,
         mission_service_4,
+        battery_node_3,
+        battery_node_4,
         slam_nodes,
         nav2_nodes,
         explore_nodes

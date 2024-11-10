@@ -11,7 +11,9 @@ export class DatabaseService {
 
   
   async getAllMissions(): Promise<MissionModel[]> {
-    return this.missionModel.find().exec();
+    const missions = await this.missionModel.find().exec();
+    console.log('Fetched missions:', missions);  
+    return missions;
   }
 
   

@@ -4,13 +4,17 @@ import {
   OnModuleDestroy,
   HttpException,
   HttpStatus,
+
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import * as rclnodejs from 'rclnodejs';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import { Subject, interval, Subscription, Observable } from 'rxjs';
 import { SyncGateway } from './sync/sync.gateway';
 import * as path from 'path';
+import { MissionModel } from './mission/mission.model';
+import { Model } from 'mongoose';
 
 interface ServiceResponse {
   success: boolean;
@@ -33,10 +37,14 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     '3': 'Waiting',
     '4': 'Waiting',
   };
+  private totalDistance: { [robotId: string]: number } = {};
+  private lastPosition: { [robotId: string]: { x: number, y: number } } = {};
+  private mapData: any | null = null;
 
   constructor(
-    private configService: ConfigService, 
-    private syncGateway: SyncGateway
+    private configService: ConfigService,
+    private syncGateway: SyncGateway,
+    @InjectModel('Mission') private missionModel: Model<MissionModel>
   ) {
     this.ensureLogsFolderExists();
   }
@@ -116,9 +124,9 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       if (this.missionActive && this.currentLogs.length > 0) {
         this.currentLogs.forEach((log) => {
           this.saveLogToFile(log);
-          this.syncGateway.broadcast('syncUpdate', log); 
+          this.syncGateway.broadcast('syncUpdate', log);
         });
-        this.currentLogs = []; 
+        this.currentLogs = [];
       }
     });
   }
@@ -140,7 +148,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     this.subscribeToBatteryLevel('limo_105_3', this.simulationRobotNode);
     this.subscribeToBatteryLevel('limo_105_4', this.simulationRobotNode);
 
-    
+
 
     const OccupancyGrid = rclnodejs.require('nav_msgs/msg/OccupancyGrid');
 
@@ -150,7 +158,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       '/map',
       (message: any) => {
         // Convert the message to a plain JavaScript object
-        const mapData = {
+        this.mapData = {
           header: {
             seq: message.header.seq,
             stamp: {
@@ -185,7 +193,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
         };
 
         // Broadcast the map data through the WebSocket
-        this.syncGateway.broadcast('map_update', mapData);
+        this.syncGateway.broadcast('map_update', this.mapData);
       }
     );
 
@@ -234,11 +242,24 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   private isFloat32(msg: any): msg is { data: number } {
     return typeof msg.data === 'number';
   }
-  
+
   async startRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
     this.missionActive = true;
     this.startMissionLogFile(robotId);
     this.startLogging();
+
+    const newMission = new this.missionModel({
+      dateDebut: new Date(),
+      robots: [robotId],
+      isPhysical: robotId === '1' || robotId === '2',
+      totalDistance: 0,
+      duration: 0,
+    });
+
+    const savedMission = await newMission.save();
+    console.log(`Mission started and saved in DB with ID: ${savedMission._id}`);
+
+    this.watchDistance(robotId);
 
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
@@ -278,6 +299,28 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  private watchDistance(robotId: string) {
+    this.totalDistance[robotId] = 0;
+    const topicName = `limo_105_${robotId}/odom`;
+
+
+    const node = this.validateRobotConnection(robotId);
+    node.createSubscription('nav_msgs/msg/Odometry', topicName, (msg) => {
+      const odomMsg = msg as any;
+      const currentPosition = { x: odomMsg.pose.pose.position.x, y: odomMsg.pose.pose.position.y };
+      console.log("Good odom , currentPosition", currentPosition);
+      if (this.lastPosition[robotId]) {
+        const delta = Math.sqrt(
+          Math.pow(currentPosition.x - this.lastPosition[robotId].x, 2) +
+          Math.pow(currentPosition.y - this.lastPosition[robotId].y, 2)
+        );
+        this.totalDistance[robotId] += delta;
+      }
+
+      this.lastPosition[robotId] = currentPosition;
+    });
+  }
+
   async stopRobotMission(robotId: string, shouldReturn: boolean = false): Promise<{ message: string; success: boolean }> {
     this.missionActive = false;
     this.stopLogging();
@@ -300,15 +343,30 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    // mettre a jour la db
+    if (!["Returning", "Stopped"].includes(this.lastRobotStatus[robotId])) { // if the robot is not already returning or stopped
+      const mission = await this.missionModel.findOne({ robots: robotId, dateFin: null });
+      if (mission) {
+        mission.dateFin = new Date();
+        mission.duration = (mission.dateFin.getTime() - mission.dateDebut.getTime()) / 1000;
+        mission.totalDistance = this.totalDistance[robotId] || 0;
+        mission.mapData = this.mapData;
+        await mission.save();
+        console.log(`Mission stopped and updated in DB with ID: ${mission._id}`);
+      } else {
+        console.log(`No active mission found for robot ${robotId}`);
+      }
+    }
+
     const status = shouldReturn ? 'Returning' : 'Stopped';
     const event = shouldReturn ? 'robot_returning' : 'mission_stopped';
     this.lastRobotStatus[robotId] = status;
     this.syncGateway.broadcast('syncUpdate', { event, robot: robotId });
 
-    const log = { 
-      event: shouldReturn ? 'stop_and_return' : 'stop_mission', 
-      robot: robotId, 
-      timestamp: this.formatTimestamp(new Date()) 
+    const log = {
+      event: shouldReturn ? 'stop_and_return' : 'stop_mission',
+      robot: robotId,
+      timestamp: this.formatTimestamp(new Date())
     };
     this.saveLogToFile(log);
 
@@ -317,11 +375,11 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
         if (response.success) {
           console.log(`${shouldReturn ? 'Robot returning' : 'Mission stopped'} for robot ${robotId}: ${response.message}`);
           this.syncGateway.broadcast('syncUpdate', { event, robot: robotId });
-          resolve({ 
-            message: shouldReturn 
-              ? `Robot ${robotId} is returning to start` 
-              : `Mission stopped for robot ${robotId}`, 
-            success: true 
+          resolve({
+            message: shouldReturn
+              ? `Robot ${robotId} is returning to start`
+              : `Mission stopped for robot ${robotId}`,
+            success: true
           });
         } else {
           const failEvent = shouldReturn ? 'return_failed' : 'mission_stop_failed';
@@ -337,11 +395,11 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/identify`;
-  
+
     const client = node.createClient('std_srvs/srv/Trigger', serviceName);
     const RequestType = rclnodejs.require('std_srvs/srv/Trigger').Request;
     const request = new RequestType();
-  
+
     const serviceAvailable = await client.waitForService(5000);
     if (!serviceAvailable) {
       throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
@@ -349,7 +407,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
 
     this.lastRobotStatus[robotId] = 'Identifying';
     this.syncGateway.broadcast('syncUpdate', { event: 'identifying', robot: robotId });
-  
+
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
         if (response.success) {
@@ -363,18 +421,18 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
         }
       });
     });
-  }  
-  
+  }
+
   changeDriveMode(robotId: string, driveMode: string) {
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/robot_${robotId}_drive_mode`;
-    
+
     const client = node.createClient('std_srvs/srv/SetBool', serviceName);
     const RequestType = rclnodejs.require('std_srvs/srv/SetBool').Request;
     const request = new RequestType();
     request.data = driveMode === 'ackermann';
-    
+
     client.sendRequest(request, (response) => {
       const event = response.success ? 'drive_mode_changed' : 'drive_mode_change_failed';
       const log = { event, robot: robotId, driveMode, timestamp: new Date().toISOString() };
@@ -385,22 +443,22 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
 
   getOldMissions() {
     const missionFiles = fs.readdirSync(this.logsFolder).filter(file => file.startsWith('mission_') && file.endsWith('.json'));
-    
+
     const missions = missionFiles.map(file => {
       const filePath = path.join(this.logsFolder, file);
       const fileContent = fs.readFileSync(filePath, 'utf-8').split('\n').filter(line => line);
       const logs = fileContent.map(line => JSON.parse(line));
-  
+
       return { mission: file, logs };
     });
-  
+
     return missions;
   }
 
   getLogStream(): Observable<any> {
     return this.logSubject.asObservable();
   }
-  
+
   async onModuleDestroy() {
     // Destroy nodes and shutdown rclnodejs
     this.simulationRobotNode.destroy();

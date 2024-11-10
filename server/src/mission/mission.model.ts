@@ -7,6 +7,7 @@ export interface MissionModel extends Document {
   robots: string[];
   isPhysical: boolean;
   totalDistance: number;
+  mapData: any;
 }
 
 export const MissionSchema = new Schema<MissionModel>({
@@ -16,11 +17,11 @@ export const MissionSchema = new Schema<MissionModel>({
   },
   dateFin: {
     type: Date,
-    required: true,
+    required: false,
   },
   duration: {
     type: Number,
-    required: true,
+    required: false,
   },
   robots: {
     type: [String],
@@ -32,9 +33,9 @@ export const MissionSchema = new Schema<MissionModel>({
   },
   totalDistance: {
     type: Number,
-    required: true,
+    required: false,
   },
+  mapData: { type: Schema.Types.Mixed },
 }, { timestamps: true }); 
-
 
 export const Mission = { name: 'Mission', schema: MissionSchema };

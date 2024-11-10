@@ -44,12 +44,14 @@ export class MissionController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all missions' })
-  @ApiOkResponse({ description: 'List of all missions' })
-  async getAllMissions() {
-    const missions = await this.databaseService.getAllMissions();
-    return { statusCode: HttpStatus.OK, missions };
-  }
+@ApiOperation({ summary: 'Get all missions' })
+@ApiOkResponse({ description: 'List of all missions' })
+async getAllMissions() {
+  const missions = await this.databaseService.getAllMissions();
+  console.log('Missions from controller:', missions);  
+  return { statusCode: HttpStatus.OK, missions };
+}
+
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a mission by ID' })

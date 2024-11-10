@@ -2,6 +2,7 @@
   <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-3xl text-center">
     <h1 class="text-4xl text-white font-bold mb-6">Simulation Control</h1>
 
+    <app-map class="w-full h-64 mb-6"></app-map>
 
     <div class="grid grid-cols-2 gap-8">
       <!-- Robot 1 Controls -->
@@ -26,6 +27,7 @@
             {{ driveMode3 }}
           </button>
         </div>
+        <app-battery-status [robotId]="3" [mode]="mode" class="mt-auto"></app-battery-status>
       </div>
 
       <!-- Robot 2 Controls -->
@@ -50,6 +52,7 @@
             {{ driveMode4 }}
           </button>
         </div>
+        <app-battery-status [robotId]="4" [mode]="mode" class="mt-auto"></app-battery-status>
       </div>
     </div>
   </div>
