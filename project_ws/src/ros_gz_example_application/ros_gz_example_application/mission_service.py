@@ -11,9 +11,10 @@ PUBLISH_RATE = 1/10  # 10 Hz
 
 
 class MissionStatus(IntEnum):
-    STOP = 0
-    STARTED = 1
-    RETURNING = 2
+    WAITING = 0
+    STOP = 1
+    STARTED = 2
+    RETURNING = 3
 
 
 class ExploreCommand(IntEnum):
@@ -31,7 +32,7 @@ class MissionServiceNode(Node):
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', QoSProfile(depth=10))
         self.explore_resume_pub = self.create_publisher(Int8Msg, 'explore/resume', 10)
 
-        self.mission_status = MissionStatus.STOP
+        self.mission_status = MissionStatus.WAITING
 
         self.publish_timer = None
 
@@ -70,6 +71,9 @@ class MissionServiceNode(Node):
             if self.mission_status == MissionStatus.RETURNING:
                 response.success = False
                 response.message = 'Robot is already returning to start'
+            elif self.mission_status == MissionStatus.WAITING:
+                response.success = False
+                response.message = 'Robot is already at start'
             else:
                 self.stop_and_return()
                 response.success = True
