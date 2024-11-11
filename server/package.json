@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "bash -c 'if [ ! -e ./node_modules/rclnodejs/generated/ros_gz_example_application ]; then source ../project_ws/install/setup.sh && npx generate-ros-messages; fi && nest start'",
+    "start": "bash -c 'source ../project_ws/install/setup.sh && npx generate-ros-messages && nest start'",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
