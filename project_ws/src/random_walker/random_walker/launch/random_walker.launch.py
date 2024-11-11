@@ -12,22 +12,12 @@ def generate_launch_description():
     namespace = f'{ros_namespace[0]}{ROBOT_ID}'
 
     return LaunchDescription([
-        # Declare launch arguments
-        DeclareLaunchArgument(
-            'map_frame',
-            default_value='map',
-            description='Map frame id'
-        ),
-        DeclareLaunchArgument(
-            'robot_frame',
-            default_value='limo_105_3',
-            description='Robot base frame id'
-        ),
 
         Node(
             package='random_walker',
             executable='random_walker_node',
             name='random_walker',
+            namespace=f"/{namespace}",
             output='screen',
             parameters=[{
                 'min_x': -100.0,
@@ -41,7 +31,7 @@ def generate_launch_description():
                 'min_distance_from_current': 0.3,
                 'max_attempts': 3,
                 'timeout_delay': 100.0,
-                'return_to_init': False,
+                'return_to_init': True,
                 'progress_timeout': 30.0,
                 'pose_topic': f"/{namespace}/amcl_pose"
             }]

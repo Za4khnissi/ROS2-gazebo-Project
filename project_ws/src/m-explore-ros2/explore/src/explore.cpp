@@ -432,7 +432,7 @@ void Explore::stop(bool finished_exploring, bool force_return)
   move_base_client_->async_cancel_all_goals();
   exploring_timer_->cancel();
 
-  if (force_return || (return_to_init_ && finished_exploring)) {
+  if (force_return) {
     returnToInitialPose();
   }
 }

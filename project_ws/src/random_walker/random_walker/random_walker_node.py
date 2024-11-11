@@ -7,7 +7,7 @@ from nav2_msgs.action import NavigateToPose
 from geometry_msgs.msg import PoseStamped, Point, Transform, PoseWithCovarianceStamped
 from tf2_ros import Buffer, TransformListener
 from rclpy.duration import Duration
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Int8
 import random
 import math
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -39,7 +39,7 @@ class RandomWalker(Node):
                 ('min_distance_from_current', 1.0),
                 ('max_attempts', 10),
                 ('return_to_init', False),
-                ('progress_timeout', 30.0)
+                ('progress_timeout', 30.0),
             ]
         )
 
@@ -63,7 +63,7 @@ class RandomWalker(Node):
         self.prev_distance = 0.0
         self.last_progress = self.get_clock().now()
         self.goal_blacklist = []
-        self.is_active = True
+        self.is_active = False # Changed to match explore lite default behavior
         self._navigation_active = False
         self._timeout_timer = None
         self.current_pose = None
@@ -82,12 +82,14 @@ class RandomWalker(Node):
             self.nav_action_server,
             callback_group=self.callback_group)
         
+    
         # Create subscriptions
-        self.control_sub = self.create_subscription(
-            Bool,
-            'random_walker/control',
-            self.control_callback,
-            10
+        self.resume_sub = self.create_subscription(
+            Int8,
+            'explore/resume',
+            self.resume_callback,
+            10,
+            
         )
         
         self.pose_sub = self.create_subscription(
@@ -99,7 +101,7 @@ class RandomWalker(Node):
         
         # Wait for navigation action server
         self.get_logger().info(f'Waiting for {self.nav_action_server} action server...')
-        if not self.nav_client.wait_for_server(timeout_sec=10.0):
+        if not self.nav_client.wait_for_server(timeout_sec=20.0):
             self.get_logger().error('Navigation action server not available')
             return
 
@@ -112,14 +114,22 @@ class RandomWalker(Node):
         if self.return_to_init:
             self.store_initial_pose()
 
-        # Start the first plan
-        self.make_plan()
-        
         self.get_logger().info('Random walker initialized and ready')
 
     def pose_callback(self, msg):
         """Callback for the AMCL pose updates."""
         self.current_pose = msg.pose.pose
+
+    def resume_callback(self, msg):
+        """Handle resume/stop messages."""
+        if msg.data == 1:  # Resume exploration
+            self.resume()
+        elif msg.data == 2:  # Stop exploration
+            self.stop(force_return=False)
+        elif msg.data == 3:  # Stop exploration and force return
+            self.stop(force_return=True)
+        else:
+            self.get_logger().warn('Invalid command received on explore/resume topic. Valid values are: 1 (resume), 2 (stop), 3 (stop and return)')
 
     def store_initial_pose(self):
         """Store the initial pose of the robot for potential return."""
@@ -149,13 +159,6 @@ class RandomWalker(Node):
             if self._goal_handle is not None:
                 self._goal_handle.cancel_goal_async()
             self.make_plan()
-
-    def control_callback(self, msg):
-        """Handle control messages to start/stop random walking."""
-        if msg.data and not self.is_active:
-            self.resume()
-        elif not msg.data and self.is_active:
-            self.stop()
 
     def get_robot_pose(self):
         """Get the current robot pose."""
@@ -357,7 +360,7 @@ class RandomWalker(Node):
         """Handle navigation feedback."""
         pass
 
-    def stop(self):
+    def stop(self, force_return=False):
         """Stop the random walker and clean up."""
         self.is_active = False
         self._navigation_active = False
@@ -371,7 +374,7 @@ class RandomWalker(Node):
         if hasattr(self, '_goal_handle') and self._goal_handle is not None:
             self._goal_handle.cancel_goal_async()
         
-        if self.return_to_init and self.initial_pose is not None:
+        if force_return and self.initial_pose is not None:
             self.return_to_initial_pose()
 
     def resume(self):
@@ -386,6 +389,11 @@ class RandomWalker(Node):
         if self.initial_pose is None:
             return
 
+        # Get initial position before sending goal
+        initial_robot_pose = self.get_robot_pose()
+        if initial_robot_pose is None:
+            return
+
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose.header.frame_id = self.map_frame
         goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
@@ -393,6 +401,18 @@ class RandomWalker(Node):
         
         self.get_logger().info('Returning to initial pose')
         self.nav_client.send_goal_async(goal_msg)
+
+        # Wait 2 seconds
+        rclpy.sleep(2.0)
+
+        # Get new position after waiting
+        new_robot_pose = self.get_robot_pose()
+
+        # If position hasn't changed, retry
+        if (abs(initial_robot_pose.position.x - new_robot_pose.position.x) < 0.01 and
+            abs(initial_robot_pose.position.y - new_robot_pose.position.y) < 0.01):
+            self.get_logger().warn('Robot hasn\'t moved, retrying to return to initial pose')
+            self.return_to_initial_pose()
 
 def main(args=None):
     """Main function."""

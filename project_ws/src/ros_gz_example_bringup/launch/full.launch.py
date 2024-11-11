@@ -264,6 +264,35 @@ def generate_launch_description():
         ]
     )
 
+    random_walker_nodes = TimerAction(
+        period=20.0,
+        actions=[
+            Node(
+                package='random_walker',
+                executable='random_walker_node',
+                name='random_walker',
+                output='screen',
+                namespace='/limo_105_3',
+                parameters=[{
+                    'min_x': -5.0,
+                    'max_x': 5.0,
+                    'min_y': -5.0,
+                    'max_y': 5.0,
+                    'map_frame': "map",
+                    'robot_frame': f"limo_105_3/base_footprint",
+                    'nav_action_server': f"/limo_105_3/navigate_to_pose",
+                    'goal_tolerance': 0.5,
+                    'min_distance_from_current': 0.1,
+                    'max_attempts': 3,
+                    'timeout_delay': 100.0,
+                    'return_to_init': True,
+                    'progress_timeout': 30.0,
+                    'pose_topic': f"/limo_105_3/amcl_pose"
+                }]
+            )
+        ]
+    )
+
     return LaunchDescription([
         bridge,
         gz_sim,
@@ -278,4 +307,5 @@ def generate_launch_description():
         slam_nodes,
         nav2_nodes,
         explore_nodes
+        #random_walker_nodes
     ])
