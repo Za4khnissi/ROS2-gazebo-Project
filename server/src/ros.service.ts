@@ -232,7 +232,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
         if (this.isFloat32(msg)) {
           const batteryLevel = msg.data;
           //console.log(`Battery Level for ${robotId}: ${batteryLevel}%`);
-          if (batteryLevel < BATTERY_THRESHOLD) {
+          if (batteryLevel < BATTERY_THRESHOLD && !['Returning', 'Waiting'].includes(this.lastRobotStatus[robotId])) {
             console.log(`Battery level for ${robotId} is low. Stopping Mission.`);
             this.stopRobotMission(robotId, true);
           }
