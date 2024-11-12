@@ -1,5 +1,13 @@
 import { Schema, Document } from 'mongoose';
 
+export interface MissionLog {
+  robotId: string;
+  event: string;
+  level: string;
+  message: string;
+  timestamp: Date;
+}
+
 export interface MissionModel extends Document {
   dateDebut: Date;
   dateFin: Date;
@@ -8,6 +16,7 @@ export interface MissionModel extends Document {
   isPhysical: boolean;
   totalDistance: number;
   mapData: any;
+  logs: MissionLog[]; 
 }
 
 export const MissionSchema = new Schema<MissionModel>({
@@ -35,7 +44,19 @@ export const MissionSchema = new Schema<MissionModel>({
     type: Number,
     required: false,
   },
-  mapData: { type: Schema.Types.Mixed },
+  mapData: { 
+    type: Schema.Types.Mixed 
+  },
+  logs: [
+    {
+      robotId: { type: String, required: true },
+      event: { type: String, required: true },
+      level: { type: String, required: true },
+      message: { type: String, required: true },
+      timestamp: { type: Date, required: true, default: Date.now },
+    },
+  ],
+
 }, { timestamps: true }); 
 
 export const Mission = { name: 'Mission', schema: MissionSchema };
