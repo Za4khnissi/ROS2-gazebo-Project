@@ -49,9 +49,9 @@ export const MissionSchema = new Schema<MissionModel>({
   },
   logs: [
     {
-      robotId: { type: String, required: true },
-      event: { type: String, required: true },
-      level: { type: String, required: true },
+      robotId: { type: String, required: false },
+      event: { type: String, required: false },
+      level: { type: String, required: false },
       message: { type: String, required: true },
       timestamp: { type: Date, required: true, default: Date.now },
     },

@@ -14,15 +14,93 @@ async function seedMissions() {
     await Mission.deleteMany({});
     console.log('All missions deleted successfully');
 
-    // Missions à insérer
+    // Exemples de missions avec des logs
     const missions = [
       {
-        dateDebut: new Date(),
-        dateFin: new Date(),
-        duration: 1208,
-        robots: ['robot5'],
+        dateDebut: new Date('2024-11-06T18:15:00Z'),
+        dateFin: new Date('2024-11-06T20:15:00Z'),
+        duration: 7200, // durée en secondes (2 heures)
+        robots: ['limo_105_3'],
         isPhysical: true,
-        totalDistance: 150,
+        totalDistance: 150, // distance en unités arbitraires
+        logs: [
+          {
+            robotId: 'limo_105_3',
+            level: 20,
+            message: 'Configuring backup',
+            timestamp: new Date('2024-11-06T20:15:00Z'),
+          },
+          {
+            robotId: 'limo_105_3',
+            level: 20,
+            message: 'Creating behavior plugin drive_on_heading of type nav2_behaviors/DriveOnHeading',
+            timestamp: new Date('2024-11-06T20:15:00Z'),
+          },
+          {
+            robotId: 'limo_105_3',
+            level: 20,
+            message: 'Configuring drive_on_heading',
+            timestamp: new Date('2024-11-06T20:15:00Z'),
+          },
+          {
+            robotId: 'limo_105_3',
+            level: 20,
+            message: 'Creating behavior plugin wait of type nav2_behaviors/Wait',
+            timestamp: new Date('2024-11-06T20:15:00Z'),
+          },
+          {
+            robotId: 'limo_105_3',
+            level: 20,
+            message: 'Configuring wait',
+            timestamp: new Date('2024-11-06T20:15:00Z'),
+          },
+          {
+            robotId: 'limo_105_3',
+            level: 20,
+            message: 'Configuring bt_navigator',
+            timestamp: new Date('2024-11-06T20:15:00Z'),
+          },
+          {
+            robotId: 'limo_105_3',
+            level: 20,
+            message: 'Configuring',
+            timestamp: new Date('2024-11-06T20:15:00Z'),
+          },
+        ],
+      },
+      {
+        dateDebut: new Date('2024-11-05T10:00:00Z'),
+        dateFin: new Date('2024-11-05T12:30:00Z'),
+        duration: 9000, // durée en secondes (2,5 heures)
+        robots: ['limo_105_4'],
+        isPhysical: false,
+        totalDistance: 200, // distance en unités arbitraires
+        logs: [
+          {
+            robotId: 'limo_105_4',
+            level: 15,
+            message: 'Robot initialized',
+            timestamp: new Date('2024-11-05T10:00:00Z'),
+          },
+          {
+            robotId: 'limo_105_4',
+            level: 10,
+            message: 'Starting navigation',
+            timestamp: new Date('2024-11-05T10:05:00Z'),
+          },
+          {
+            robotId: 'limo_105_4',
+            level: 20,
+            message: 'Avoiding obstacle',
+            timestamp: new Date('2024-11-05T11:30:00Z'),
+          },
+          {
+            robotId: 'limo_105_4',
+            level: 30,
+            message: 'Mission complete',
+            timestamp: new Date('2024-11-05T12:30:00Z'),
+          },
+        ],
       },
     ];
 

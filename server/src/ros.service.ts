@@ -39,7 +39,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   };
   private totalDistance: { [robotId: string]: number } = {};
   private lastPosition: { [robotId: string]: { x: number, y: number } } = {};
-  private mapData: any | null = null;
+  private mapData: any | null = null; 
+  private currentMissionId: string | null = null;
 
   constructor(
     private configService: ConfigService,
@@ -96,13 +97,19 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     console.log(`Logging to ${logFilePath} for robot ${robotId}`);
   }
 
-  private saveLogToFile(log: any) {
+  private async saveLogToFile(log: any, missionId: string) {
     const logFilePath = this.logFilePaths.get(log.robot.split('_')[2]);
     if (logFilePath) {
       log.timestamp = this.formatTimestamp(new Date(log.timestamp));
       fs.appendFileSync(logFilePath, JSON.stringify(log) + '\n');
       this.syncGateway.broadcast('syncUpdate', log);
     }
+
+    await this.missionModel.findByIdAndUpdate(
+      missionId,
+      { $push: { logs: log } }, 
+      { new: true }
+    );
   }
 
   private handleLogMessage(msg: any) {
@@ -123,8 +130,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     this.logInterval = interval(1000).subscribe(() => {
       if (this.missionActive && this.currentLogs.length > 0) {
         this.currentLogs.forEach((log) => {
-          this.saveLogToFile(log);
-          this.syncGateway.broadcast('syncUpdate', log);
+          this.saveLogToFile(log, this.currentMissionId);
+          this.syncGateway.broadcast('syncUpdate', log); 
         });
         this.currentLogs = [];
       }
@@ -306,10 +313,11 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       robots: [robotId],
       isPhysical: robotId === '1' || robotId === '2',
       totalDistance: 0,
-      duration: 0,
+      duration: 0,  
     });
 
     const savedMission = await newMission.save();
+    this.currentMissionId = savedMission._id.toString();
     console.log(`Mission started and saved in DB with ID: ${savedMission._id}`);
 
     this.watchDistance(robotId);
@@ -337,8 +345,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     this.syncGateway.broadcast('syncUpdate', { event: 'mission_started', robot: robotId });
 
     const log = { event: 'start_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
-    this.saveLogToFile(log);
-
+    this.saveLogToFile(log, this.currentMissionId);
+  
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
         if (response.success) {
@@ -421,7 +429,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       robot: robotId,
       timestamp: this.formatTimestamp(new Date())
     };
-    this.saveLogToFile(log);
+    this.saveLogToFile(log, this.currentMissionId);
 
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
@@ -489,7 +497,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     client.sendRequest(request, (response) => {
       const event = response.success ? 'drive_mode_changed' : 'drive_mode_change_failed';
       const log = { event, robot: robotId, driveMode, timestamp: new Date().toISOString() };
-      this.saveLogToFile(log);
+      this.saveLogToFile(log, this.currentMissionId);
       this.syncGateway.broadcast('syncUpdate', log);
     });
   }
