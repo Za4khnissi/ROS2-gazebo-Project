@@ -6,7 +6,6 @@ import { SimulationComponent } from '@app/pages/simulation/simulation.component'
 import { BatteryStatusComponent } from './pages/battery-status/battery-status.component';
 import { ChooseModeComponent } from './pages/choose-mode/choose-mode.component';
 import { HistoryComponent } from './pages/history/history.component';
-import { MissionComponent } from './pages/mission/mission.component';
 
 
 export const routes: Routes = [
@@ -17,7 +16,6 @@ export const routes: Routes = [
   { path: 'robot/history', component: HistoryComponent },
   { path: 'battery-status', component: BatteryStatusComponent },
   { path: 'choose-mode', component: ChooseModeComponent },
-  {path: 'mission/:robotId/:mode', component: MissionComponent},
   { path: '**', redirectTo: '/home' }
   ];
 
