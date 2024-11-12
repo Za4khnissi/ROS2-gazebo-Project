@@ -75,7 +75,6 @@ export class PhysicalRobotComponent implements OnInit {
   }
 
   startMission(robotId: number, IsSimu: boolean) {
-    this.router.navigate(['/mission', robotId, IsSimu]);
     this.robotService.startMission(robotId).subscribe();
   }
 
