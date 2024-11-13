@@ -50,10 +50,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     this.connectToRobots();
 
     const rosoutNode = new rclnodejs.Node('log_listener');
-    rosoutNode.createSubscription(
-      'rcl_interfaces/msg/Log',
-      '/rosout',
-      (msg) => this.handleLogMessage(msg)
+    rosoutNode.createSubscription('rcl_interfaces/msg/Log', '/rosout', (msg) =>
+      this.handleLogMessage(msg),
     );
     rosoutNode.spin();
   }
@@ -132,59 +130,84 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   private connectToRobots() {
     this.simulationRobotNode = new rclnodejs.Node('simulation_robot_node');
     this.realRobotNode = new rclnodejs.Node('real_robot_node');
-
+  
     const OccupancyGrid = rclnodejs.require('nav_msgs/msg/OccupancyGrid');
+    const PointCloud2 = rclnodejs.require('sensor_msgs/msg/PointCloud2');
 
-    // Add map subscription
+    // 2D Map subscription
     this.simulationRobotNode.createSubscription(
       OccupancyGrid as any,
       '/map',
       (message: any) => {
-        // Convert the message to a plain JavaScript object
-        const mapData = {
-          header: {
-            seq: message.header.seq,
-            stamp: {
-              sec: message.header.stamp.sec,
-              nsec: message.header.stamp.nsec
-            },
-            frame_id: message.header.frame_id
-          },
-          info: {
-            map_load_time: {
-              sec: message.info.map_load_time.sec,
-              nsec: message.info.map_load_time.nsec
-            },
-            resolution: message.info.resolution,
-            width: message.info.width,
-            height: message.info.height,
-            origin: {
-              position: {
-                x: message.info.origin.position.x,
-                y: message.info.origin.position.y,
-                z: message.info.origin.position.z
-              },
-              orientation: {
-                x: message.info.origin.orientation.x,
-                y: message.info.origin.orientation.y,
-                z: message.info.origin.orientation.z,
-                w: message.info.origin.orientation.w
-              }
-            }
-          },
-          data: Array.from(message.data) // Convert Int8Array to regular array
-        };
-
-        // Broadcast the map data through the WebSocket
+        const mapData = this.formatOccupancyGrid(message);
         this.syncGateway.broadcast('map_update', mapData);
       }
     );
-
-
+  
+    // 3D Map (Point Cloud) subscription
+  this.simulationRobotNode.createSubscription(
+    PointCloud2 as any,
+    '/octomap_point_cloud_centers', // Ensure topic matches your setup
+    (message: any) => {
+      const octomapData = this.formatPointCloud2(message);
+      this.syncGateway.broadcast('octomap_update', { points: octomapData });
+    }
+  );
+  
     this.simulationRobotNode.spin();
     this.realRobotNode.spin();
-
     console.log('ROS 2 nodes initialized for simulation and real robots.');
+  }
+  
+  private formatOccupancyGrid(message: any): any {
+    return {
+      header: {
+        seq: message.header.seq,
+        stamp: {
+          sec: message.header.stamp.sec,
+          nsec: message.header.stamp.nsec
+        },
+        frame_id: message.header.frame_id
+      },
+      info: {
+        map_load_time: {
+          sec: message.info.map_load_time.sec,
+          nsec: message.info.map_load_time.nsec
+        },
+        resolution: message.info.resolution,
+        width: message.info.width,
+        height: message.info.height,
+        origin: {
+          position: {
+            x: message.info.origin.position.x,
+            y: message.info.origin.position.y,
+            z: message.info.origin.position.z
+          },
+          orientation: {
+            x: message.info.origin.orientation.x,
+            y: message.info.origin.orientation.y,
+            z: message.info.origin.orientation.z,
+            w: message.info.origin.orientation.w
+          }
+        }
+      },
+      data: Array.from(message.data) // Convert Int8Array to a standard array
+    };
+  }
+  
+  formatPointCloud2(message: any): Array<{ x: number; y: number; z: number }> {
+    const points = [];
+    const data = new DataView(new Uint8Array(message.data).buffer); // Wrap data in DataView for structured access
+    const pointStep = message.point_step; // Number of bytes per point
+    for (let i = 0; i < data.byteLength; i += pointStep) {
+      // Extract x, y, z coordinates as Float32 from the correct offsets
+      const x = data.getFloat32(i, true);     // true for little-endian
+      const y = data.getFloat32(i + 4, true);
+      const z = data.getFloat32(i + 8, true);
+      points.push({ x, y, z });
+    }
+  
+    return points;
   }
 
   private validateRobotConnection(robotId: string): rclnodejs.Node {

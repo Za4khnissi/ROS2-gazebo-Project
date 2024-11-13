@@ -104,6 +104,22 @@ def generate_launch_description():
         namespace='/limo_105_4'
     )
 
+    octomap_node = TimerAction(
+        period=5.0,
+        actions=[
+            Node(package='octomap_server',
+            executable='octomap_server_node',
+            name='octomap_server',
+            output='screen',
+            parameters=[os.path.join(pkg_project_bringup, 'config', 'octomap_params.yaml')],
+            remappings=[
+                ('/cloud_in', '/limo_105_3/depth/image_raw/points'),  # Point to your point cloud topic
+            ],
+        )
+        ]
+    )
+
+
     # Second group of nodes (SLAM) - Delayed by 5 seconds
     slam_nodes = TimerAction(
         period=5.0,
@@ -195,7 +211,7 @@ def generate_launch_description():
                 namespace="limo_105_3",
                 parameters=[{
                     "robot_base_frame": "limo_105_3",
-                    "return_to_init": False,
+                    "return_to_init": True,
                     "costmap_topic": "/limo_105_3/global_costmap/costmap",
                     "visualize": False,
                     "planner_frequency": 0.15,
@@ -216,7 +232,7 @@ def generate_launch_description():
                 namespace="limo_105_4",
                 parameters=[{
                     "robot_base_frame": "limo_105_4",
-                    "return_to_init": False,
+                    "return_to_init": True,
                     "costmap_topic": "/limo_105_4/global_costmap/costmap",
                     "visualize": False,
                     "planner_frequency": 0.15,
@@ -257,5 +273,6 @@ def generate_launch_description():
         mission_service_4,
         slam_nodes,
         nav2_nodes,
-        explore_nodes
+        explore_nodes,
+        octomap_node
     ])

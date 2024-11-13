@@ -3,13 +3,14 @@ import { RobotService } from '@app/services/robot.service';
 import { WebSocketService } from '@app/services/web-socket.service';
 import { NgFor, NgClass, NgIf } from '@angular/common';
 import { MapComponent } from '../../components/map/map.component';
+import { OctomapComponent } from '@app/components/map/octomap.component';
 
 @Component({
   selector: 'app-simulation-robot',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css'],
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, MapComponent]
+  imports: [NgFor, NgClass, NgIf, MapComponent, OctomapComponent]
 })
 export class SimulationComponent implements OnInit {
   robot1Status: string = 'Waiting';
@@ -22,6 +23,7 @@ export class SimulationComponent implements OnInit {
   logs: any[] = [];
   showOldLogs: boolean = false;
   missions: any[] = [];
+  is3DView: boolean = false;
 
   constructor(
     private simService: RobotService, 
@@ -117,5 +119,9 @@ export class SimulationComponent implements OnInit {
 
   toggleMissionLogs(mission: any) {
     mission.expanded = !mission.expanded;
+  }
+
+  toggleViewMode() {
+    this.is3DView = !this.is3DView;
   }
 }
