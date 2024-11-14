@@ -10,7 +10,6 @@ import { BatteryStatusComponent } from '@app/pages/battery-status/battery-status
 import { ChooseModeComponent } from './pages/choose-mode/choose-mode.component';
 import { CommonModule } from '@angular/common';
 import { HistoryComponent } from './pages/history/history.component';
-import {MissionComponent} from '@app/pages/mission/mission.component';
 import { FormsModule } from '@angular/forms';
 
 
@@ -22,7 +21,6 @@ import { FormsModule } from '@angular/forms';
     ChooseModeComponent,
     PhysicalRobotComponent,
     HistoryComponent,
-    MissionComponent,
     SimulationComponent
   ],
   imports: [
