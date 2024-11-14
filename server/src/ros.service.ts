@@ -314,6 +314,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       isPhysical: robotId === '1' || robotId === '2',
       totalDistance: 0,
       duration: 0,  
+      logs: [],
     });
 
     const savedMission = await newMission.save();
@@ -429,7 +430,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       robot: robotId,
       timestamp: this.formatTimestamp(new Date())
     };
-    this.saveLogToFile(log, this.currentMissionId);
+    this.saveLogToFile(log, this.currentMissionId, this.currentMissionId);
 
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
