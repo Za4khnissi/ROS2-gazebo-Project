@@ -430,7 +430,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       robot: robotId,
       timestamp: this.formatTimestamp(new Date())
     };
-    this.saveLogToFile(log, this.currentMissionId, this.currentMissionId);
+    this.saveLogToFile(log, this.currentMissionId);
 
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
