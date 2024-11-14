@@ -9,6 +9,7 @@ from tf2_ros import Buffer, TransformListener
 from rclpy.duration import Duration
 from std_msgs.msg import Bool, Int8
 import random
+import time
 import math
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
@@ -403,7 +404,8 @@ class RandomWalker(Node):
         self.nav_client.send_goal_async(goal_msg)
 
         # Wait 2 seconds
-        rclpy.sleep(2.0)
+        ##rclpy.sleep(2.0)
+        time.sleep(2.0)
 
         # Get new position after waiting
         new_robot_pose = self.get_robot_pose()
