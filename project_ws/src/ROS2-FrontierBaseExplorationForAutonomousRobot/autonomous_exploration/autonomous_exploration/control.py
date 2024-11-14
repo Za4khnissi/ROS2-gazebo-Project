@@ -10,16 +10,13 @@ import scipy.interpolate as si
 import sys , threading , time
 from rclpy.action import ActionClient
 from nav2_msgs.action import NavigateToPose
+from rclpy.qos import qos_profile_sensor_data
 
-
-with open("src/autonomous_exploration/config/params.yaml", 'r') as file:
-    params = yaml.load(file, Loader=yaml.FullLoader)
-
-lookahead_distance = params["lookahead_distance"]
-speed = params["speed"]
-expansion_size = params["expansion_size"]
-target_error = params["target_error"]
-robot_r = params["robot_r"]
+lookahead_distance = 0.24
+speed = 0.05
+expansion_size = 3
+target_error = 0.15
+robot_r = 0.2
 
 pathGlobal = 0
 
@@ -307,16 +304,16 @@ class navigationControl(Node):
         super().__init__('Exploration')
         
         # Create action client for Nav2
-        self.nav_client = ActionClient(self, NavigateToPose, '/navigate_to_pose')
+        self.nav_client = ActionClient(self, NavigateToPose, '/limo_105_1/navigate_to_pose')
         
         # Create subscribers
-        self.subscription = self.create_subscription(OccupancyGrid,'map',self.map_callback,10)
-        self.subscription = self.create_subscription(Odometry,'odom',self.odom_callback,10)
-        self.subscription = self.create_subscription(LaserScan,'scan',self.scan_callback,10)
-        self.resume_sub = self.create_subscription(Int8,'explore/resume',self.resume_callback,10)
+        self.subscription = self.create_subscription(OccupancyGrid,'/limo_105_1/map',self.map_callback,10)
+        self.subscription = self.create_subscription(Odometry,'/limo_105_1/odom',self.odom_callback,10)
+        self.subscription = self.create_subscription(LaserScan,'/limo_105_1/scan',self.scan_callback,qos_profile_sensor_data)
+        self.resume_sub = self.create_subscription(Int8,'/limo_105_1/explore/resume',self.resume_callback,10)
         
         # Create publishers
-        self.publisher = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.publisher = self.create_publisher(Twist, '/limo_105_1/cmd_vel', 10)
 
         # Initialize variables
         self.initial_pose = None
@@ -342,6 +339,8 @@ class navigationControl(Node):
         # Store initial pose if needed
         if self.return_to_init:
             self.store_initial_pose()
+            
+        self.is_active = True
 
         threading.Thread(target=self.exp).start()
 
