@@ -11,11 +11,11 @@ import { NgFor, NgClass, NgIf } from '@angular/common';
   imports: [NgFor, NgClass, NgIf],
 })
 export class PhysicalRobotComponent implements OnInit {
-  robot1Status: string = 'Waiting';
-  robot2Status: string = 'Waiting';
+  robot1Status = 'Waiting';
+  robot2Status = 'Waiting';
 
   logs: any[] = [];
-  showOldLogs: boolean = false;
+  showOldLogs = false;
   missions: any[] = [];
 
   constructor(

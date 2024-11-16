@@ -1,14 +1,22 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  OnGatewayInit,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:4200',  // Allow requests from Angular
+    origin: 'http://localhost:4200', // Allow requests from Angular
     methods: ['GET', 'POST'],
     credentials: true,
   },
 })
-export class SyncGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class SyncGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer() server: Server;
 
   afterInit() {
@@ -25,7 +33,9 @@ export class SyncGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   broadcast(event: string, payload: any): void {
     // Simplify the payload display for map data
-    const payloadToDisplay = ['map_update', 'octomap_update'].includes(event) ? '...' : payload;
+    const payloadToDisplay = ['map_update', 'octomap_update'].includes(event)
+      ? '...'
+      : payload;
     console.log(`Broadcasting event: ${event}`, payloadToDisplay);
 
     this.server.emit(event, payload);

@@ -27,7 +27,8 @@ describe('RosService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn().mockImplementation((key) => {
-              if (key === 'ROS_WS_URL_SIMULATION') return 'ws://simulation:9090';
+              if (key === 'ROS_WS_URL_SIMULATION')
+                return 'ws://simulation:9090';
               if (key === 'ROS_WS_URL_REAL') return 'ws://real:9090';
               return null;
             }),
@@ -102,7 +103,9 @@ describe('RosService', () => {
 
       // Simulate 'close' event
       simulationCloseCallback();
-      expect(consoleLogSpy).toHaveBeenCalledWith('Connection to simulation ROS closed');
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'Connection to simulation ROS closed',
+      );
 
       // Simulate events for realRos
       const realConnectionCallback = realRosOnMock.mock.calls.find(
@@ -131,7 +134,9 @@ describe('RosService', () => {
 
       // Simulate 'close' event
       realCloseCallback();
-      expect(consoleLogSpy).toHaveBeenCalledWith('Connection to real robots ROS closed');
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'Connection to real robots ROS closed',
+      );
 
       // Cleanup
       consoleLogSpy.mockRestore();
@@ -209,7 +214,10 @@ describe('RosService', () => {
       (service as any).simulationRos = { isConnected: false } as any;
 
       expect(() => (service as any).validateRobotConnection('3')).toThrow(
-        new HttpException('Cannot connect to Robot 3', HttpStatus.SERVICE_UNAVAILABLE),
+        new HttpException(
+          'Cannot connect to Robot 3',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        ),
       );
     });
 
@@ -217,7 +225,10 @@ describe('RosService', () => {
       (service as any).realRos = { isConnected: false } as any;
 
       expect(() => (service as any).validateRobotConnection('1')).toThrow(
-        new HttpException('Cannot connect to Robot 1', HttpStatus.SERVICE_UNAVAILABLE),
+        new HttpException(
+          'Cannot connect to Robot 1',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        ),
       );
     });
 
@@ -225,7 +236,10 @@ describe('RosService', () => {
       (service as any).simulationRos = undefined;
 
       expect(() => (service as any).validateRobotConnection('3')).toThrow(
-        new HttpException('Cannot connect to Robot 3', HttpStatus.SERVICE_UNAVAILABLE),
+        new HttpException(
+          'Cannot connect to Robot 3',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        ),
       );
     });
 
@@ -233,7 +247,10 @@ describe('RosService', () => {
       (service as any).realRos = undefined;
 
       expect(() => (service as any).validateRobotConnection('1')).toThrow(
-        new HttpException('Cannot connect to Robot 1', HttpStatus.SERVICE_UNAVAILABLE),
+        new HttpException(
+          'Cannot connect to Robot 1',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        ),
       );
     });
   });
@@ -253,7 +270,9 @@ describe('RosService', () => {
       const result = service.startRobotMission('1');
 
       expect(mockCallService).toHaveBeenCalledTimes(1);
-      expect(result).toEqual({ message: 'Requested to start mission for robot 1' });
+      expect(result).toEqual({
+        message: 'Requested to start mission for robot 1',
+      });
     });
 
     it('should handle service call failure for robotId "1"', () => {
@@ -283,7 +302,10 @@ describe('RosService', () => {
       (service as any).realRos = { isConnected: false } as any;
 
       expect(() => service.startRobotMission('1')).toThrow(
-        new HttpException('Cannot connect to Robot 1', HttpStatus.SERVICE_UNAVAILABLE),
+        new HttpException(
+          'Cannot connect to Robot 1',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        ),
       );
     });
   });
@@ -303,7 +325,9 @@ describe('RosService', () => {
       const result = service.stopRobotMission('3');
 
       expect(mockCallService).toHaveBeenCalledTimes(1);
-      expect(result).toEqual({ message: 'Requested to stop mission for robot 3' });
+      expect(result).toEqual({
+        message: 'Requested to stop mission for robot 3',
+      });
     });
 
     it('should handle service call failure for robotId "3"', () => {
@@ -333,7 +357,10 @@ describe('RosService', () => {
       (service as any).simulationRos = { isConnected: false } as any;
 
       expect(() => service.stopRobotMission('3')).toThrow(
-        new HttpException('Cannot connect to Robot 3', HttpStatus.SERVICE_UNAVAILABLE),
+        new HttpException(
+          'Cannot connect to Robot 3',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        ),
       );
     });
   });
@@ -383,7 +410,10 @@ describe('RosService', () => {
       (service as any).realRos = { isConnected: false } as any;
 
       expect(() => service.identifyRobot('2')).toThrow(
-        new HttpException('Cannot connect to Robot 2', HttpStatus.SERVICE_UNAVAILABLE),
+        new HttpException(
+          'Cannot connect to Robot 2',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        ),
       );
     });
   });

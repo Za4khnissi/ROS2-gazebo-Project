@@ -8,9 +8,13 @@ import { LogsController } from './logs/logs.controller';
 import { SyncGateway } from './sync/sync.gateway';
 
 @Module({
-  
   imports: [ConfigModule.forRoot({ isGlobal: true })],
-  controllers: [MissionController, RobotController, SimulationController, LogsController],
+  controllers: [
+    MissionController,
+    RobotController,
+    SimulationController,
+    LogsController,
+  ],
   providers: [RosService, SyncGateway],
 })
 export class AppModule {}

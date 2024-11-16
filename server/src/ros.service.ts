@@ -33,8 +33,8 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   };
 
   constructor(
-    private configService: ConfigService, 
-    private syncGateway: SyncGateway
+    private configService: ConfigService,
+    private syncGateway: SyncGateway,
   ) {
     this.ensureLogsFolderExists();
   }
@@ -79,7 +79,10 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
 
   private startMissionLogFile(robotId: string) {
     const timestamp = this.formatTimestamp(new Date()).replace(/[: ]/g, '-');
-    const logFilePath = path.join(this.logsFolder, `mission_${robotId}_${timestamp}.json`);
+    const logFilePath = path.join(
+      this.logsFolder,
+      `mission_${robotId}_${timestamp}.json`,
+    );
     this.logFilePaths.set(robotId, logFilePath);
     console.log(`Logging to ${logFilePath} for robot ${robotId}`);
   }
@@ -106,19 +109,17 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-
   private startLogging() {
     this.logInterval = interval(1000).subscribe(() => {
       if (this.missionActive && this.currentLogs.length > 0) {
         this.currentLogs.forEach((log) => {
           this.saveLogToFile(log);
-          this.syncGateway.broadcast('syncUpdate', log); 
+          this.syncGateway.broadcast('syncUpdate', log);
         });
-        this.currentLogs = []; 
+        this.currentLogs = [];
       }
     });
   }
-
 
   private stopLogging() {
     if (this.logInterval) {
@@ -130,7 +131,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   private connectToRobots() {
     this.simulationRobotNode = new rclnodejs.Node('simulation_robot_node');
     this.realRobotNode = new rclnodejs.Node('real_robot_node');
-  
+
     const OccupancyGrid = rclnodejs.require('nav_msgs/msg/OccupancyGrid');
     const PointCloud2 = rclnodejs.require('sensor_msgs/msg/PointCloud2');
 
@@ -141,38 +142,38 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       (message: any) => {
         const mapData = this.formatOccupancyGrid(message);
         this.syncGateway.broadcast('map_update', mapData);
-      }
+      },
     );
-  
+
     // 3D Map (Point Cloud) subscription
-  this.simulationRobotNode.createSubscription(
-    PointCloud2 as any,
-    '/octomap_point_cloud_centers', // Ensure topic matches your setup
-    (message: any) => {
-      const octomapData = this.formatPointCloud2(message);
-      this.syncGateway.broadcast('octomap_update', { points: octomapData });
-    }
-  );
-  
+    this.simulationRobotNode.createSubscription(
+      PointCloud2 as any,
+      '/octomap_point_cloud_centers', // Ensure topic matches your setup
+      (message: any) => {
+        const octomapData = this.formatPointCloud2(message);
+        this.syncGateway.broadcast('octomap_update', { points: octomapData });
+      },
+    );
+
     this.simulationRobotNode.spin();
     this.realRobotNode.spin();
     console.log('ROS 2 nodes initialized for simulation and real robots.');
   }
-  
+
   private formatOccupancyGrid(message: any): any {
     return {
       header: {
         seq: message.header.seq,
         stamp: {
           sec: message.header.stamp.sec,
-          nsec: message.header.stamp.nsec
+          nsec: message.header.stamp.nsec,
         },
-        frame_id: message.header.frame_id
+        frame_id: message.header.frame_id,
       },
       info: {
         map_load_time: {
           sec: message.info.map_load_time.sec,
-          nsec: message.info.map_load_time.nsec
+          nsec: message.info.map_load_time.nsec,
         },
         resolution: message.info.resolution,
         width: message.info.width,
@@ -181,32 +182,32 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
           position: {
             x: message.info.origin.position.x,
             y: message.info.origin.position.y,
-            z: message.info.origin.position.z
+            z: message.info.origin.position.z,
           },
           orientation: {
             x: message.info.origin.orientation.x,
             y: message.info.origin.orientation.y,
             z: message.info.origin.orientation.z,
-            w: message.info.origin.orientation.w
-          }
-        }
+            w: message.info.origin.orientation.w,
+          },
+        },
       },
-      data: Array.from(message.data) // Convert Int8Array to a standard array
+      data: Array.from(message.data), // Convert Int8Array to a standard array
     };
   }
-  
+
   formatPointCloud2(message: any): Array<{ x: number; y: number; z: number }> {
     const points = [];
     const data = new DataView(new Uint8Array(message.data).buffer); // Wrap data in DataView for structured access
     const pointStep = message.point_step; // Number of bytes per point
     for (let i = 0; i < data.byteLength; i += pointStep) {
       // Extract x, y, z coordinates as Float32 from the correct offsets
-      const x = data.getFloat32(i, true);     // true for little-endian
+      const x = data.getFloat32(i, true); // true for little-endian
       const y = data.getFloat32(i + 4, true);
       const z = data.getFloat32(i + 8, true);
       points.push({ x, y, z });
     }
-  
+
     return points;
   }
 
@@ -216,11 +217,16 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     } else if (robotId === '1' || robotId === '2') {
       return this.realRobotNode;
     } else {
-      throw new HttpException(`Invalid Robot ID ${robotId}`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `Invalid Robot ID ${robotId}`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
-  
-  async startRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
+
+  async startRobotMission(
+    robotId: string,
+  ): Promise<{ message: string; success: boolean }> {
     this.missionActive = true;
     this.startMissionLogFile(robotId);
     this.startLogging();
@@ -228,144 +234,242 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
-  
-    const client = node.createClient('example_interfaces/srv/SetBool', serviceName);
-    const RequestType = rclnodejs.require('example_interfaces/srv/SetBool').Request;
+
+    const client = node.createClient(
+      'example_interfaces/srv/SetBool',
+      serviceName,
+    );
+    const RequestType = rclnodejs.require(
+      'example_interfaces/srv/SetBool',
+    ).Request;
     const request = new RequestType();
     request.data = true;
-  
+
     const serviceAvailable = await client.waitForService(5000);
     if (!serviceAvailable) {
-      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+      throw new HttpException(
+        `Service ${serviceName} not available`,
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
     }
 
     this.lastRobotStatus[robotId] = 'Moving';
-    this.syncGateway.broadcast('syncUpdate', { event: 'mission_started', robot: robotId });
-  
-    const log = { event: 'start_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
+    this.syncGateway.broadcast('syncUpdate', {
+      event: 'mission_started',
+      robot: robotId,
+    });
+
+    const log = {
+      event: 'start_mission',
+      robot: robotId,
+      timestamp: this.formatTimestamp(new Date()),
+    };
     this.saveLogToFile(log);
-  
+
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
         if (response.success) {
-          this.syncGateway.broadcast('syncUpdate', { event: 'mission_started', robot: robotId });
-          resolve({ message: `Mission started for robot ${robotId}`, success: true });
+          this.syncGateway.broadcast('syncUpdate', {
+            event: 'mission_started',
+            robot: robotId,
+          });
+          resolve({
+            message: `Mission started for robot ${robotId}`,
+            success: true,
+          });
         } else {
-          this.syncGateway.broadcast('syncUpdate', { event: 'mission_failed', robot: robotId });
-          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+          this.syncGateway.broadcast('syncUpdate', {
+            event: 'mission_failed',
+            robot: robotId,
+          });
+          reject(
+            new HttpException(
+              response.message,
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            ),
+          );
         }
       });
     });
   }
 
-
-  async stopRobotMission(robotId: string): Promise<{ message: string; success: boolean }> {
+  async stopRobotMission(
+    robotId: string,
+  ): Promise<{ message: string; success: boolean }> {
     this.missionActive = false;
     this.stopLogging();
 
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/mission`;
-  
-    const client = node.createClient('example_interfaces/srv/SetBool', serviceName);
-    const RequestType = rclnodejs.require('example_interfaces/srv/SetBool').Request;
+
+    const client = node.createClient(
+      'example_interfaces/srv/SetBool',
+      serviceName,
+    );
+    const RequestType = rclnodejs.require(
+      'example_interfaces/srv/SetBool',
+    ).Request;
     const request = new RequestType();
     request.data = false;
-  
+
     const serviceAvailable = await client.waitForService(5000);
     if (!serviceAvailable) {
-      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+      throw new HttpException(
+        `Service ${serviceName} not available`,
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
     }
 
     this.lastRobotStatus[robotId] = 'Stopped';
-    this.syncGateway.broadcast('syncUpdate', { event: 'mission_stopped', robot: robotId });
-  
-    const log = { event: 'stop_mission', robot: robotId, timestamp: this.formatTimestamp(new Date()) };
+    this.syncGateway.broadcast('syncUpdate', {
+      event: 'mission_stopped',
+      robot: robotId,
+    });
+
+    const log = {
+      event: 'stop_mission',
+      robot: robotId,
+      timestamp: this.formatTimestamp(new Date()),
+    };
     this.saveLogToFile(log);
-  
+
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
         if (response.success) {
-          console.log(`Mission stopped for robot ${robotId}: ${response.message}`);
-          this.syncGateway.broadcast('syncUpdate', { event: 'mission_stopped', robot: robotId });
-          resolve({ message: `Mission stopped for robot ${robotId}`, success: true });
+          console.log(
+            `Mission stopped for robot ${robotId}: ${response.message}`,
+          );
+          this.syncGateway.broadcast('syncUpdate', {
+            event: 'mission_stopped',
+            robot: robotId,
+          });
+          resolve({
+            message: `Mission stopped for robot ${robotId}`,
+            success: true,
+          });
         } else {
-          console.error(`Failed to stop mission for robot ${robotId}: ${response.message}`);
-          this.syncGateway.broadcast('syncUpdate', { event: 'mission_stop_failed', robot: robotId });
-          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+          console.error(
+            `Failed to stop mission for robot ${robotId}: ${response.message}`,
+          );
+          this.syncGateway.broadcast('syncUpdate', {
+            event: 'mission_stop_failed',
+            robot: robotId,
+          });
+          reject(
+            new HttpException(
+              response.message,
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            ),
+          );
         }
       });
     });
   }
 
-  async identifyRobot(robotId: string): Promise<{ message: string; success: boolean }> {
+  async identifyRobot(
+    robotId: string,
+  ): Promise<{ message: string; success: boolean }> {
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/identify`;
-  
+
     const client = node.createClient('std_srvs/srv/Trigger', serviceName);
     const RequestType = rclnodejs.require('std_srvs/srv/Trigger').Request;
     const request = new RequestType();
-  
+
     const serviceAvailable = await client.waitForService(5000);
     if (!serviceAvailable) {
-      throw new HttpException(`Service ${serviceName} not available`, HttpStatus.SERVICE_UNAVAILABLE);
+      throw new HttpException(
+        `Service ${serviceName} not available`,
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
     }
 
     this.lastRobotStatus[robotId] = 'Identifying';
-    this.syncGateway.broadcast('syncUpdate', { event: 'identifying', robot: robotId });
-  
+    this.syncGateway.broadcast('syncUpdate', {
+      event: 'identifying',
+      robot: robotId,
+    });
+
     return new Promise((resolve, reject) => {
       client.sendRequest(request, (response: ServiceResponse) => {
         if (response.success) {
-          console.log(`Robot ${robotId} identified successfully: ${response.message}`);
-          this.syncGateway.broadcast('syncUpdate', { event: 'identified', robot: robotId });
+          console.log(
+            `Robot ${robotId} identified successfully: ${response.message}`,
+          );
+          this.syncGateway.broadcast('syncUpdate', {
+            event: 'identified',
+            robot: robotId,
+          });
           resolve({ message: `Robot ${robotId} identified`, success: true });
         } else {
-          console.error(`Failed to identify Robot ${robotId}: ${response.message}`);
-          this.syncGateway.broadcast('syncUpdate', { event: 'identification_failed', robot: robotId });
-          reject(new HttpException(response.message, HttpStatus.INTERNAL_SERVER_ERROR));
+          console.error(
+            `Failed to identify Robot ${robotId}: ${response.message}`,
+          );
+          this.syncGateway.broadcast('syncUpdate', {
+            event: 'identification_failed',
+            robot: robotId,
+          });
+          reject(
+            new HttpException(
+              response.message,
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            ),
+          );
         }
       });
     });
-  }  
-  
+  }
+
   changeDriveMode(robotId: string, driveMode: string) {
     const node = this.validateRobotConnection(robotId);
     const namespace = `limo_105_${robotId}`;
     const serviceName = `/${namespace}/robot_${robotId}_drive_mode`;
-    
+
     const client = node.createClient('std_srvs/srv/SetBool', serviceName);
     const RequestType = rclnodejs.require('std_srvs/srv/SetBool').Request;
     const request = new RequestType();
     request.data = driveMode === 'ackermann';
-    
+
     client.sendRequest(request, (response) => {
-      const event = response.success ? 'drive_mode_changed' : 'drive_mode_change_failed';
-      const log = { event, robot: robotId, driveMode, timestamp: new Date().toISOString() };
+      const event = response.success
+        ? 'drive_mode_changed'
+        : 'drive_mode_change_failed';
+      const log = {
+        event,
+        robot: robotId,
+        driveMode,
+        timestamp: new Date().toISOString(),
+      };
       this.saveLogToFile(log);
       this.syncGateway.broadcast('syncUpdate', log);
     });
   }
 
   getOldMissions() {
-    const missionFiles = fs.readdirSync(this.logsFolder).filter(file => file.startsWith('mission_') && file.endsWith('.json'));
-    
-    const missions = missionFiles.map(file => {
+    const missionFiles = fs
+      .readdirSync(this.logsFolder)
+      .filter((file) => file.startsWith('mission_') && file.endsWith('.json'));
+
+    const missions = missionFiles.map((file) => {
       const filePath = path.join(this.logsFolder, file);
-      const fileContent = fs.readFileSync(filePath, 'utf-8').split('\n').filter(line => line);
-      const logs = fileContent.map(line => JSON.parse(line));
-  
+      const fileContent = fs
+        .readFileSync(filePath, 'utf-8')
+        .split('\n')
+        .filter((line) => line);
+      const logs = fileContent.map((line) => JSON.parse(line));
+
       return { mission: file, logs };
     });
-  
+
     return missions;
   }
 
   getLogStream(): Observable<any> {
     return this.logSubject.asObservable();
   }
-  
+
   async onModuleDestroy() {
     // Destroy nodes and shutdown rclnodejs
     this.simulationRobotNode.destroy();

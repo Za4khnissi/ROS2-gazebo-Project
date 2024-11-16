@@ -55,7 +55,10 @@ describe('MissionController', () => {
 
     it('should throw HttpException when service throws an exception', () => {
       const robotId = 'error';
-      const error = new HttpException('Service error', HttpStatus.INTERNAL_SERVER_ERROR);
+      const error = new HttpException(
+        'Service error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
       jest.spyOn(rosService, 'startRobotMission').mockImplementation(() => {
         throw error;
       });
@@ -94,7 +97,10 @@ describe('MissionController', () => {
 
     it('should throw HttpException when service throws an exception', () => {
       const robotId = 'error';
-      const error = new HttpException('Service error', HttpStatus.INTERNAL_SERVER_ERROR);
+      const error = new HttpException(
+        'Service error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
       jest.spyOn(rosService, 'stopRobotMission').mockImplementation(() => {
         throw error;
       });

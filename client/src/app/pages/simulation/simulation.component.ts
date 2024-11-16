@@ -13,17 +13,17 @@ import { OctomapComponent } from '@app/components/map/octomap.component';
   imports: [NgFor, NgClass, NgIf, MapComponent, OctomapComponent]
 })
 export class SimulationComponent implements OnInit {
-  robot1Status: string = 'Waiting';
-  robot2Status: string = 'Waiting';
-  simulationStatus: boolean = false;
-  driveMode3: string = 'Diff Drive';
-  driveMode4: string = 'Diff Drive';
-  driveModeAvailable: boolean = false;
+  robot1Status = 'Waiting';
+  robot2Status = 'Waiting';
+  simulationStatus = false;
+  driveMode3 = 'Diff Drive';
+  driveMode4 = 'Diff Drive';
+  driveModeAvailable = true;
 
   logs: any[] = [];
-  showOldLogs: boolean = false;
+  showOldLogs = false;
   missions: any[] = [];
-  is3DView: boolean = false;
+  is3DView = false;
 
   constructor(
     private simService: RobotService, 
