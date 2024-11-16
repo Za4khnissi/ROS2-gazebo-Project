@@ -4,19 +4,19 @@ import { WebSocketService } from '@app/services/web-socket.service';
 import { NgFor, NgClass, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
 import { BatteryStatusComponent } from '../battery-status/battery-status.component';
+import { MapComponent } from '../../components/map/map.component';
 
 @Component({
   selector: 'app-physical-robot',
   templateUrl: './physical.component.html',
   styleUrls: ['./physical.component.css'],
   standalone: true,
-  imports: [NgFor, NgClass, NgIf,BatteryStatusComponent ],
+  imports: [NgFor, NgClass, NgIf,BatteryStatusComponent, MapComponent],
 })
 export class PhysicalRobotComponent implements OnInit {
   robot1Status: string = 'Waiting';
   robot2Status: string = 'Waiting';
   mode: 'simulation' | 'physical' = 'physical';
-
   logs: any[] = [];
   showOldLogs: boolean = false;
   missions: any[] = [];

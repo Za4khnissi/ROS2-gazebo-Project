@@ -41,7 +41,7 @@ class BatteryNode(Node):
     def physical_battery_callback(self, msg):
         voltage = msg.battery_voltage
         battery_percentage = self.voltage_to_percentage(voltage)
-        self.get_logger().info(f'Physical Battery Voltage: {voltage}V, Estimated Percentage: {battery_percentage}%')
+        #self.get_logger().info(f'Physical Battery Voltage: {voltage}V, Estimated Percentage: {battery_percentage}%')
         
         battery_msg = Float32()
         battery_msg.data = battery_percentage

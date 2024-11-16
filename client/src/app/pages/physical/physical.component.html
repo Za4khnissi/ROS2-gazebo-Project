@@ -3,6 +3,7 @@
     
  
     <h1 class="text-4xl text-white font-bold mb-6">Physical Robot Control</h1>
+    <app-map class="w-full h-64 mb-6"></app-map>
 
 
     <div class="grid grid-cols-2 gap-8">
@@ -23,7 +24,7 @@
           Return From Mission
         </button>
         <p class="text-gray-300 mt-4">Status: {{ robot1Status }}</p>
-        <app-battery-status [robotId]="4" [mode]="mode" class="mt-auto"></app-battery-status>
+        <app-battery-status [robotId]="1" [mode]="mode" class="mt-auto"></app-battery-status>
       </div>
 
       <div class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
@@ -41,7 +42,7 @@
           Return From Mission
         </button>
         <p class="text-gray-300 mt-4">Status: {{ robot2Status }}</p>
-        <app-battery-status [robotId]="4" [mode]="mode" class="mt-auto"></app-battery-status>
+        <app-battery-status [robotId]="2" [mode]="mode" class="mt-auto"></app-battery-status>
       </div>
     </div>
   </div>

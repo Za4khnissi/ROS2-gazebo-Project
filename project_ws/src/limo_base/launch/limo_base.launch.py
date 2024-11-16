@@ -41,6 +41,7 @@ def generate_launch_description():
     remapping = [
         ('odom', '/wheel/odom'),
         ('/cmd_vel', remapped_cmd_vel),
+        ('/odom', f'{absolute_namespace}/odom'),
     ]
 
     # Define limo_base_node with the namespace applied
