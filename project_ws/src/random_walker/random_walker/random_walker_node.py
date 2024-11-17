@@ -4,32 +4,45 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from nav2_msgs.action import NavigateToPose
-from geometry_msgs.msg import PoseStamped, Point, Transform, PoseWithCovarianceStamped
-from tf2_ros import Buffer, TransformListener
-from rclpy.duration import Duration
-from std_msgs.msg import Bool, Int8
-import random
-import time
-import math
+from geometry_msgs.msg import PoseStamped, Point, PoseWithCovarianceStamped
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
+from sensor_msgs.msg import LaserScan
+import random
+import math
+import time
+
 
 class RandomWalker(Node):
     """
     A ROS2 node that implements random walking behavior using Nav2.
-    The robot will navigate to random positions while avoiding blacklisted areas.
+    The robot navigates to random positions while avoiding obstacles
+    and can return to its initial pose at the end of the mission.
     """
+
     def __init__(self):
         super().__init__('random_walker')
-        
-        # Create callback group
+
+        # Create a timer for periodic goal planning
+        self.timer = self.create_timer(5.0, self.make_plan)
+
+        # Create callback group for thread-safe subscriptions and clients
         self.callback_group = ReentrantCallbackGroup()
-        
+
+        # Subscribe to the LiDAR topic for obstacle detection
+        self.obstacle_detected = False
+        self.scan_sub = self.create_subscription(
+            LaserScan,
+            '/limo_105_3/scan',
+            self.lidar_callback,
+            10
+        )
+
         # Declare parameters
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('goal_delay', 5.0),  # Used as timeout for navigation
+                ('goal_delay', 5.0),  # Timeout for navigation
                 ('min_x', -5.0),
                 ('max_x', 5.0),
                 ('min_y', -5.0),
@@ -44,62 +57,45 @@ class RandomWalker(Node):
             ]
         )
 
-        # Get parameters
+        # Fetch parameters
         self.map_frame = self.get_parameter('map_frame').value
         self.pose_topic = self.get_parameter('pose_topic').value
         self.nav_action_server = self.get_parameter('nav_action_server').value
         self.return_to_init = self.get_parameter('return_to_init').value
         self.progress_timeout = self.get_parameter('progress_timeout').value
-        self.goal_delay = self.get_parameter('goal_delay').value
         self.min_x = self.get_parameter('min_x').value
         self.max_x = self.get_parameter('max_x').value
         self.min_y = self.get_parameter('min_y').value
         self.max_y = self.get_parameter('max_y').value
         self.min_distance_from_current = self.get_parameter('min_distance_from_current').value
         self.max_attempts = self.get_parameter('max_attempts').value
-        
+
         # Initialize variables
         self.initial_pose = None
         self.prev_goal = Point()
-        self.prev_distance = 0.0
         self.last_progress = self.get_clock().now()
         self.goal_blacklist = []
-        self.is_active = False # Changed to match explore lite default behavior
-        self._navigation_active = False
-        self._timeout_timer = None
+        self.is_active = False
         self.current_pose = None
+        self._navigation_active = False
         self._goal_handle = None
 
-        self.current_direction = None  # Current movement direction (angle)
-        self.direction_weight = 1    # How much to favor current direction (0-1)
-        self.direction_variance = math.pi/6  # Maximum angle deviation (45 degrees)
-        self.consecutive_failures = 0  # Track failures to know when to change direction
-        self.max_failures_before_direction_change = 3  # When to significantly change direction
-        
-        # Create action client
+        # Action client for Nav2 navigation
         self.nav_client = ActionClient(
             self,
             NavigateToPose,
             self.nav_action_server,
-            callback_group=self.callback_group)
-        
-    
-        # Create subscriptions
-        self.resume_sub = self.create_subscription(
-            Int8,
-            'explore/resume',
-            self.resume_callback,
-            10,
-            
+            callback_group=self.callback_group
         )
-        
+
+        # Subscribe to pose updates
         self.pose_sub = self.create_subscription(
             PoseWithCovarianceStamped,
             self.pose_topic,
             self.pose_callback,
             10
         )
-        
+
         # Wait for navigation action server
         self.get_logger().info(f'Waiting for {self.nav_action_server} action server...')
         if not self.nav_client.wait_for_server(timeout_sec=20.0):
@@ -111,29 +107,25 @@ class RandomWalker(Node):
         while self.current_pose is None and rclpy.ok():
             rclpy.spin_once(self, timeout_sec=1.0)
 
-        # Store initial pose if needed
+        # Store initial pose if required
         if self.return_to_init:
             self.store_initial_pose()
 
         self.get_logger().info('Random walker initialized and ready')
 
+    def lidar_callback(self, msg):
+        """Check for nearby obstacles using LiDAR data."""
+        min_distance = min([distance for distance in msg.ranges if distance > 0.01], default=10.0)
+        self.obstacle_detected = min_distance < 0.5
+        if self.obstacle_detected:
+            self.get_logger().warn(f"Obstacle detected at {min_distance:.2f} meters! Pausing.")
+
     def pose_callback(self, msg):
-        """Callback for the AMCL pose updates."""
+        """Callback for AMCL pose updates."""
         self.current_pose = msg.pose.pose
 
-    def resume_callback(self, msg):
-        """Handle resume/stop messages."""
-        if msg.data == 1:  # Resume exploration
-            self.resume()
-        elif msg.data == 2:  # Stop exploration
-            self.stop(force_return=False)
-        elif msg.data == 3:  # Stop exploration and force return
-            self.stop(force_return=True)
-        else:
-            self.get_logger().warn('Invalid command received on explore/resume topic. Valid values are: 1 (resume), 2 (stop), 3 (stop and return)')
-
     def store_initial_pose(self):
-        """Store the initial pose of the robot for potential return."""
+        """Store the robot's initial pose."""
         if self.current_pose is not None:
             self.initial_pose = self.current_pose
             self.get_logger().info('Stored initial pose')
@@ -141,154 +133,39 @@ class RandomWalker(Node):
             self.get_logger().error('Failed to store initial pose: No pose available')
             self.return_to_init = False
 
-    def start_timeout_timer(self):
-        """Start or restart the timeout timer for navigation goals."""
-        if self._timeout_timer is not None:
-            self.destroy_timer(self._timeout_timer)
-        
-        self._timeout_timer = self.create_timer(
-            self.goal_delay,
-            self.timeout_callback
-        )
-
-    def timeout_callback(self):
-        """Handle navigation timeout by cancelling current goal and sending a new one."""
-        if self.is_active and self._navigation_active:
-            self.get_logger().info('Timeout reached, sending new goal')
-            # Instead of cancel_all_goals, we'll just mark as inactive and plan new goal
-            self._navigation_active = False
-            if self._goal_handle is not None:
-                self._goal_handle.cancel_goal_async()
-            self.make_plan()
-
-    def get_robot_pose(self):
-        """Get the current robot pose."""
-        return self.current_pose
-
-    def is_valid_goal(self, x, y, cached_robot_pose=None):
-        """Check if the goal position is valid based on distance from current position."""
-        robot_pose = self.get_robot_pose() #cached_robot_pose if cached_robot_pose is not None else self.get_robot_pose()
-        if robot_pose is None:
-            return False, None
-        
-        dx = x - robot_pose.position.x
-        dy = y - robot_pose.position.y
-        distance = math.sqrt(dx*dx + dy*dy)
-        
-        return distance >= self.min_distance_from_current, robot_pose
-
-    def is_goal_blacklisted(self, point, tolerance=0.5):
-        """Check if a goal position is in the blacklist."""
-        for blacklisted_point in self.goal_blacklist:
-            dx = point.x - blacklisted_point.x
-            dy = point.y - blacklisted_point.y
-            if math.sqrt(dx*dx + dy*dy) < tolerance:
-                return True
-        return False
-    
-    def update_direction(self, success=True):
-        """Update movement direction based on success/failure."""
-        if success:
-            # If successful, maintain current direction
-            self.consecutive_failures = 0
-        else:
-            self.consecutive_failures += 1
-            if self.consecutive_failures >= self.max_failures_before_direction_change:
-                # Change direction significantly after multiple failures
-                self.current_direction = None
-                self.consecutive_failures = 0
-
-    def generate_random_goal(self):
-        """Generate a goal position using momentum-based direction."""
-        max_attempts = self.max_attempts
-        attempts = 0
-        cached_robot_pose = None
-        
-        # Initialize direction if none exists
-        wasNone = self.current_direction is None
-        if wasNone:
-            self.current_direction = random.uniform(-math.pi, math.pi)
-        
-        while attempts < max_attempts:
-            # Generate angle with bias towards current direction
-            angle = self.current_direction 
-            
-            if wasNone:
-                self.current_direction = random.uniform(-math.pi, math.pi)
-            if random.random() < self.direction_weight:
-                # Use current direction with some variance
-                angle = self.current_direction 
-            #else:
-                # Sometimes choose completely random direction
-                #angle = random.uniform(-math.pi, math.pi)
-            
-            # Generate distance
-            distance = random.uniform(
-                self.min_distance_from_current,
-                min(5.0, self.max_x - self.min_x)  # Use reasonable maximum distance
-            )
-            
-            # Calculate position
-            robot_pose = self.get_robot_pose()
-            if robot_pose is None:
-                return None
-                
-            x = robot_pose.position.x + distance * math.cos(angle)
-            y = robot_pose.position.y + distance * math.sin(angle)
-            
-            # Ensure within bounds
-            x = max(self.min_x, min(self.max_x, x))
-            y = max(self.min_y, min(self.max_y, y))
-            
-            point = Point()
-            point.x = x
-            point.y = y
-            
-            isValidGoal, robot_pose = self.is_valid_goal(x, y, cached_robot_pose)
-            
-            if isValidGoal and not self.is_goal_blacklisted(point):
-                # Update direction based on chosen point
-                return (x, y)
-            elif robot_pose is not None:
-                cached_robot_pose = robot_pose
-            
-            attempts += 1
-        
-        self.get_logger().warn('Failed to find valid goal position')
-        return None
-
     def make_plan(self):
         """Generate and send a new navigation goal."""
-        if not self.is_active:
+        if self.obstacle_detected:
+            self.get_logger().warn("Obstacle detected, not sending new goal.")
             return
 
         goal_position = self.generate_random_goal()
         if goal_position is None:
             self.get_logger().warn('Failed to generate valid goal')
-            # Try again after delay
-            self._current_timer = self.create_timer(
-                self.get_parameter('goal_delay').value,
-                self.make_plan
-            )
             return
 
-        # Check if we're making progress
-        same_goal = (abs(self.prev_goal.x - goal_position[0]) < 0.1 and
-                    abs(self.prev_goal.y - goal_position[1]) < 0.1)
+        self.send_goal(goal_position)
 
-        if not same_goal:
-            self.last_progress = self.get_clock().now()
-            self.send_goal(goal_position)
-            self.prev_goal.x = goal_position[0]
-            self.prev_goal.y = goal_position[1]
-        elif (self.get_clock().now() - self.last_progress).nanoseconds / 1e9 > self.progress_timeout:
-            self.get_logger().warn('No progress made, blacklisting current goal')
-            point = Point()
-            point.x = goal_position[0]
-            point.y = goal_position[1]
-            self.goal_blacklist.append(point)
-            self.make_plan()
+    def generate_random_goal(self):
+        """Generate a random valid navigation goal."""
+        for _ in range(self.max_attempts):
+            x = random.uniform(self.min_x, self.max_x)
+            y = random.uniform(self.min_y, self.max_y)
+            if self.is_valid_goal(x, y):
+                return (x, y)
 
+        self.get_logger().warn('Failed to find a valid random goal.')
+        return None
+
+    def is_valid_goal(self, x, y):
+        """Validate the goal's distance from the current position."""
+        if self.current_pose is None:
+            return False
+
+        dx = x - self.current_pose.position.x
+        dy = y - self.current_pose.position.y
+        distance = math.sqrt(dx * dx + dy * dy)
+        return distance >= self.min_distance_from_current
 
     def send_goal(self, position):
         """Send a navigation goal to Nav2."""
@@ -296,144 +173,68 @@ class RandomWalker(Node):
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose.header.frame_id = self.map_frame
         goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
-        
+
         goal_msg.pose.pose.position.x = x
         goal_msg.pose.pose.position.y = y
-        goal_msg.pose.pose.position.z = 0.0
-        
-        yaw = random.uniform(-math.pi, math.pi)
-        goal_msg.pose.pose.orientation.x = 0.0
-        goal_msg.pose.pose.orientation.y = 0.0
-        goal_msg.pose.pose.orientation.z = math.sin(yaw / 2.0)
-        goal_msg.pose.pose.orientation.w = math.cos(yaw / 2.0)
-        
-        self.get_logger().info(
-            f'Sending goal: x={x:.2f}, y={y:.2f}, yaw={yaw:.2f}'
-        )
-        
+        goal_msg.pose.pose.orientation.z = math.sin(random.uniform(-math.pi, math.pi) / 2.0)
+        goal_msg.pose.pose.orientation.w = math.cos(random.uniform(-math.pi, math.pi) / 2.0)
+
+        self.get_logger().info(f'Sending goal to x={x:.2f}, y={y:.2f}')
         self._navigation_active = True
         send_goal_future = self.nav_client.send_goal_async(
             goal_msg,
             feedback_callback=self.feedback_callback
         )
         send_goal_future.add_done_callback(self.goal_response_callback)
-        
-        self.start_timeout_timer()
 
     def goal_response_callback(self, future):
-        """Handle the goal response from Nav2."""
-        goal_handle = future.result()
-        self._goal_handle = goal_handle  # Store the goal handle
-        
-        if not goal_handle.accepted:
-            self.get_logger().warn('Goal rejected')
+        """Handle response from Nav2 after sending a goal."""
+        self._goal_handle = future.result()
+        if not self._goal_handle.accepted:
+            self.get_logger().warn('Goal was rejected by Nav2')
             self._navigation_active = False
-            if self._timeout_timer is not None:
-                self.destroy_timer(self._timeout_timer)
-            self.make_plan()
-            return
-
-        self.get_logger().info('Goal accepted')
-        result_future = goal_handle.get_result_async()
-        result_future.add_done_callback(self.get_result_callback)
-
-    def get_result_callback(self, future):
-        """Handle the navigation result and initiate the next goal."""
-        status = future.result().status
-        self._navigation_active = False
-        
-        if status == 4:  # Succeeded
-            self.get_logger().info('Goal succeeded!')
-            self.update_direction(success=True)
         else:
-            self.get_logger().info(f'Goal failed with status: {status}')
-            self.update_direction(success=False)
-            if hasattr(self, 'prev_goal'):
-                self.goal_blacklist.append(self.prev_goal)
-
-        if self._timeout_timer is not None:
-            self.destroy_timer(self._timeout_timer)
-            self._timeout_timer = None
-
-        self.make_plan()
+            self.get_logger().info('Goal accepted by Nav2')
 
     def feedback_callback(self, feedback_msg):
-        """Handle navigation feedback."""
+        """Handle feedback during navigation."""
         pass
 
-    def stop(self, force_return=False):
-        """Stop the random walker and clean up."""
+    def stop(self):
+        """Stop the random walker."""
         self.is_active = False
-        self._navigation_active = False
         self.get_logger().info('Random walker stopped')
-        
-        if self._timeout_timer is not None:
-            self.destroy_timer(self._timeout_timer)
-            self._timeout_timer = None
-        
-        # Cancel current goal if it exists
-        if hasattr(self, '_goal_handle') and self._goal_handle is not None:
-            self._goal_handle.cancel_goal_async()
-        
-        if force_return and self.initial_pose is not None:
-            self.return_to_initial_pose()
-
-    def resume(self):
-        """Resume random walking."""
-        self.is_active = True
-        self.get_logger().info('Random walker resumed')
-        self.goal_blacklist.clear()
-        self.make_plan()
 
     def return_to_initial_pose(self):
-        """Return to the initial pose if it was stored."""
+        """Return the robot to its initial pose."""
         if self.initial_pose is None:
-            return
-
-        # Get initial position before sending goal
-        initial_robot_pose = self.get_robot_pose()
-        if initial_robot_pose is None:
+            self.get_logger().warn('No initial pose stored. Cannot return to base.')
             return
 
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose.header.frame_id = self.map_frame
         goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
         goal_msg.pose.pose = self.initial_pose
-        
-        self.get_logger().info('Returning to initial pose')
+
+        self.get_logger().info('Returning to initial pose...')
         self.nav_client.send_goal_async(goal_msg)
 
-        # Wait 2 seconds
-        ##rclpy.sleep(2.0)
-        time.sleep(2.0)
-
-        # Get new position after waiting
-        new_robot_pose = self.get_robot_pose()
-
-        # If position hasn't changed, retry
-        if (abs(initial_robot_pose.position.x - new_robot_pose.position.x) < 0.01 and
-            abs(initial_robot_pose.position.y - new_robot_pose.position.y) < 0.01):
-            self.get_logger().warn('Robot hasn\'t moved, retrying to return to initial pose')
-            self.return_to_initial_pose()
 
 def main(args=None):
-    """Main function."""
     rclpy.init(args=args)
-    
     random_walker = RandomWalker()
-    
     executor = MultiThreadedExecutor()
     executor.add_node(random_walker)
-    
+
     try:
         executor.spin()
     except KeyboardInterrupt:
         pass
     finally:
-        random_walker.stop()
-        executor.shutdown()
+        random_walker.return_to_initial_pose()
         random_walker.destroy_node()
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

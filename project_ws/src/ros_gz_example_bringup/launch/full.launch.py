@@ -306,6 +306,6 @@ def generate_launch_description():
         battery_node_4,
         slam_nodes,
         nav2_nodes,
-        explore_nodes
-        #random_walker_nodes
+        #explore_nodes
+        random_walker_nodes
     ])
