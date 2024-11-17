@@ -287,7 +287,7 @@ def generate_launch_description():
                     'timeout_delay': 100.0,
                     'return_to_init': True,
                     'progress_timeout': 30.0,
-                    'pose_topic': f"/limo_105_3/amcl_pose"
+                    'pose_topic': f"/limo_inf3995105_3/amcl_pose"
                 }]
             )
         ]
@@ -305,7 +305,7 @@ def generate_launch_description():
         battery_node_3,
         battery_node_4,
         slam_nodes,
-        nav2_nodes
-        #explore_nodes
-        random_walker_nodes
+        nav2_nodes,
+        explore_nodes
+        #random_walker_nodes
     ])

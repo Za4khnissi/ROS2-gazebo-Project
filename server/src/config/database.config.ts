@@ -6,7 +6,7 @@ const Mission = mongoose.model('Mission', MissionSchema);
 
 async function seedMissions() {
   try {
-    await mongoose.connect('mongodb+srv://axellestevialetieutchemeni:projet3@cluster0.urbxk.mongodb.net/<database_name>', {
+    await mongoose.connect('mongodb+srv://axellestevialetieutchemeni:projet3@cluster0.urbxk.mongodb.net/test', {
     });
     console.log('Connected to MongoDB');
 
@@ -19,7 +19,7 @@ async function seedMissions() {
       {
         dateDebut: new Date('2024-11-06T18:15:00Z'),
         dateFin: new Date('2024-11-06T20:15:00Z'),
-        duration: 7200, // durée en secondes (2 heures)
+        duration: 8000, // durée en secondes (2 heures)
         robots: ['limo_105_3'],
         isPhysical: true,
         totalDistance: 150, // distance en unités arbitraires

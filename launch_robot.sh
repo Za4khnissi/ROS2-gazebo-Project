@@ -131,7 +131,7 @@ fi
 
 cd "$HOME"
 
-if [ ! -d "$HOME/inf3995" ]; then
+if [ ! -d "$HOME/Desktop/testfinal/inf3995" ]; then
     git clone https://gitlab.com/polytechnique-montr-al/inf3995/20243/equipe-105/inf3995.git "$HOME/inf3995"
 fi
 

@@ -105,11 +105,16 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       this.syncGateway.broadcast('syncUpdate', log);
     }
 
-    await this.missionModel.findByIdAndUpdate(
-      missionId,
-      { $push: { logs: log } }, 
-      { new: true }
-    );
+    try {
+      await this.missionModel.findByIdAndUpdate(
+        missionId,
+        { $push: { logs: log } },
+        { new: true }
+      );
+    } catch (error) {
+      console.error(`Failed to save log to mission ${missionId}:`, error.message);
+    }
+    
   }
 
   private handleLogMessage(msg: any) {
@@ -315,6 +320,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
       totalDistance: 0,
       duration: 0,  
       logs: [],
+      mapData: null,
     });
 
     const savedMission = await newMission.save();
@@ -409,10 +415,13 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     if (!["Returning", "Stopped"].includes(this.lastRobotStatus[robotId])) { // if the robot is not already returning or stopped
       const mission = await this.missionModel.findOne({ robots: robotId, dateFin: null });
       if (mission) {
-        mission.dateFin = new Date();
-        mission.duration = (mission.dateFin.getTime() - mission.dateDebut.getTime()) / 1000;
-        mission.totalDistance = this.totalDistance[robotId] || 0;
-        mission.mapData = this.mapData;
+        const endTime = new Date();
+        mission.dateFin = endTime;
+        mission.duration = (endTime.getTime() - mission.dateDebut.getTime()) / 1000; // En secondes
+        mission.totalDistance = this.totalDistance[robotId];
+        console.log('Totale duration for robot:', mission.duration);
+        console.log('Total distance for robot:', this.totalDistance[robotId]);
+        mission.mapData = this.mapData; 
         await mission.save();
         console.log(`Mission stopped and updated in DB with ID: ${mission._id}`);
       } else {
