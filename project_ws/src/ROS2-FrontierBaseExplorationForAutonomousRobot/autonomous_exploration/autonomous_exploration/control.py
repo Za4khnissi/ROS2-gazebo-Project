@@ -3,14 +3,11 @@ from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid , Odometry
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
-from std_msgs.msg import Int8
 import numpy as np
 import heapq , math , random , yaml
 import scipy.interpolate as si
 import sys , threading , time
-from rclpy.action import ActionClient
-from nav2_msgs.action import NavigateToPose
-from rclpy.qos import qos_profile_sensor_data
+
 
 lookahead_distance = 0.24
 speed = 0.05
@@ -19,6 +16,7 @@ target_error = 0.15
 robot_r = 0.2
 
 pathGlobal = 0
+
 
 def euler_from_quaternion(x,y,z,w):
     t0 = +2.0 * (w * x + y * z)
@@ -206,6 +204,34 @@ def calculate_centroid(x_coords, y_coords):
     centroid = (int(mean_x), int(mean_y))
     return centroid
 
+#Bu fonksiyon en buyuk 5 gruptan target_error*2 uzaklıktan daha uzak olan ve robota en yakın olanı seçer.
+"""
+def findClosestGroup(matrix,groups, current,resolution,originX,originY):
+    targetP = None
+    distances = []
+    paths = []
+    min_index = -1
+    for i in range(len(groups)):
+        middle = calculate_centroid([p[0] for p in groups[i][1]],[p[1] for p in groups[i][1]]) 
+        path = astar(matrix, current, middle)
+        path = [(p[1]*resolution+originX,p[0]*resolution+originY) for p in path]
+        total_distance = pathLength(path)
+        distances.append(total_distance)
+        paths.append(path)
+    for i in range(len(distances)):
+        if distances[i] > target_error*3:
+            if min_index == -1 or distances[i] < distances[min_index]:
+                min_index = i
+    if min_index != -1:
+        targetP = paths[min_index]
+    else: #gruplar target_error*2 uzaklıktan daha yakınsa random bir noktayı hedef olarak seçer. Bu robotun bazı durumlardan kurtulmasını sağlar.
+        index = random.randint(0,len(groups)-1)
+        target = groups[index][1]
+        target = target[random.randint(0,len(target)-1)]
+        path = astar(matrix, current, target)
+        targetP = [(p[1]*resolution+originX,p[0]*resolution+originY) for p in path]
+    return targetP
+"""
 def findClosestGroup(matrix,groups, current,resolution,originX,originY):
     targetP = None
     distances = []
@@ -302,10 +328,6 @@ def localControl(scan):
 class navigationControl(Node):
     def __init__(self):
         super().__init__('Exploration')
-        
-        # Create action client for Nav2
-        self.nav_client = ActionClient(self, NavigateToPose, '/limo_105_3/navigate_to_pose')
-        
         # Create subscribers
         self.subscription = self.create_subscription(OccupancyGrid,'/limo_105_3/map',self.map_callback,10)
         self.subscription = self.create_subscription(Odometry,'/limo_105_3/odom',self.odom_callback,10)
@@ -315,136 +337,17 @@ class navigationControl(Node):
         # Create publishers
         self.publisher = self.create_publisher(Twist, '/limo_105_3/cmd_vel', 10)
 
-        # Initialize variables
-        self.initial_pose = None
-        self.return_to_init = True
-        self.is_active = True
+
+        print("[BILGI] KESİF MODU AKTİF")
         self.kesif = True
-        self._navigation_active = False
-        self._goal_handle = None
-
-        print("[INFO] EXPLORATION MODE ACTIVE")
+        threading.Thread(target=self.exp).start() #Kesif fonksiyonunu thread olarak calistirir.
         
-        # Wait for Nav2
-        self.get_logger().info('Waiting for Nav2...')
-        if not self.nav_client.wait_for_server(timeout_sec=60.0):
-            self.get_logger().error('Nav2 not available')
-            return
-
-        # Wait for initial pose
-        self.get_logger().info('Waiting for initial pose...')
-        while not hasattr(self, 'x') and rclpy.ok():
-            rclpy.spin_once(self, timeout_sec=1.0)
-        
-        # Store initial pose if needed
-        if self.return_to_init:
-            self.store_initial_pose()
-            
-        self.is_active = True
-
-        threading.Thread(target=self.exp).start()
-
-    def resume_callback(self, msg):
-        if msg.data == 1:  # Resume exploration
-            self.resume()
-        elif msg.data == 2:  # Stop exploration
-            self.stop(force_return=False)
-        elif msg.data == 3:  # Stop exploration and force return
-            self.stop(force_return=True)
-        else:
-            self.get_logger().warn('Invalid command received on explore/resume topic')
-
-    def store_initial_pose(self):
-        if hasattr(self, 'x') and hasattr(self, 'y') and hasattr(self, 'yaw'):
-            self.initial_pose = {
-                'x': self.x,
-                'y': self.y,
-                'yaw': self.yaw
-            }
-            print("[INFO] Initial pose stored")
-        else:
-            print("[ERROR] Could not store initial pose")
-            self.return_to_init = False
-
-    def stop(self, force_return=False):
-        self.kesif = False
-        self.is_active = False
-        print("[INFO] Exploration stopped")
-        
-        if hasattr(self, 'path'):
-            self.path = None
-        
-        if self._goal_handle is not None:
-            self._goal_handle.cancel_goal_async()
-            self._goal_handle = None
-        
-        twist = Twist()
-        twist.linear.x = 0.0
-        twist.angular.z = 0.0
-        self.publisher.publish(twist)
-        
-        if force_return and self.initial_pose is not None:
-            self.return_to_initial_pose()
-
-    def resume(self):
-        self.kesif = True
-        self.is_active = True
-        print("[INFO] Exploration resumed")
-
-    def return_to_initial_pose(self):
-        if self.initial_pose is None:
-            print("[ERROR] Initial pose not found")
-            return
-        
-        print("[INFO] Returning to initial pose")
-        
-        goal_msg = NavigateToPose.Goal()
-        goal_msg.pose.header.frame_id = 'map'
-        goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
-        
-        goal_msg.pose.pose.position.x = self.initial_pose['x']
-        goal_msg.pose.pose.position.y = self.initial_pose['y']
-        goal_msg.pose.pose.position.z = 0.0
-        
-        # Convert yaw to quaternion
-        goal_msg.pose.pose.orientation.x = 0.0
-        goal_msg.pose.pose.orientation.y = 0.0
-        goal_msg.pose.pose.orientation.z = math.sin(self.initial_pose['yaw'] / 2.0)
-        goal_msg.pose.pose.orientation.w = math.cos(self.initial_pose['yaw'] / 2.0)
-        
-        print(f"Target position: x={self.initial_pose['x']}, y={self.initial_pose['y']}")
-        
-        self._send_goal_future = self.nav_client.send_goal_async(goal_msg)
-        self._send_goal_future.add_done_callback(self._goal_response_callback)
-
-    def _goal_response_callback(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self.get_logger().warn('Return to base goal rejected')
-            return
-
-        self._goal_handle = goal_handle
-        self._get_result_future = goal_handle.get_result_async()
-        self._get_result_future.add_done_callback(self._get_result_callback)
-
-    def _get_result_callback(self, future):
-        result = future.result().result
-        if future.result().status == 4:  # Succeeded
-            self.get_logger().info('Successfully returned to base')
-        else:
-            self.get_logger().warn('Failed to return to base')
-
     def exp(self):
         twist = Twist()
-        while True:
+        while True: #Sensor verileri gelene kadar bekle.
             if not hasattr(self,'map_data') or not hasattr(self,'odom_data') or not hasattr(self,'scan_data'):
                 time.sleep(0.1)
                 continue
-                
-            if not self.is_active:
-                time.sleep(0.1)
-                continue
-                
             if self.kesif == True:
                 if isinstance(pathGlobal, int) and pathGlobal == 0:
                     column = int((self.x - self.originX)/self.resolution)
@@ -454,17 +357,19 @@ class navigationControl(Node):
                 else:
                     self.path = pathGlobal
                 if isinstance(self.path, int) and self.path == -1:
-                    print("[INFO] EXPLORATION COMPLETED")
+                    print("[BILGI] KESİF TAMAMLANDI")
                     sys.exit()
                 self.c = int((self.path[-1][0] - self.originX)/self.resolution) 
                 self.r = int((self.path[-1][1] - self.originY)/self.resolution) 
                 self.kesif = False
                 self.i = 0
-                print("[INFO] NEW TARGET SET")
+                print("[BILGI] YENI HEDEF BELİRLENDI")
                 t = pathLength(self.path)/speed
-                t = t - 0.2
-                self.t = threading.Timer(t,self.target_callback)
+                t = t - 0.2 #x = v * t formülüne göre hesaplanan sureden 0.2 saniye cikarilir. t sure sonra kesif fonksiyonu calistirilir.
+                self.t = threading.Timer(t,self.target_callback) #Hedefe az bir sure kala kesif fonksiyonunu calistirir.
                 self.t.start()
+            
+            #Rota Takip Blok Baslangic
             else:
                 v , w = localControl(self.scan)
                 if v == None:
@@ -473,12 +378,13 @@ class navigationControl(Node):
                     v = 0.0
                     w = 0.0
                     self.kesif = True
-                    print("[INFO] TARGET REACHED")
-                    self.t.join()
+                    print("[BILGI] HEDEFE ULASILDI")
+                    self.t.join() #Thread bitene kadar bekle.
                 twist.linear.x = v
                 twist.angular.z = w
                 self.publisher.publish(twist)
                 time.sleep(0.1)
+            #Rota Takip Blok Bitis
 
     def target_callback(self):
         exploration(self.data,self.width,self.height,self.resolution,self.c,self.r,self.originX,self.originY)
@@ -502,6 +408,7 @@ class navigationControl(Node):
         self.y = msg.pose.pose.position.y
         self.yaw = euler_from_quaternion(msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,
         msg.pose.pose.orientation.z,msg.pose.pose.orientation.w)
+
 
 def main(args=None):
     rclpy.init(args=args)
