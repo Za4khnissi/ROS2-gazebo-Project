@@ -19,6 +19,15 @@
       <!-- Robot 1 Controls -->
       <div class="bg-gray-700 p-20 rounded-lg shadow-inner flex flex-col items-center">
         <h3 class="text-xl text-white mb-4">Robot 3 Control</h3>
+        <label for="driveMode3" class="text-white mb-2">Select Drive Mode</label>
+        <select
+          id="driveMode3"
+          [(ngModel)]="selectedDriveModes[3]"
+          class="bg-gray-600 text-white py-2 px-4 rounded-lg mb-4"
+        >
+          <option value="Diff Drive">Diff Drive</option>
+          <option value="Ackermann">Ackermann</option>
+        </select>
         <p class="text-sm text-green-300 mb-4">Status: {{ robot1Status }}</p>
         <button (click)="identifyRobot(3)" class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg mb-3 w-full">
           Identify Robot
@@ -29,17 +38,20 @@
         <button (click)="stopMission(3)" class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full">
           Stop Mission
         </button>
-        <div class="mt-10 text-center">
-          <label for="driveMode3">Drive Mode for Robot 3: diff_drive</label>
-          <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(3)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
-            {{ driveMode3 }}
-          </button>
-        </div>
       </div>
 
       <!-- Robot 2 Controls -->
       <div class="bg-gray-700 p-20 rounded-lg shadow-inner flex flex-col items-center">
         <h3 class="text-xl text-white mb-4">Robot 4 Control</h3>
+        <label for="driveMode4" class="text-white mb-2">Select Drive Mode</label>
+        <select
+          id="driveMode4"
+          [(ngModel)]="selectedDriveModes[4]"
+          class="bg-gray-600 text-white py-2 px-4 rounded-lg mb-4"
+        >
+          <option value="Diff Drive">Diff Drive</option>
+          <option value="Ackermann">Ackermann</option>
+        </select>
         <p class="text-sm text-green-300 mb-4">Status: {{ robot2Status }}</p>
         <button (click)="identifyRobot(4)" class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg mb-3 w-full">
           Identify Robot
@@ -50,15 +62,17 @@
         <button (click)="stopMission(4)" class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full">
           Stop Mission
         </button>
-        <div class="mt-10 text-center">
-          <label for="driveMode4">Drive Mode for Robot 4: diff_drive</label>
-          <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(4)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
-            {{ driveMode4 }}
-          </button>
-        </div>
       </div>
     </div>
   </div>
+
+  <!-- Start ROS Button -->
+  <button
+  (click)="startRos()"
+  class="bg-green-600 hover:bg-green-500 text-white py-2 px-6 rounded-lg mb-6"
+  >
+    Start ROS
+  </button>
 
   <!-- Logs Panel -->
   <div class="fixed inset-y-0 right-0 bg-gray-800 text-white shadow-lg w-96 p-6 overflow-y-auto">

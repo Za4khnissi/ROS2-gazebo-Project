@@ -4,21 +4,22 @@ import { WebSocketService } from '@app/services/web-socket.service';
 import { NgFor, NgClass, NgIf } from '@angular/common';
 import { MapComponent } from '../../components/map/map.component';
 import { OctomapComponent } from '@app/components/map/octomap.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-simulation-robot',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css'],
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, MapComponent, OctomapComponent]
+  imports: [NgFor, NgClass, NgIf, MapComponent, OctomapComponent, FormsModule]
 })
 export class SimulationComponent implements OnInit {
   robot1Status = 'Waiting';
   robot2Status = 'Waiting';
   simulationStatus = false;
-  driveMode3 = 'Diff Drive';
-  driveMode4 = 'Diff Drive';
-  driveModeAvailable = true;
+  driveMode3 = 'Diff Drive'; // Default mode
+  driveMode4 = 'Diff Drive'; // Default mode
+  selectedDriveModes = { 3: 'Diff Drive', 4: 'Diff Drive' };
 
   logs: any[] = [];
   showOldLogs = false;
@@ -95,11 +96,26 @@ export class SimulationComponent implements OnInit {
     this.simService.stopMission(robotId).subscribe();
   }
 
-  toggleDriveMode(robotId: number) {
-    let newDriveMode = robotId === 3 ? this.driveMode3 : this.driveMode4;
-    newDriveMode = newDriveMode === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
 
-    this.simService.changeDriveMode(robotId, newDriveMode.toLowerCase().replace(' ', '_')).subscribe();
+  startRos() {
+    // Prepare the payload with the selected drive modes
+    const payload = {
+      driveModes: {
+        '3': this.selectedDriveModes[3].toLowerCase().replace(' ', '_'),
+        '4': this.selectedDriveModes[4].toLowerCase().replace(' ', '_'),
+      },
+    };
+  
+    // Call the service to start ROS
+    this.simService.startRos(payload).subscribe({
+      next: (response) => {
+        console.log('ROS started successfully:', response);
+        this.simulationStatus = true; // Update simulation status if needed
+      },
+      error: (err) => {
+        console.error('Failed to start ROS:', err);
+      },
+    });
   }
 
   toggleOldLogs() {

@@ -24,8 +24,8 @@ export class RobotService {
     return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/stop`);
   }
 
-  changeDriveMode(robotId: number, driveMode: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/robot/${robotId}/change_drive_mode`, { drive_mode: driveMode });
+  startRos(payload: { driveModes: Record<string, string> }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/simulation/start_ros`, payload);
   }
 
   getOldLogs(): Observable<any[]> {
