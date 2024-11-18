@@ -9,7 +9,7 @@ from rclpy.qos import qos_profile_sensor_data
 
 # Paramètres globaux
 lookahead_distance = 0.5
-speed = 0.2
+speed = 0.5
 expansion_size = 3
 target_error = 0.05
 robot_r = 0.2
@@ -64,6 +64,7 @@ def detect_frontiers(data):
         (data == 0) & (np.roll(data == -1, 1, axis=0) | np.roll(data == -1, -1, axis=0) |
                        np.roll(data == -1, 1, axis=1) | np.roll(data == -1, -1, axis=1))
     )
+    print(f"Detected {len(frontier_points)} frontiers.")
     return frontier_points
 
 
@@ -87,14 +88,16 @@ class AutonomousExploration(Node):
         if not all([self.map_data, self.odom_data, self.scan_data]):
             return  # Attendre que toutes les données soient disponibles
 
-        if self.path is None or len(self.path) == 0:
-            # Générer un nouveau chemin vers une frontière
-            print("[DEBUG] Generating new path...")
-            self.generate_path()
-        else:
-            # Suivre le chemin existant
+        if self.path and len(self.path) > 1 and heuristic((self.x, self.y), self.path[0]) > target_error:
+            # Continuez à suivre le chemin
+            print("[DEBUG] Following existing path...")
             v, w = self.follow_path()
             self.publish_velocity(v, w)
+        else:
+            # Générer un nouveau chemin si le chemin est terminé ou trop proche
+            print("[DEBUG] Generating new path...")
+            self.generate_path()
+
 
     def generate_path(self):
         row = int((self.x - self.originX) / self.resolution)
@@ -114,20 +117,36 @@ class AutonomousExploration(Node):
 
     def follow_path(self):
         if self.path:
-            target = self.path.pop(0)
+            # Récupérer la cible actuelle
+            target = self.path[0]
             target_angle = math.atan2(target[1] - self.y, target[0] - self.x)
             angle_diff = target_angle - self.yaw
+            angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))  # Normaliser entre [-pi, pi]
+            
+            distance_to_target = heuristic((self.x, self.y), target)
 
-            if abs(angle_diff) > 0.1:
-                return 0.0, angle_diff  # Tourner vers la cible
-            else:
-                return speed, 0.0  # Avancer vers la cible
-        return 0.0, 0.0
+            # Si l'angle est trop grand, corriger la direction en priorité
+            if abs(angle_diff) > 0.1:  # Ajuster ce seuil si nécessaire
+                print(f"[DEBUG] Turning towards target. Angle difference: {angle_diff}")
+                return 0.0, 2.0 * angle_diff  # Priorité à l'orientation, ajuster le facteur si le robot tourne trop vite
+            
+            # Si aligné, avancer vers la cible
+            if distance_to_target > target_error:
+                print(f"[DEBUG] Moving towards target. Distance: {distance_to_target}")
+                return speed, 0.0  # Ajuster 'speed' pour aller plus vite ou plus lentement
+            
+            # Si la cible est atteinte, passer au prochain point
+            print(f"[DEBUG] Target reached. Moving to next point in path.")
+            self.path.pop(0)
+
+        return 0.0, 0.0  # Pas de commande si aucune cible n'est définie
+
+
 
     def publish_velocity(self, linear, angular):
         twist = Twist()
-        twist.linear.x = max(min(linear, 0.5), -0.5)  # Limite linéaire
-        twist.angular.z = max(min(angular, 1.0), -1.0)  # Limite angulaire
+        twist.linear.x = max(min(linear, 1.0), -1.0)  # Limite linéaire
+        twist.angular.z = max(min(angular, 2.0), -2.0)  # Limite angulaire
         self.cmd_vel_pub.publish(twist)
         self.get_logger().info(f"Publishing velocity: linear={twist.linear.x}, angular={twist.angular.z}")
 
