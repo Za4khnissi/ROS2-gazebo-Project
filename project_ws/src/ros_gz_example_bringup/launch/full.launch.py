@@ -1,13 +1,14 @@
+#!/usr/bin/env python3
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 
-def generate_launch_description():
+def setup_robot_descriptions(context):
     # Setup project paths
     pkg_project_bringup = get_package_share_directory('ros_gz_example_bringup')
     pkg_project_gazebo = get_package_share_directory('ros_gz_example_gazebo')
@@ -18,12 +19,26 @@ def generate_launch_description():
         get_package_share_directory("multirobot_map_merge"), "config", "params.yaml"
     )
 
-    # Load the SDF files
-    sdf_file_3 = os.path.join(pkg_project_description, 'models', 'limo_105_3_diff_drive', 'model.sdf')
+    # Get the drive mode configurations
+    drive_mode_3 = LaunchConfiguration('drive_mode_3').perform(context)
+    drive_mode_4 = LaunchConfiguration('drive_mode_4').perform(context)
+
+    def get_robot_model_path(robot_number, drive_mode):
+        return os.path.join(
+            get_package_share_directory('ros_gz_example_description'),
+            'models',
+            f'limo_105_{robot_number}_{drive_mode}',
+            'model.sdf'
+        )
+
+    # Retrieve paths based on the drive modes
+    sdf_file_3 = get_robot_model_path(3, drive_mode_3)
+    sdf_file_4 = get_robot_model_path(4, drive_mode_4)
+
+    # Load the SDF files for Robot 3 and 4
     with open(sdf_file_3, 'r') as infp:
         robot_105_3_desc = infp.read()
 
-    sdf_file_4 = os.path.join(pkg_project_description, 'models', 'limo_105_4_diff_drive', 'model.sdf')
     with open(sdf_file_4, 'r') as infp:
         robot_105_4_desc = infp.read()
 
@@ -246,7 +261,7 @@ def generate_launch_description():
                 }],
                 output="screen",
             ),
-             Node(
+            Node(
                 package="multirobot_map_merge",
                 name="map_merge",
                 #namespace=namespace,
@@ -262,17 +277,36 @@ def generate_launch_description():
         ]
     )
 
-    return LaunchDescription([
-        bridge,
+    return [
         gz_sim,
-        robot_state_publisher_3,
-        robot_state_publisher_4,
+        bridge,
         identify_service_3,
         mission_service_3,
         identify_service_4,
         mission_service_4,
+        robot_state_publisher_3,
+        robot_state_publisher_4,
+        octomap_node,
         slam_nodes,
         nav2_nodes,
-        explore_nodes,
-        octomap_node
+        explore_nodes
+    ]
+
+def generate_launch_description():
+    # Declare launch arguments for drive modes
+    drive_mode_3_arg = DeclareLaunchArgument(
+        'drive_mode_3',
+        default_value='diff_drive',
+        description='Drive mode for robot 3'
+    )
+    drive_mode_4_arg = DeclareLaunchArgument(
+        'drive_mode_4',
+        default_value='diff_drive',
+        description='Drive mode for robot 4'
+    )
+
+    return LaunchDescription([
+        drive_mode_3_arg,
+        drive_mode_4_arg,
+        OpaqueFunction(function=setup_robot_descriptions),
     ])
