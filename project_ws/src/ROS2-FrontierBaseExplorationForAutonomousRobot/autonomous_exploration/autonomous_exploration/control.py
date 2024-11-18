@@ -10,10 +10,10 @@ from rclpy.qos import qos_profile_sensor_data
 
 # Paramètres globaux
 lookahead_distance = 0.5 #0.24 initially
-speed = 0.2  #0.05 initially
+speed = 0.5  #0.05 initially
 expansion_size = 3
 target_error = 0.05  
-robot_r = 0.2
+robot_r = 0.3
 
 pathGlobal = 0
 
@@ -65,22 +65,25 @@ def astar(array, start, goal):
 
 
 def localControl(scan):
-    """Évite les obstacles locaux."""
+    """Évite les obstacles locaux et ajuste la vitesse."""
     # Vérification des zones critiques à l'avant
     front_ranges = scan[0:30] + scan[330:360]
     min_front = min(front_ranges)
 
-    # Si un obstacle est trop proche à l'avant
-    if min_front < robot_r:
-        # Décider de tourner à gauche ou à droite en fonction des zones latérales
-        left_ranges = scan[30:90]
-        right_ranges = scan[270:330]
-        if min(left_ranges) > min(right_ranges):
-            return 0.0, math.pi / 4  # Tourner à gauche
-        else:
-            return 0.0, -math.pi / 4  # Tourner à droite
-    
-    return speed, 0.0  # Avancer si aucune obstruction
+    # Si un obstacle est détecté dans une zone critique
+    if min_front < robot_r + 0.1:
+        return 0.0, max(min(math.pi / 2, 1.5), -1.5)  # Tourne rapidement
+
+    # Si un obstacle est détecté à une distance modérée, ralentir
+    if min_front < robot_r + 0.2:
+        adjusted_speed = max(speed * (min_front / (robot_r + 0.2)), 0.1)
+        return adjusted_speed, 0.0  # Ajuste la vitesse en fonction de la distance
+
+    # Aucun obstacle détecté, avancer à pleine vitesse
+    return speed, 0.0
+
+
+
 
 
 
@@ -102,6 +105,11 @@ class NavigationControl(Node):
         self.scan_data = None
         self.path = None
         self.timer = None
+
+        self.x = 0.0
+        self.y = 0.0
+        self.yaw = 0.0
+
         print("[INFO] Exploration node initialized.")
         threading.Thread(target=self.explore).start()
 
@@ -129,27 +137,59 @@ class NavigationControl(Node):
     def explore(self):
         """Boucle principale de l'exploration."""
         twist = Twist()
+        last_position = [self.x, self.y]
+        stuck_count = 0
+
         while True:
+            # Vérifiez que toutes les données nécessaires sont disponibles
             if not all([self.map_data, self.odom_data, self.scan_data]):
-                time.sleep(0.05)  # Temps d'attente réduit
+                time.sleep(0.05)  # Réduire le temps d'attente
                 continue
 
             if self.kesif:
                 print("[INFO] Exploration active.")
+
+                # Générer un nouveau chemin si nécessaire
                 if self.path is None or len(self.path) == 0:
                     print("[DEBUG] Generating new path.")
                     self.generate_path()
+
+                # Vérifier si le robot a atteint son objectif
                 if self.path and self.is_goal_reached():
                     print("[INFO] Goal reached.")
                     self.kesif = False
                 else:
+                    # Vérifiez si le robot est bloqué
+                    if abs(self.x - last_position[0]) < 0.01 and abs(self.y - last_position[1]) < 0.01:
+                        stuck_count += 1
+                    else:
+                        stuck_count = 0
+
+                    last_position = [self.x, self.y]
+
+                    if stuck_count > 10:  # Si bloqué pendant plusieurs cycles
+                        print("[WARN] Robot stuck, applying aggressive turn.")
+                        twist.linear.x = 0.0
+                        twist.angular.z = math.pi / 2  # Rotation de 90°
+                        self.cmd_vel_pub.publish(twist)
+                        stuck_count = 0  # Réinitialise le compteur
+                        time.sleep(1.0)  # Attendre que la rotation soit complète
+                        continue
+
+                    # Appliquer le contrôle local ou poursuivre un chemin
                     v, w = localControl(self.scan_data.ranges)
                     if v is None:  # Si aucun obstacle n'est détecté localement
                         v, w = self.pure_pursuit()
+
+                    # Publier les commandes au robot
                     twist.linear.x = v
                     twist.angular.z = w
                     self.cmd_vel_pub.publish(twist)
-                    time.sleep(0.05)  # Cycle plus rapide
+
+                    # Réduire le délai pour un cycle plus rapide
+                    time.sleep(0.05)
+
+
 
 
     def generate_path(self):
@@ -217,9 +257,9 @@ class NavigationControl(Node):
         angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))  # Normaliser l'angle
 
         if abs(angle_diff) > 0.5:  # Rotation si nécessaire
-            return 0.0, max(min(angle_diff * 2.0, 1.0), -1.0)
+            return 0.0, max(min(angle_diff * 1.5, 1.0), -1.0)  # Réduction du facteur multiplicatif
         elif heuristic((self.x, self.y), target) > target_error:  # Avance vers la cible
-            return speed, 0.0
+            return speed, max(min(angle_diff * 0.5, 0.5), -0.5)  # Ajout d'une petite correction angulaire
         else:  # Supprime le point atteint
             self.path.pop(0)
             return 0.0, 0.0
