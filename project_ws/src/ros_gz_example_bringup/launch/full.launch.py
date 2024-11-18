@@ -137,7 +137,14 @@ def generate_launch_description():
                     'map_frame': 'map',
                     'odom_frame': "limo_105_3/odom",
                     'base_frame': "limo_105_3/base_footprint",
-                    'scan_topic': "/limo_105_3/scan"
+                    'scan_topic': "/limo_105_3/scan",
+                    'max_laser_range': 8.0,
+                    'resolution': 0.05,
+                    'minimum_travel_distance': 0.5,
+                    'minimum_travel_heading': 0.2,
+                    'use_scan_matching': True,
+                    'loop_closure_frequency': 1.0,
+                    'map_update_interval': 2.0
                 }],
                 remappings=[
                     ('/map', '/limo_105_3/map'),
