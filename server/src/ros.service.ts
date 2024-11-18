@@ -1,6 +1,5 @@
 import {
   Injectable,
-  OnModuleInit,
   OnModuleDestroy,
   HttpException,
   HttpStatus,
@@ -11,6 +10,8 @@ import * as fs from 'fs';
 import { Subject, interval, Subscription, Observable } from 'rxjs';
 import { SyncGateway } from './sync/sync.gateway';
 import * as path from 'path';
+import { exec } from 'child_process';
+import * as readline from 'readline';
 
 interface ServiceResponse {
   success: boolean;
@@ -18,7 +19,7 @@ interface ServiceResponse {
 }
 
 @Injectable()
-export class RosService implements OnModuleInit, OnModuleDestroy {
+export class RosService implements OnModuleDestroy {
   private realRobotNode: rclnodejs.Node;
   private simulationRobotNode: rclnodejs.Node;
   private logsFolder = this.configService.get<string>('PATH_TO_LOGS_FOLDER');
@@ -27,6 +28,7 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
   private logInterval: Subscription;
   private currentLogs: any[] = [];
   private logFilePaths = new Map<string, string>();
+  private isRosRunning = false;
   private lastRobotStatus = {
     '3': 'Waiting',
     '4': 'Waiting',
@@ -39,7 +41,85 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     this.ensureLogsFolderExists();
   }
 
-  async onModuleInit() {
+  async startRos(driveModes: { [key: string]: string }): Promise<any> {
+    if (this.isRosRunning) {
+      throw new HttpException('ROS is already running', HttpStatus.CONFLICT);
+    }
+
+    const scriptPath = path.resolve(__dirname, '../../launch_robot.sh');
+    const command = `${scriptPath} simulation ${driveModes['3']} ${driveModes['4']}`;
+    console.log(`Launching ROS project with command: ${command}`);
+
+    return new Promise((resolve, reject) => {
+      // Open a new terminal and run the command
+      const terminalCommand = `gnome-terminal -- bash -c "${command}; exec bash"`;
+
+      exec(terminalCommand, (error, stdout) => {
+        if (error) {
+          console.error(
+            'Failed to open terminal and launch ROS project:',
+            error,
+          );
+          reject(
+            new HttpException(
+              'Failed to open terminal and launch ROS project',
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            ),
+          );
+        } else {
+          console.log('New terminal opened for ROS logs:', stdout);
+
+          // Wait 1 minute for nodes to initialize
+          console.log('Waiting 40 seconds for ROS nodes to initialize...');
+          setTimeout(() => {
+            this.promptUserForConnection(resolve, reject);
+          }, 40000);
+        }
+      });
+    });
+  }
+
+  private promptUserForConnection(resolve: any, reject: any) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    rl.question(
+      'Do you want to connect the server to ROS? (Y/yes): ',
+      async (answer) => {
+        if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+          console.log('Connecting server to ROS...');
+          try {
+            await this.connectToRos();
+            console.log('Server successfully connected to ROS.');
+            resolve({
+              message: 'ROS started and server connected successfully',
+            });
+          } catch (error) {
+            console.error('Failed to connect server to ROS:', error);
+            reject(
+              new HttpException(
+                'Failed to connect server to ROS',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+              ),
+            );
+          }
+        } else {
+          console.log('Server not connected to ROS. Exiting initialization.');
+          reject(
+            new HttpException(
+              'User chose not to connect to ROS',
+              HttpStatus.BAD_REQUEST,
+            ),
+          );
+        }
+        rl.close();
+      },
+    );
+  }
+
+  private async connectToRos() {
     const rosDomainId = this.configService.get<string>('ROS_DOMAIN_ID') || '49';
     process.env.ROS_DOMAIN_ID = rosDomainId;
 
@@ -422,31 +502,6 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  changeDriveMode(robotId: string, driveMode: string) {
-    const node = this.validateRobotConnection(robotId);
-    const namespace = `limo_105_${robotId}`;
-    const serviceName = `/${namespace}/robot_${robotId}_drive_mode`;
-
-    const client = node.createClient('std_srvs/srv/SetBool', serviceName);
-    const RequestType = rclnodejs.require('std_srvs/srv/SetBool').Request;
-    const request = new RequestType();
-    request.data = driveMode === 'ackermann';
-
-    client.sendRequest(request, (response) => {
-      const event = response.success
-        ? 'drive_mode_changed'
-        : 'drive_mode_change_failed';
-      const log = {
-        event,
-        robot: robotId,
-        driveMode,
-        timestamp: new Date().toISOString(),
-      };
-      this.saveLogToFile(log);
-      this.syncGateway.broadcast('syncUpdate', log);
-    });
-  }
-
   getOldMissions() {
     const missionFiles = fs
       .readdirSync(this.logsFolder)
@@ -470,10 +525,31 @@ export class RosService implements OnModuleInit, OnModuleDestroy {
     return this.logSubject.asObservable();
   }
 
+  async stopRos(): Promise<any> {
+    if (!this.isRosRunning) {
+      throw new HttpException('ROS is not running', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      this.simulationRobotNode.destroy();
+      this.realRobotNode.destroy();
+      await rclnodejs.shutdown();
+      this.isRosRunning = false;
+      console.log('ROS stopped successfully');
+      return { message: 'ROS stopped successfully' };
+    } catch (error) {
+      console.error('Failed to stop ROS:', error);
+      throw new HttpException(
+        'Failed to stop ROS',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // On shutdown, cleanly stop ROS and free up the port
   async onModuleDestroy() {
-    // Destroy nodes and shutdown rclnodejs
-    this.simulationRobotNode.destroy();
-    this.realRobotNode.destroy();
-    await rclnodejs.shutdown();
+    if (this.isRosRunning) {
+      await this.stopRos();
+    }
   }
 }

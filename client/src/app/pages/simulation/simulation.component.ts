@@ -98,15 +98,15 @@ export class SimulationComponent implements OnInit {
 
 
   startRos() {
-    // Prepare the payload with the selected drive modes
-    const payload = {
+    const payload: { driveModes: Record<string, string> } = {
       driveModes: {
         '3': this.selectedDriveModes[3].toLowerCase().replace(' ', '_'),
         '4': this.selectedDriveModes[4].toLowerCase().replace(' ', '_'),
       },
     };
   
-    // Call the service to start ROS
+    console.log('Payload being sent to the server:', payload); // Log payload for debugging
+  
     this.simService.startRos(payload).subscribe({
       next: (response) => {
         console.log('ROS started successfully:', response);
