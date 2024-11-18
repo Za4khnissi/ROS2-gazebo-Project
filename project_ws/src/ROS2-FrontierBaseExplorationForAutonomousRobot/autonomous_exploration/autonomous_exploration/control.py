@@ -7,6 +7,8 @@ import numpy as np
 import heapq , math , random , yaml
 import scipy.interpolate as si
 import sys , threading , time
+from rclpy.qos import qos_profile_sensor_data 
+from std_msgs.msg import Int8
 
 
 lookahead_distance = 0.24
@@ -327,12 +329,38 @@ def localControl(scan):
 
 class navigationControl(Node):
     def __init__(self):
+        #super().__init__('Exploration')
+        # Create subscribers
+        #self.subscription = self.create_subscription(OccupancyGrid,'/limo_105_3/map',self.map_callback,10)
+        #self.subscription = self.create_subscription(Odometry,'/limo_105_3/odom',self.odom_callback,10)
+        #self.subscription = self.create_subscription(LaserScan,'/limo_105_3/scan',self.scan_callback,qos_profile_sensor_data)
+        #self.resume_sub = self.create_subscription(Int8,'/limo_105_3/explore/resume',self.resume_callback,10)
         super().__init__('Exploration')
         # Create subscribers
-        self.subscription = self.create_subscription(OccupancyGrid,'/limo_105_3/map',self.map_callback,10)
-        self.subscription = self.create_subscription(Odometry,'/limo_105_3/odom',self.odom_callback,10)
-        self.subscription = self.create_subscription(LaserScan,'/limo_105_3/scan',self.scan_callback,qos_profile_sensor_data)
-        self.resume_sub = self.create_subscription(Int8,'/limo_105_3/explore/resume',self.resume_callback,10)
+        self.subscription = self.create_subscription(
+            OccupancyGrid,
+            '/limo_105_3/map',
+            self.map_callback,
+            10
+        )
+        self.subscription = self.create_subscription(
+            Odometry,
+            '/limo_105_3/odom',
+            self.odom_callback,
+            10
+        )
+        self.subscription = self.create_subscription(
+            LaserScan,
+            '/limo_105_3/scan',
+            self.scan_callback,
+            qos_profile_sensor_data  # Profil QoS défini
+        )
+        self.resume_sub = self.create_subscription(
+            Int8,
+            '/limo_105_3/explore/resume',
+            self.resume_callback,
+            10
+        )
         
         # Create publishers
         self.publisher = self.create_publisher(Twist, '/limo_105_3/cmd_vel', 10)
