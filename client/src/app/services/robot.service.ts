@@ -4,6 +4,7 @@ import { Observable, Subject } from 'rxjs';
 import {ApiMissionResponse } from '@app/models/mission.model';
 import { WebSocketService } from './web-socket.service';
 import { MissionModel } from '@app/models/mission.model';
+import { SortingInterface } from '@app/pages/history/sortingInterface';
 
 @Injectable({
   providedIn: 'root'
@@ -48,9 +49,10 @@ export class RobotService {
     return this.http.get<any>(`${this.apiUrl}/logs/last`);
   }
 
-  getAllMissions(): Observable<ApiMissionResponse> {
-    return this.http.get<ApiMissionResponse>(this.apiDataUrl);
+  getAllMissions(sorting: SortingInterface): Observable<ApiMissionResponse> {
+    return this.http.get<ApiMissionResponse>(`${this.apiDataUrl}?_sort=${sorting.column}&_order=${sorting.order}`);
   }
+
 
   getMissionById(id: string): Observable<MissionModel> {
     return this.http.get<MissionModel>(`${this.apiUrl}/missions/${id}`);

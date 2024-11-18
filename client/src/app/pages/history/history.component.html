@@ -1,23 +1,33 @@
 <div class="container mx-auto px-4 sm:px-8">
   <div class="py-8">
+    
+    <!-- Search Bar -->
+    <div class="mb-4">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Rechercher dans les missions (Simulation, Distance, etc.)"
+        class="w-full p-2 border border-gray-300 rounded-md"
+      />
+    </div>
+
     <div class="overflow-x-auto">
       <div class="min-w-full shadow-md rounded-lg overflow-hidden">
         <table class="min-w-full leading-normal">
           <thead>
-            <tr>
-              <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-              <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Simulation</th>
-              <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Durée</th>
-              <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Distance</th>
-              <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Map</th>
-            </tr>
+            <th *ngFor="let column of columns" class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider" (click)="sortTable(column)">
+              {{ column | titlecase }} <!-- This will display the column names with proper capitalization -->
+              <span *ngIf="isDescendingSorting(column)" class="text-xs">▼</span>
+              <span *ngIf="isAscendingSorting(column)" class="text-xs">▲</span>
+            </th>
           </thead>
           <tbody>
-            <tr *ngFor="let mission of missions">
+            <!-- Filtered Missions Displayed -->
+            <tr *ngFor="let mission of filteredMissions()">
               <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ mission.dateDebut | date:'short' }}</td>
               <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ mission.isPhysical ? 'Physique' : 'Simulation' }}</td>
               <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ mission.duration }}</td>
-              <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ mission.totalDistance }}</td>
+              <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ mission.totalDistance }} {{ mission.isPhysical ? 'm' : 'cm' }}</td>
               <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                 <a href="#" class="text-blue-600 hover:text-blue-900" (click)="onMapClick(mission._id); $event.preventDefault()">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -32,7 +42,6 @@
     </div>
   </div>
 
-  
   <div class="map-container" *ngIf="selectedMapData">
     <canvas id="mapCanvas"></canvas>
   </div>
