@@ -3,26 +3,31 @@ from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid, Odometry
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
+from std_msgs.msg import Int8
 import numpy as np
-import heapq, math, random
+import heapq, math, random, threading, time
 from rclpy.qos import qos_profile_sensor_data
 
 # Paramètres globaux
-LOOKAHEAD_DISTANCE = 0.5
-SPEED = 0.5
-EXPANSION_SIZE = 3
-TARGET_ERROR = 0.05
-ROBOT_RADIUS = 0.2
+lookahead_distance = 0.5 #0.24 initially
+speed = 0.2  #0.05 initially
+expansion_size = 3
+target_error = 0.05  
+robot_r = 0.2
 
-# Utilitaires pour les calculs
+pathGlobal = 0
+
+
 def euler_from_quaternion(x, y, z, w):
     t0 = +2.0 * (w * x + y * z)
     t1 = +1.0 - 2.0 * (x * x + y * y)
     yaw_z = math.atan2(t0, t1)
     return yaw_z
 
+
 def heuristic(a, b):
     return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)
+
 
 def astar(array, start, goal):
     neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
@@ -32,166 +37,203 @@ def astar(array, start, goal):
     fscore = {start: heuristic(start, goal)}
     oheap = []
     heapq.heappush(oheap, (fscore[start], start))
-    
     while oheap:
         current = heapq.heappop(oheap)[1]
         if current == goal:
-            path = []
+            data = []
             while current in came_from:
-                path.append(current)
+                data.append(current)
                 current = came_from[current]
-            return path[::-1]
-        
+            return data[::-1]
         close_set.add(current)
         for i, j in neighbors:
             neighbor = current[0] + i, current[1] + j
             tentative_g_score = gscore[current] + heuristic(current, neighbor)
             if 0 <= neighbor[0] < array.shape[0] and 0 <= neighbor[1] < array.shape[1]:
-                if array[neighbor[0]][neighbor[1]] == 1:  # Obstacle
+                if array[neighbor[0]][neighbor[1]] == 1:
                     continue
             else:
                 continue
-            if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, float('inf')):
+            if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
                 continue
-            if tentative_g_score < gscore.get(neighbor, float('inf')) or neighbor not in [i[1] for i in oheap]:
+            if tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1] for i in oheap]:
                 came_from[neighbor] = current
                 gscore[neighbor] = tentative_g_score
                 fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
                 heapq.heappush(oheap, (fscore[neighbor], neighbor))
-    return None
+    return False
 
-def detect_frontiers(data):
-    """Détecte les frontières entre zones explorées et inconnues."""
-    frontier_points = np.argwhere(
-        (data == 0) & (
-            np.roll(data == -1, 1, axis=0) |
-            np.roll(data == -1, -1, axis=0) |
-            np.roll(data == -1, 1, axis=1) |
-            np.roll(data == -1, -1, axis=1)
-        )
-    )
-    return frontier_points
 
-# Classe principale
-class AutonomousExploration(Node):
+def localControl(scan):
+    """Évite les obstacles locaux."""
+    # Vérification des zones critiques à l'avant
+    front_ranges = scan[0:30] + scan[330:360]
+    min_front = min(front_ranges)
+
+    # Si un obstacle est trop proche à l'avant
+    if min_front < robot_r:
+        # Décider de tourner à gauche ou à droite en fonction des zones latérales
+        left_ranges = scan[30:90]
+        right_ranges = scan[270:330]
+        if min(left_ranges) > min(right_ranges):
+            return 0.0, math.pi / 4  # Tourner à gauche
+        else:
+            return 0.0, -math.pi / 4  # Tourner à droite
+    
+    return speed, 0.0  # Avancer si aucune obstruction
+
+
+
+class NavigationControl(Node):
     def __init__(self):
-        super().__init__('autonomous_exploration')
+        super().__init__('exploration_node')
+
         self.map_sub = self.create_subscription(OccupancyGrid, '/limo_105_3/map', self.map_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/limo_105_3/odom', self.odom_callback, 10)
         self.scan_sub = self.create_subscription(LaserScan, '/limo_105_3/scan', self.scan_callback, qos_profile_sensor_data)
+        self.resume_sub = self.create_subscription(Int8, '/limo_105_3/explore/resume', self.resume_callback, 10)
+
         self.cmd_vel_pub = self.create_publisher(Twist, '/limo_105_3/cmd_vel', 10)
 
+        # Variables d'état
+        self.kesif = True
         self.map_data = None
         self.odom_data = None
         self.scan_data = None
-        self.path = []
-        self.timer = self.create_timer(0.1, self.explore)
+        self.path = None
+        self.timer = None
+        print("[INFO] Exploration node initialized.")
+        threading.Thread(target=self.explore).start()
 
-        print("[INFO] Autonomous exploration initialized.")
+    def resume_callback(self, msg):
+        """Callback pour activer ou désactiver l'exploration."""
+        if msg.data == 1:
+            print("[INFO] Exploration resumed.")
+            self.kesif = True
+        elif msg.data == 0:
+            print("[INFO] Exploration paused.")
+            self.kesif = False
+    
+    def detect_frontiers(self, data):
+        """Détecte les frontières entre zones explorées et inconnues."""
+        frontiers = []
+        for i in range(1, data.shape[0] - 1):
+            for j in range(1, data.shape[1] - 1):
+                if data[i, j] == 0:  # Zone libre
+                    neighbors = [data[i-1, j], data[i+1, j], data[i, j-1], data[i, j+1]]
+                    if -1 in neighbors:  # Zone inconnue adjacente
+                        frontiers.append((i, j))
+        return frontiers    
+
 
     def explore(self):
-        if not all([self.map_data, self.odom_data, self.scan_data]):
-            return  # Attendre que toutes les données soient disponibles
+        """Boucle principale de l'exploration."""
+        twist = Twist()
+        while True:
+            if not all([self.map_data, self.odom_data, self.scan_data]):
+                time.sleep(0.05)  # Temps d'attente réduit
+                continue
 
-        if self.path:
-            self.follow_path()
-        else:
-            self.generate_path()
+            if self.kesif:
+                print("[INFO] Exploration active.")
+                if self.path is None or len(self.path) == 0:
+                    print("[DEBUG] Generating new path.")
+                    self.generate_path()
+                if self.path and self.is_goal_reached():
+                    print("[INFO] Goal reached.")
+                    self.kesif = False
+                else:
+                    v, w = localControl(self.scan_data.ranges)
+                    if v is None:  # Si aucun obstacle n'est détecté localement
+                        v, w = self.pure_pursuit()
+                    twist.linear.x = v
+                    twist.angular.z = w
+                    self.cmd_vel_pub.publish(twist)
+                    time.sleep(0.05)  # Cycle plus rapide
+
 
     def generate_path(self):
-        row = int((self.x - self.originX) / self.resolution)
-        column = int((self.y - self.originY) / self.resolution)
-        frontiers = detect_frontiers(self.data)
-        
-        if not frontiers.size:
+        if not self.map_data:
+            return
+
+        # Conversion des données de la carte en format numpy
+        data = np.array(self.map_data.data).reshape((self.map_data.info.height, self.map_data.info.width))
+        row = int((self.x - self.map_data.info.origin.position.x) / self.map_data.info.resolution)
+        col = int((self.y - self.map_data.info.origin.position.y) / self.map_data.info.resolution)
+
+        # Détecter les frontières
+        frontiers = self.detect_frontiers(data)
+        if len(frontiers) == 0:
             print("[INFO] No more frontiers to explore.")
-            self.publish_velocity(0.0, 0.0)
+            self.path = None
             return
-        
-        closest_frontier = min(frontiers, key=lambda p: heuristic((row, column), tuple(p)))
-        path = astar(self.data, (row, column), tuple(closest_frontier))
-        
+
+        # Trouver la frontière la plus proche
+        closest_frontier = min(frontiers, key=lambda f: heuristic((row, col), f))
+
+        # Calculer le chemin avec A*
+        goal = tuple(closest_frontier)
+        start = (row, col)
+        path = astar(data, start, goal)
+
         if path:
-            self.path = [(p[1] * self.resolution + self.originX, p[0] * self.resolution + self.originY) for p in path]
-            print(f"[INFO] Path generated: {self.path}")
+            self.path = [(p[1] * self.map_data.info.resolution + self.map_data.info.origin.position.x,
+                        p[0] * self.map_data.info.resolution + self.map_data.info.origin.position.y) for p in path]
+            print("[INFO] New path generated.")
         else:
-            print("[WARN] No valid path found!")
-            self.path = []
-
-    def follow_path(self):
-        if not self.path:
-            return
-
-        target = self.path[0]
-        target_angle = math.atan2(target[1] - self.y, target[0] - self.x)
-        angle_diff = target_angle - self.yaw
-        angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))
-
-        # Logs pour diagnostic
-        print(f"[DEBUG] Target: {target}, Current Position: ({self.x}, {self.y}), Yaw: {self.yaw}")
-        print(f"[DEBUG] Target Angle: {target_angle}, Angle Difference: {angle_diff}")
-
-        # Vérification des obstacles proches
-        if self.scan_data and min(self.scan_data.ranges) < 0.5:  # Limite de 0.5 m pour les obstacles
-            print("[WARN] Obstacle detected! Stopping motion.")
-            self.publish_velocity(0.0, 0.0)  # Arrêter le robot
-            return
-
-        # Rotation pour alignement
-        if abs(angle_diff) > 0.3:  # Tolérance angulaire augmentée
-            angular_speed = max(min(angle_diff * 2, 1.5), -1.5)  # Rotation plus rapide
-            self.publish_velocity(0.05, angular_speed)  # Réduire la vitesse linéaire pendant la rotation
-
-        # Translation directe si alignement acceptable
-        elif heuristic((self.x, self.y), target) > TARGET_ERROR:
-            print(f"[INFO] Moving towards target: {target}")
-            self.publish_velocity(SPEED, 0.0)
-
-        # Arrêt à la cible
-        else:
-            print(f"[INFO] Reached target: {target}")
-            self.path.pop(0)
+            print("[WARN] No valid path found.")
+            self.path = None
 
 
-
-    def publish_velocity(self, linear, angular):
-        twist = Twist()
-        twist.linear.x = max(min(linear, 0.5), -0.5)
-        twist.angular.z = max(min(angular, 1.0), -1.0)
-        self.cmd_vel_pub.publish(twist)
-        print(f"[DEBUG] Publishing velocity: linear={twist.linear.x}, angular={twist.angular.z}")
+    def is_goal_reached(self):
+        if self.path and len(self.path) == 0:
+            return True
+        return False
 
 
     def map_callback(self, msg):
         self.map_data = msg
-        self.resolution = msg.info.resolution
-        self.originX = msg.info.origin.position.x
-        self.originY = msg.info.origin.position.y
-        self.width = msg.info.width
-        self.height = msg.info.height
-        self.data = np.array(msg.data).reshape((self.height, self.width))
+        print("[DEBUG] Map data updated.")
 
     def odom_callback(self, msg):
         self.odom_data = msg
         self.x = msg.pose.pose.position.x
         self.y = msg.pose.pose.position.y
-        self.yaw = euler_from_quaternion(
-            msg.pose.pose.orientation.x, msg.pose.pose.orientation.y,
-            msg.pose.pose.orientation.z, msg.pose.pose.orientation.w
-        )
-        print(f"[DEBUG] Odometry updated: x={self.x}, y={self.y}, yaw={self.yaw}")
+        self.yaw = euler_from_quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y,
+                                         msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
+        print(f"[DEBUG] Odom updated: x={self.x}, y={self.y}, yaw={self.yaw}")
 
     def scan_callback(self, msg):
         self.scan_data = msg
-        min_distance = min(msg.ranges)
-        print(f"[DEBUG] Closest obstacle distance: {min_distance}")
+        print("[DEBUG] LaserScan updated.")
+
+    def pure_pursuit(self):
+        if not self.path or len(self.path) == 0:
+            return 0.0, 0.0  # Pas de chemin, arrêt
+
+        target = self.path[0]
+        target_angle = math.atan2(target[1] - self.y, target[0] - self.x)
+        angle_diff = target_angle - self.yaw
+        angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))  # Normaliser l'angle
+
+        if abs(angle_diff) > 0.5:  # Rotation si nécessaire
+            return 0.0, max(min(angle_diff * 2.0, 1.0), -1.0)
+        elif heuristic((self.x, self.y), target) > target_error:  # Avance vers la cible
+            return speed, 0.0
+        else:  # Supprime le point atteint
+            self.path.pop(0)
+            return 0.0, 0.0
+
+
+
 
 def main(args=None):
     rclpy.init(args=args)
-    node = AutonomousExploration()
+    node = NavigationControl()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
