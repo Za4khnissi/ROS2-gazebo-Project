@@ -1,3 +1,12 @@
+export interface MissionLog {
+  robotId: string;
+  event: string;
+  level: string;
+  message: string;
+  timestamp: Date;
+}
+
+
 export interface ApiMissionResponse {
   statusCode: number;
   missions: MissionModel[];
@@ -20,4 +29,5 @@ export interface MissionModel {
       data: number[];
     };
   };
+  logs: MissionLog[];
 }

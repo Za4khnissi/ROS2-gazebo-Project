@@ -19,6 +19,24 @@ export class HistoryComponent {
   selectedMapData: any;
   searchTerm: string = ''; // Search term for filtering
 
+  selectedMission: MissionModel | null = null;
+  isPopupVisible: boolean = false;
+  activeTab: 'details' | 'logs' | 'map' = 'details';
+
+  openPopup(mission: MissionModel): void {
+    this.selectedMission = mission;
+    this.isPopupVisible = true;
+    this.activeTab = 'details';
+    if (mission.mapData) {
+      this.drawPopupMap(mission.mapData);
+    }
+  }
+
+  closePopup(): void {
+    this.selectedMission = null;
+    this.isPopupVisible = false;
+  }
+
   constructor(private robotService: RobotService) {}
 
   ngOnInit(): void {
@@ -37,32 +55,14 @@ export class HistoryComponent {
     );
   }
 
-  onMapClick(missionId: string) {
-    const mission = this.missions.find(m => m._id === missionId);
-    console.log("Mission sélectionnée:", mission);  
-    
-    if (mission && mission.mapData) {
-      this.selectedMapData = mission.mapData;
-      this.drawMap();
-    } else {
-      console.warn(`Aucune donnée de carte disponible pour la mission avec l'ID : ${missionId}`);
-    }
-  }
 
-  private drawMap() {
-    console.log("Dessin de la carte avec les données:", this.selectedMapData);
-    if (!this.selectedMapData || !this.selectedMapData.info || !this.selectedMapData.data) return;
-
-    const canvas = document.getElementById('mapCanvas') as HTMLCanvasElement;
-    if (!canvas) return;
+  private drawPopupMap(mapData: any): void {
+    const canvas = document.getElementById('mapPopupCanvas') as HTMLCanvasElement;
+    if (!canvas || !mapData || !mapData.info || !mapData.data) return;
 
     const ctx = canvas.getContext('2d')!;
-    const { width, height } = this.selectedMapData.info;
-    const data = this.selectedMapData.data;
-    if (!data || data.length === 0) {
-      console.warn("Les données de carte sont vides ou non définies.");
-      return;
-    }
+    const { width, height } = mapData.info;
+    const data = mapData.data;
 
     canvas.width = width;
     canvas.height = height;
@@ -72,17 +72,17 @@ export class HistoryComponent {
       const value = data[i];
       const idx = i * 4;
 
-      if (value === -1) { 
+      if (value === -1) {
         imageData.data[idx] = 128;
         imageData.data[idx + 1] = 128;
         imageData.data[idx + 2] = 128;
         imageData.data[idx + 3] = 255;
-      } else if (value === 0) { 
+      } else if (value === 0) {
         imageData.data[idx] = 255;
         imageData.data[idx + 1] = 255;
         imageData.data[idx + 2] = 255;
         imageData.data[idx + 3] = 255;
-      } else { 
+      } else {
         const intensity = Math.floor(255 * (1 - value / 100));
         imageData.data[idx] = intensity;
         imageData.data[idx + 1] = intensity;
