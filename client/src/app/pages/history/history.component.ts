@@ -10,37 +10,23 @@ import { SortingInterface } from './sortingInterface';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './history.component.html',
-  styleUrls: ['./history.component.css']
+  styleUrls: ['./history.component.css'],
 })
 export class HistoryComponent {
   missions: MissionModel[] = [];
-  columns: Array<keyof MissionModel> = ['dateDebut', 'isPhysical', 'duration', 'totalDistance', 'mapData'];
+  columns: Array<keyof MissionModel> = ['dateDebut', 'isPhysical', 'duration', 'totalDistance'];
   sorting: SortingInterface = { column: 'dateDebut', order: 'desc' };
-  selectedMapData: any;
+  selectedMapData: any = null;
   searchTerm: string = ''; // Search term for filtering
 
   selectedMission: MissionModel | null = null;
   isPopupVisible: boolean = false;
   activeTab: 'details' | 'logs' | 'map' = 'details';
 
-  openPopup(mission: MissionModel): void {
-    this.selectedMission = mission;
-    this.isPopupVisible = true;
-    this.activeTab = 'details';
-    if (mission.mapData) {
-      this.drawPopupMap(mission.mapData);
-    }
-  }
-
-  closePopup(): void {
-    this.selectedMission = null;
-    this.isPopupVisible = false;
-  }
-
   constructor(private robotService: RobotService) {}
 
   ngOnInit(): void {
-   this.fetchMissions();
+    this.fetchMissions();
   }
 
   fetchMissions(): void {
@@ -55,34 +41,56 @@ export class HistoryComponent {
     );
   }
 
+  openPopup(mission: MissionModel): void {
+    this.selectedMission = mission;
+    this.isPopupVisible = true;
+    this.activeTab = 'map'; 
+  
+    if (mission.mapData && mission.mapData.info) {
+      this.selectedMapData = mission.mapData;
+      setTimeout(() => this.drawMap(mission.mapData), 0);
+    } else {
+      console.warn(`Aucune donnée de carte disponible pour la mission avec l'ID : ${mission._id}`);
+      this.selectedMapData = null;
+    }
+  }
+  
 
-  private drawPopupMap(mapData: any): void {
+  closePopup(): void {
+    this.selectedMission = null;
+    this.isPopupVisible = false;
+    this.selectedMapData = null;
+  }
+
+  private drawMap(mapData: any): void {
     const canvas = document.getElementById('mapPopupCanvas') as HTMLCanvasElement;
-    if (!canvas || !mapData || !mapData.info || !mapData.data) return;
-
+    if (!canvas) {
+      console.error("Canvas introuvable.");
+      return;
+    }
     const ctx = canvas.getContext('2d')!;
     const { width, height } = mapData.info;
     const data = mapData.data;
-
+  
     canvas.width = width;
     canvas.height = height;
-
+  
     const imageData = ctx.createImageData(width, height);
     for (let i = 0; i < data.length; i++) {
       const value = data[i];
       const idx = i * 4;
-
-      if (value === -1) {
+  
+      if (value === -1) { 
         imageData.data[idx] = 128;
         imageData.data[idx + 1] = 128;
         imageData.data[idx + 2] = 128;
         imageData.data[idx + 3] = 255;
-      } else if (value === 0) {
+      } else if (value === 0) { 
         imageData.data[idx] = 255;
         imageData.data[idx + 1] = 255;
         imageData.data[idx + 2] = 255;
         imageData.data[idx + 3] = 255;
-      } else {
+      } else { 
         const intensity = Math.floor(255 * (1 - value / 100));
         imageData.data[idx] = intensity;
         imageData.data[idx + 1] = intensity;
@@ -90,22 +98,20 @@ export class HistoryComponent {
         imageData.data[idx + 3] = 255;
       }
     }
-
+  
     ctx.putImageData(imageData, 0, 0);
   }
+  
 
-  // Method to filter missions based on searchTerm
   filteredMissions() {
     const searchTerm = this.searchTerm.toLowerCase();
-  
-    return this.missions.filter(mission => {
-      // Convertir chaque valeur en chaîne de caractères pour éviter les erreurs de comparaison
+
+    return this.missions.filter((mission) => {
       const dateString = mission.dateDebut ? mission.dateDebut.toString().toLowerCase() : '';
       const isPhysicalString = mission.isPhysical ? 'physique' : 'simulation';
       const durationString = mission.duration ? mission.duration.toString() : '';
       const distanceString = mission.totalDistance ? mission.totalDistance.toString() : '';
-  
-      // Vérifier si le terme de recherche est contenu dans l'un des champs
+
       return (
         dateString.includes(searchTerm) ||
         isPhysicalString.includes(searchTerm) ||
@@ -134,19 +140,29 @@ export class HistoryComponent {
     this.fetchMissions();
   }
 
+  private redrawMap(): void {
+    if (this.activeTab === 'map' && this.selectedMapData) {
+      setTimeout(() => this.drawMap(this.selectedMapData), 0); 
+    }
+  }
+
+  setActiveTab(tab: 'details' | 'logs' | 'map'): void {
+    this.activeTab = tab;
+    this.redrawMap(); 
+  }
+
   sortMissions(): void {
     const { column, order } = this.sorting;
-  
+
     this.missions.sort((a, b) => {
       let valueA: any = a[column as keyof MissionModel];
       let valueB: any = b[column as keyof MissionModel];
-  
-      // Assurez-vous que les valeurs sont comparables (par exemple, les dates doivent être comparées correctement)
+
       if (typeof valueA === 'string') {
         valueA = valueA.toLowerCase();
         valueB = valueB.toLowerCase();
       }
-  
+
       if (order === 'asc') {
         return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
       } else {
