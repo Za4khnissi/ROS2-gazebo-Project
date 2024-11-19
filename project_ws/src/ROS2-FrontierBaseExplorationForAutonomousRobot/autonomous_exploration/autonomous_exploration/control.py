@@ -141,25 +141,21 @@ class NavigationControl(Node):
         stuck_count = 0
 
         while True:
-            # Vérifiez que toutes les données nécessaires sont disponibles
             if not all([self.map_data, self.odom_data, self.scan_data]):
-                time.sleep(0.05)  # Réduire le temps d'attente
+                time.sleep(0.05)  
                 continue
 
             if self.kesif:
                 print("[INFO] Exploration active.")
 
-                # Générer un nouveau chemin si nécessaire
                 if self.path is None or len(self.path) == 0:
                     print("[DEBUG] Generating new path.")
                     self.generate_path()
 
-                # Vérifier si le robot a atteint son objectif
                 if self.path and self.is_goal_reached():
                     print("[INFO] Goal reached.")
                     self.kesif = False
                 else:
-                    # Vérifiez si le robot est bloqué
                     if abs(self.x - last_position[0]) < 0.01 and abs(self.y - last_position[1]) < 0.01:
                         stuck_count += 1
                     else:
@@ -167,26 +163,25 @@ class NavigationControl(Node):
 
                     last_position = [self.x, self.y]
 
-                    if stuck_count > 10:  # Si bloqué pendant plusieurs cycles
+                    if stuck_count > 10:  
                         print("[WARN] Robot stuck, applying aggressive turn.")
                         twist.linear.x = 0.0
-                        twist.angular.z = math.pi / 2  # Rotation de 90°
+                        twist.angular.z = math.pi / 2  
                         self.cmd_vel_pub.publish(twist)
-                        stuck_count = 0  # Réinitialise le compteur
-                        time.sleep(1.0)  # Attendre que la rotation soit complète
+                        stuck_count = 0  
+                        time.sleep(1.0)  
                         continue
 
-                    # Appliquer le contrôle local ou poursuivre un chemin
+                    
                     v, w = localControl(self.scan_data.ranges)
                     if v is None:  # Si aucun obstacle n'est détecté localement
                         v, w = self.pure_pursuit()
 
-                    # Publier les commandes au robot
                     twist.linear.x = v
                     twist.angular.z = w
                     self.cmd_vel_pub.publish(twist)
 
-                    # Réduire le délai pour un cycle plus rapide
+                    
                     time.sleep(0.05)
 
 
@@ -196,7 +191,6 @@ class NavigationControl(Node):
         if not self.map_data:
             return
 
-        # Conversion des données de la carte en format numpy
         data = np.array(self.map_data.data).reshape((self.map_data.info.height, self.map_data.info.width))
         row = int((self.x - self.map_data.info.origin.position.x) / self.map_data.info.resolution)
         col = int((self.y - self.map_data.info.origin.position.y) / self.map_data.info.resolution)
@@ -208,10 +202,8 @@ class NavigationControl(Node):
             self.path = None
             return
 
-        # Trouver la frontière la plus proche
         closest_frontier = min(frontiers, key=lambda f: heuristic((row, col), f))
 
-        # Calculer le chemin avec A*
         goal = tuple(closest_frontier)
         start = (row, col)
         path = astar(data, start, goal)
@@ -254,13 +246,13 @@ class NavigationControl(Node):
         target = self.path[0]
         target_angle = math.atan2(target[1] - self.y, target[0] - self.x)
         angle_diff = target_angle - self.yaw
-        angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))  # Normaliser l'angle
+        angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))  
 
-        if abs(angle_diff) > 0.5:  # Rotation si nécessaire
-            return 0.0, max(min(angle_diff * 1.5, 1.0), -1.0)  # Réduction du facteur multiplicatif
-        elif heuristic((self.x, self.y), target) > target_error:  # Avance vers la cible
-            return speed, max(min(angle_diff * 0.5, 0.5), -0.5)  # Ajout d'une petite correction angulaire
-        else:  # Supprime le point atteint
+        if abs(angle_diff) > 0.5:  
+            return 0.0, max(min(angle_diff * 1.5, 1.0), -1.0) 
+        elif heuristic((self.x, self.y), target) > target_error:  
+            return speed, max(min(angle_diff * 0.5, 0.5), -0.5)  
+        else:  
             self.path.pop(0)
             return 0.0, 0.0
 
