@@ -22,11 +22,11 @@ slam_toolbox:
     # map_start_at_dock: true
 
     debug_logging: false
-    throttle_scans: 1  # Adjust based on performance and scan rate
+    throttle_scans: 2  # Adjust based on performance and scan rate
     transform_publish_period: 0.02  # If set to 0, odometry is not published
-    map_update_interval: 5.0
-    resolution: 0.05
-    min_laser_range: 0.01  # Updated to match YDLIDAR's range_min
+    map_update_interval: 10.0
+    resolution: 0.03
+    min_laser_range: 0.1  # Updated to match YDLIDAR's range_min
     max_laser_range: 12.0  # Updated to match YDLIDAR's range_max
     minimum_time_interval: 0.5
     transform_timeout: 0.2

@@ -93,38 +93,40 @@ def preprocess_scan(scan):
 
 def localControl(scan):
     """Évite les obstacles locaux et ajuste la vitesse."""
-    # Prétraitement des données du scan
-    scan = preprocess_scan(scan)
+    front_ranges = [r for r in scan[0:30] + scan[330:360] if r > 0.1]
+    side_ranges = [r for r in scan[60:120] + scan[240:300] if r > 0.1]
+    
+    min_front = min(front_ranges) if front_ranges else float('inf')
+    min_side = min(side_ranges) if side_ranges else float('inf')
 
-    # Vérification des zones critiques à l'avant
-    front_ranges = scan[0:30] + scan[330:360]
-    min_front = min(front_ranges)
+    print(f"[DEBUG] LaserScan min_front = {min_front}, min_side = {min_side}")
 
-    print(f"[DEBUG] LaserScan min_front = {min_front}")
-
+    # Si un obstacle est très proche à l'avant, arrêter et tourner
     if min_front < robot_r + 0.1:
         print("[DEBUG] Obstacle très proche, stop et tourne.")
-        return 0.0, math.pi / 4  # Tourne lentement
+        return 0.0, 1.0  # Tourne à gauche
 
-    if min_front < robot_r + 0.2:
-        adjusted_speed = max(speed * (min_front / (robot_r + 0.2)), 0.2)  
-        print(f"[DEBUG] Obstacle modéré, adjusted_speed = {adjusted_speed}")
-        return adjusted_speed, 0.0  
+    # Si un obstacle est détecté sur le côté, ajuster la direction
+    if min_side < robot_r + 0.2:
+        print("[DEBUG] Obstacle sur le côté, ajustement de direction.")
+        return speed * 0.5, 1.0 if scan[60] < scan[300] else -1.0
 
+    # Aucun obstacle détecté, avancer à pleine vitesse
     print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
-    return max(speed, 0.3), 0.0  
+    return speed, 0.0
+
 
 
 class NavigationControl(Node):
     def __init__(self):
         super().__init__('exploration_node')
 
-        self.map_sub = self.create_subscription(OccupancyGrid, '/limo_105_1/map', self.map_callback, 10)
-        self.odom_sub = self.create_subscription(Odometry, '/limo_105_1/odom', self.odom_callback, 10)
-        self.scan_sub = self.create_subscription(LaserScan, '/limo_105_1/scan', self.scan_callback, qos_profile_sensor_data)
-        self.resume_sub = self.create_subscription(Int8, '/limo_105_1/explore/resume', self.resume_callback, 10)
+        self.map_sub = self.create_subscription(OccupancyGrid, '/limo_105_3/map', self.map_callback, 10)
+        self.odom_sub = self.create_subscription(Odometry, '/limo_105_3/odom', self.odom_callback, 10)
+        self.scan_sub = self.create_subscription(LaserScan, '/limo_105_3/scan', self.scan_callback, qos_profile_sensor_data)
+        self.resume_sub = self.create_subscription(Int8, '/limo_105_3/explore/resume', self.resume_callback, 10)
 
-        self.cmd_vel_pub = self.create_publisher(Twist, '/limo_105_1/cmd_vel', 10)
+        self.cmd_vel_pub = self.create_publisher(Twist, '/limo_105_3/cmd_vel', 10)
 
         # Variables d'état
         self.kesif = True
@@ -192,13 +194,14 @@ class NavigationControl(Node):
                     last_position = [self.x, self.y]
 
                     if stuck_count > 10:  
-                        print("[WARN] Robot stuck, applying aggressive turn.")
-                        twist.linear.x = 0.0
-                        twist.angular.z = math.pi / 2  
+                        print("[WARN] Robot stuck, reculer et tourner.")
+                        twist.linear.x = -0.1  # Reculer légèrement
+                        twist.angular.z = 1.0  # Tourner
                         self.cmd_vel_pub.publish(twist)
                         stuck_count = 0  
                         time.sleep(1.0)  
                         continue
+
 
                     
                     v, w = localControl(self.scan_data.ranges)
