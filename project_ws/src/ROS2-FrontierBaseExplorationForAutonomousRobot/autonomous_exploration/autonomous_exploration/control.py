@@ -10,7 +10,7 @@ from rclpy.qos import qos_profile_sensor_data
 
 # Paramètres globaux
 lookahead_distance = 0.5 #0.24 initially
-speed = 0.5  #0.05 initially
+speed = 0.1  #0.05 initially
 expansion_size = 3
 target_error = 0.05  
 robot_r = 0.3
@@ -87,7 +87,7 @@ def localControl(scan):
     # Aucun obstacle détecté, avancer à pleine vitesse
     print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
     return speed, 0.0
-    
+
 def preprocess_scan(scan):
     """Prétraite les données de LaserScan pour éviter les valeurs aberrantes."""
     return [max(min(r, 10.0), 0.05) for r in scan]
