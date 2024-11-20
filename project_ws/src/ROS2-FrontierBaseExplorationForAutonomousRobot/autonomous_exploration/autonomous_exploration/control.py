@@ -64,7 +64,7 @@ def astar(array, start, goal):
     return False
 
 
-def localControlV2(scan):
+def localControl(scan):
     """Évite les obstacles locaux et ajuste la vitesse."""
     # Vérification des zones critiques à l'avant
     front_ranges = scan[0:30] + scan[330:360]
@@ -87,11 +87,12 @@ def localControlV2(scan):
     # Aucun obstacle détecté, avancer à pleine vitesse
     print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
     return speed, 0.0
+    
 def preprocess_scan(scan):
     """Prétraite les données de LaserScan pour éviter les valeurs aberrantes."""
     return [max(min(r, 10.0), 0.05) for r in scan]
 
-def localControl(scan):
+def localControlV2(scan):
     """Évite les obstacles locaux et ajuste la vitesse en fonction des données LiDAR."""
     # Filtrer les données invalides
     front_ranges = [r for r in scan[0:30] + scan[330:360] if 0.1 < r < 12.0]
