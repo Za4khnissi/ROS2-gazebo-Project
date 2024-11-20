@@ -66,21 +66,22 @@ def astar(array, start, goal):
 
 def localControl(scan):
     """Évite les obstacles locaux et ajuste la vitesse."""
-    # Vérification des zones critiques à l'avant
-    front_ranges = scan[0:30] + scan[330:360]
-    ## for debug front_ranges = [r for r in (scan[0:30] + scan[330:360]) if r > 0.05]
-    min_front = min(front_ranges)
+    # Filtrer les données pour ignorer les valeurs aberrantes
+    filtered_ranges = [r if r > 0.1 else float('inf') for r in (scan[0:30] + scan[330:360])]
 
-    print(f"[DEBUG] LaserScan min_front = {min_front}")
+    # Vérifier les zones critiques à l'avant
+    min_front = min(filtered_ranges)  # Distance minimale détectée après filtration
+
+    print(f"[DEBUG] LaserScan min_front après filtration = {min_front}")
 
     # Si un obstacle est détecté dans une zone critique
     if min_front < robot_r + 0.1:
         print("[DEBUG] Obstacle très proche, stop et tourne.")
-        return 0.0, max(min(math.pi / 2, 1.5), -1.5)  # Tourne rapidement
+        return 0.0, 1.0  # Stoppe et tourne sur place
 
     # Si un obstacle est détecté à une distance modérée, ralentir
-    if min_front < robot_r + 0.2:
-        adjusted_speed = max(speed * (min_front / (robot_r + 0.2)), 0.1)
+    if min_front < robot_r + 0.5:  # Augmente la marge pour mieux détecter
+        adjusted_speed = max(speed * (min_front / (robot_r + 0.5)), 0.1)
         print(f"[DEBUG] Obstacle modéré, adjusted_speed = {adjusted_speed}")
         return adjusted_speed, 0.0  # Ajuste la vitesse en fonction de la distance
 
@@ -88,43 +89,6 @@ def localControl(scan):
     print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
     return speed, 0.0
 
-def preprocess_scan(scan):
-    """Prétraite les données de LaserScan pour éviter les valeurs aberrantes."""
-    return [max(min(r, 10.0), 0.05) for r in scan]
-
-def localControlV2(scan):
-    """Évite les obstacles locaux et ajuste la vitesse en fonction des données LiDAR."""
-    # Filtrer les données invalides
-    front_ranges = [r for r in scan[0:30] + scan[330:360] if 0.1 < r < 12.0]
-    left_ranges = [r for r in scan[60:120] if 0.1 < r < 12.0]
-    right_ranges = [r for r in scan[240:300] if 0.1 < r < 12.0]
-
-    # Vérifier si aucune donnée valide n'est détectée
-    if not front_ranges and not left_ranges and not right_ranges:
-        print("[DEBUG] Aucune donnée valide du LiDAR. Avance par défaut.")
-        return speed, 0.0  # Avancer par défaut
-
-    # Minima des distances détectées
-    min_front = min(front_ranges) if front_ranges else float('inf')
-    min_left = min(left_ranges) if left_ranges else float('inf')
-    min_right = min(right_ranges) if right_ranges else float('inf')
-
-    # Cas : Obstacle très proche à l'avant
-    if min_front < robot_r + 0.1:
-        print("[DEBUG] Obstacle très proche devant, arrêt et rotation.")
-        return 0.0, 1.0  # Tourner à gauche
-
-    # Cas : Obstacle détecté à gauche ou à droite
-    if min_left < robot_r + 0.3:
-        print("[DEBUG] Obstacle détecté à gauche, ajustement vers la droite.")
-        return speed * 0.5, -1.0
-    if min_right < robot_r + 0.3:
-        print("[DEBUG] Obstacle détecté à droite, ajustement vers la gauche.")
-        return speed * 0.5, 1.0
-
-    # Aucun obstacle détecté, avancer
-    print("[DEBUG] Aucun obstacle détecté, avance à pleine vitesse.")
-    return speed, 0.0
 
 
 
