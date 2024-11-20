@@ -66,24 +66,23 @@ def astar(array, start, goal):
 
 def localControl(scan):
     """Évite les obstacles locaux et ajuste la vitesse."""
-    # Filtrer les données pour ignorer les valeurs aberrantes
     filtered_ranges = [r if r > 0.1 else float('inf') for r in (scan[0:30] + scan[330:360])]
 
-    # Vérifier les zones critiques à l'avant
-    min_front = min(filtered_ranges)  # Distance minimale détectée après filtration
+   
+    min_front = min(filtered_ranges)  
 
     print(f"[DEBUG] LaserScan min_front après filtration = {min_front}")
 
-    # Si un obstacle est détecté dans une zone critique
+   
     if min_front < robot_r + 0.1:
         print("[DEBUG] Obstacle très proche, stop et tourne.")
         return 0.0, 1.0  # Stoppe et tourne sur place
 
-    # Si un obstacle est détecté à une distance modérée, ralentir
-    if min_front < robot_r + 0.5:  # Augmente la marge pour mieux détecter
+   
+    if min_front < robot_r + 0.5: 
         adjusted_speed = max(speed * (min_front / (robot_r + 0.5)), 0.1)
         print(f"[DEBUG] Obstacle modéré, adjusted_speed = {adjusted_speed}")
-        return adjusted_speed, 0.0  # Ajuste la vitesse en fonction de la distance
+        return adjusted_speed, 0.0  
 
     # Aucun obstacle détecté, avancer à pleine vitesse
     print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
@@ -141,87 +140,74 @@ class NavigationControl(Node):
 
 
     def explore(self):
-        """Boucle principale de l'exploration."""
-        twist = Twist()
-        last_position = [self.x, self.y]
-        stuck_count = 0
+    """Boucle principale d'exploration."""
+    twist = Twist()
+    last_position = [self.x, self.y]
+    stuck_count = 0
 
-        while True:
-            if not all([self.map_data, self.odom_data, self.scan_data]):
-                time.sleep(0.05)  
-                continue
+    while True:
+        if not all([self.map_data, self.odom_data, self.scan_data]):
+            time.sleep(0.05)  
+            continue
 
-            if self.kesif:
-                print("[INFO] Exploration active.")
+        if self.kesif:
+            print("[INFO] Exploration active.")
 
-                if self.path is None or len(self.path) == 0:
-                    print("[DEBUG] Generating new path.")
-                    self.generate_path()
+            # Planification globale si nécessaire
+            if self.path is None or len(self.path) == 0:
+                print("[DEBUG] Génération d'un nouveau chemin avec la carte.")
+                self.generate_path()
 
-                if self.path and self.is_goal_reached():
-                    print("[INFO] Goal reached.")
-                    self.kesif = False
-                else:
-                    if abs(self.x - last_position[0]) < 0.01 and abs(self.y - last_position[1]) < 0.01:
-                        stuck_count += 1
-                    else:
-                        stuck_count = 0
+            if self.path and not self.is_goal_reached():
+                v, w = self.pure_pursuit()
+                print(f"[DEBUG] Suivi de chemin avec pure_pursuit: v={v}, w={w}")
+            else:
+                # Fallback vers LIDAR
+                print("[DEBUG] Aucun chemin, bascule sur le contrôle local.")
+                v, w = localControl(self.scan_data.ranges)
 
-                    last_position = [self.x, self.y]
+            # Publier les commandes
+            twist.linear.x = v
+            twist.angular.z = w
+            self.cmd_vel_pub.publish(twist)
 
-                    if stuck_count > 10:  
-                        print("[WARN] Robot stuck, reculer et tourner.")
-                        twist.linear.x = -0.1  # Reculer légèrement
-                        twist.angular.z = 1.0  # Tourner
-                        self.cmd_vel_pub.publish(twist)
-                        stuck_count = 0  
-                        time.sleep(1.0)  
-                        continue
+            time.sleep(0.05)
 
-
-                    
-                    v, w = localControl(self.scan_data.ranges)
-                    if v is None:  # Si aucun obstacle n'est détecté localement
-                        v, w = self.pure_pursuit()
-
-                    twist.linear.x = v
-                    twist.angular.z = w
-                    self.cmd_vel_pub.publish(twist)
-
-                    
-                    time.sleep(0.05)
 
 
 
 
     def generate_path(self):
         if not self.map_data:
+            print("[WARN] Aucune donnée de carte disponible pour la planification.")
             return
 
         data = np.array(self.map_data.data).reshape((self.map_data.info.height, self.map_data.info.width))
         row = int((self.x - self.map_data.info.origin.position.x) / self.map_data.info.resolution)
         col = int((self.y - self.map_data.info.origin.position.y) / self.map_data.info.resolution)
 
-        # Détecter les frontières
         frontiers = self.detect_frontiers(data)
         if len(frontiers) == 0:
-            print("[INFO] No more frontiers to explore.")
+            print("[INFO] Aucune frontière détectée. L'exploration est terminée.")
             self.path = None
             return
 
+        
         closest_frontier = min(frontiers, key=lambda f: heuristic((row, col), f))
 
-        goal = tuple(closest_frontier)
+       
         start = (row, col)
+        goal = tuple(closest_frontier)
         path = astar(data, start, goal)
 
         if path:
             self.path = [(p[1] * self.map_data.info.resolution + self.map_data.info.origin.position.x,
                         p[0] * self.map_data.info.resolution + self.map_data.info.origin.position.y) for p in path]
-            print("[INFO] New path generated.")
+            print(f"[INFO] Nouveau chemin généré vers {goal}.")
         else:
-            print("[WARN] No valid path found.")
+            print("[WARN] Aucun chemin valide trouvé.")
             self.path = None
+
 
 
     def is_goal_reached(self):
