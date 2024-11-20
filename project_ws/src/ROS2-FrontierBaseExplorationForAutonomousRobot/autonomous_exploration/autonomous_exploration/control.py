@@ -132,12 +132,12 @@ class NavigationControl(Node):
     def __init__(self):
         super().__init__('exploration_node')
 
-        self.map_sub = self.create_subscription(OccupancyGrid, '/limo_105_3/map', self.map_callback, 10)
-        self.odom_sub = self.create_subscription(Odometry, '/limo_105_3/odom', self.odom_callback, 10)
-        self.scan_sub = self.create_subscription(LaserScan, '/limo_105_3/scan', self.scan_callback, qos_profile_sensor_data)
-        self.resume_sub = self.create_subscription(Int8, '/limo_105_3/explore/resume', self.resume_callback, 10)
+        self.map_sub = self.create_subscription(OccupancyGrid, '/limo_105_1/map', self.map_callback, 10)
+        self.odom_sub = self.create_subscription(Odometry, '/limo_105_1/odom', self.odom_callback, 10)
+        self.scan_sub = self.create_subscription(LaserScan, '/limo_105_1/scan', self.scan_callback, qos_profile_sensor_data)
+        self.resume_sub = self.create_subscription(Int8, '/limo_105_1/explore/resume', self.resume_callback, 10)
 
-        self.cmd_vel_pub = self.create_publisher(Twist, '/limo_105_3/cmd_vel', 10)
+        self.cmd_vel_pub = self.create_publisher(Twist, '/limo_105_1/cmd_vel', 10)
 
         # Variables d'état
         self.kesif = True
