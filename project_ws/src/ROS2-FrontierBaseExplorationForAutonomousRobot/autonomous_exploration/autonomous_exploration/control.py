@@ -92,28 +92,39 @@ def preprocess_scan(scan):
     return [max(min(r, 10.0), 0.05) for r in scan]
 
 def localControl(scan):
-    """Évite les obstacles locaux et ajuste la vitesse."""
-    front_ranges = [r for r in scan[0:30] + scan[330:360] if r > 0.1]
-    side_ranges = [r for r in scan[60:120] + scan[240:300] if r > 0.1]
-    
+    """Évite les obstacles locaux et ajuste la vitesse en fonction des données LiDAR."""
+    # Filtrer les données invalides
+    front_ranges = [r for r in scan[0:30] + scan[330:360] if 0.1 < r < 12.0]
+    left_ranges = [r for r in scan[60:120] if 0.1 < r < 12.0]
+    right_ranges = [r for r in scan[240:300] if 0.1 < r < 12.0]
+
+    # Vérifier si aucune donnée valide n'est détectée
+    if not front_ranges and not left_ranges and not right_ranges:
+        print("[DEBUG] Aucune donnée valide du LiDAR. Avance par défaut.")
+        return speed, 0.0  # Avancer par défaut
+
+    # Minima des distances détectées
     min_front = min(front_ranges) if front_ranges else float('inf')
-    min_side = min(side_ranges) if side_ranges else float('inf')
+    min_left = min(left_ranges) if left_ranges else float('inf')
+    min_right = min(right_ranges) if right_ranges else float('inf')
 
-    print(f"[DEBUG] LaserScan min_front = {min_front}, min_side = {min_side}")
-
-    # Si un obstacle est très proche à l'avant, arrêter et tourner
+    # Cas : Obstacle très proche à l'avant
     if min_front < robot_r + 0.1:
-        print("[DEBUG] Obstacle très proche, stop et tourne.")
-        return 0.0, 1.0  # Tourne à gauche
+        print("[DEBUG] Obstacle très proche devant, arrêt et rotation.")
+        return 0.0, 1.0  # Tourner à gauche
 
-    # Si un obstacle est détecté sur le côté, ajuster la direction
-    if min_side < robot_r + 0.2:
-        print("[DEBUG] Obstacle sur le côté, ajustement de direction.")
-        return speed * 0.5, 1.0 if scan[60] < scan[300] else -1.0
+    # Cas : Obstacle détecté à gauche ou à droite
+    if min_left < robot_r + 0.3:
+        print("[DEBUG] Obstacle détecté à gauche, ajustement vers la droite.")
+        return speed * 0.5, -1.0
+    if min_right < robot_r + 0.3:
+        print("[DEBUG] Obstacle détecté à droite, ajustement vers la gauche.")
+        return speed * 0.5, 1.0
 
-    # Aucun obstacle détecté, avancer à pleine vitesse
-    print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
+    # Aucun obstacle détecté, avancer
+    print("[DEBUG] Aucun obstacle détecté, avance à pleine vitesse.")
     return speed, 0.0
+
 
 
 
