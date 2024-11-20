@@ -140,38 +140,38 @@ class NavigationControl(Node):
 
 
     def explore(self):
-    """Boucle principale d'exploration."""
-    twist = Twist()
-    last_position = [self.x, self.y]
-    stuck_count = 0
+        """Boucle principale d'exploration."""
+        twist = Twist()
+        last_position = [self.x, self.y]
+        stuck_count = 0
 
-    while True:
-        if not all([self.map_data, self.odom_data, self.scan_data]):
-            time.sleep(0.05)  
-            continue
+        while True:
+            if not all([self.map_data, self.odom_data, self.scan_data]):
+                time.sleep(0.05)  
+                continue
 
-        if self.kesif:
-            print("[INFO] Exploration active.")
+            if self.kesif:
+                print("[INFO] Exploration active.")
 
-            # Planification globale si nécessaire
-            if self.path is None or len(self.path) == 0:
-                print("[DEBUG] Génération d'un nouveau chemin avec la carte.")
-                self.generate_path()
+                # Planification globale si nécessaire
+                if self.path is None or len(self.path) == 0:
+                    print("[DEBUG] Génération d'un nouveau chemin avec la carte.")
+                    self.generate_path()
 
-            if self.path and not self.is_goal_reached():
-                v, w = self.pure_pursuit()
-                print(f"[DEBUG] Suivi de chemin avec pure_pursuit: v={v}, w={w}")
-            else:
-                # Fallback vers LIDAR
-                print("[DEBUG] Aucun chemin, bascule sur le contrôle local.")
-                v, w = localControl(self.scan_data.ranges)
+                if self.path and not self.is_goal_reached():
+                    v, w = self.pure_pursuit()
+                    print(f"[DEBUG] Suivi de chemin avec pure_pursuit: v={v}, w={w}")
+                else:
+                    # Fallback vers LIDAR
+                    print("[DEBUG] Aucun chemin, bascule sur le contrôle local.")
+                    v, w = localControl(self.scan_data.ranges)
 
-            # Publier les commandes
-            twist.linear.x = v
-            twist.angular.z = w
-            self.cmd_vel_pub.publish(twist)
+                # Publier les commandes
+                twist.linear.x = v
+                twist.angular.z = w
+                self.cmd_vel_pub.publish(twist)
 
-            time.sleep(0.05)
+                time.sleep(0.05)
 
 
 
