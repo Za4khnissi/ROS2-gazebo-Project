@@ -64,27 +64,55 @@ def astar(array, start, goal):
     return False
 
 
-def localControl(scan):
+def localControlV2(scan):
     """Évite les obstacles locaux et ajuste la vitesse."""
     # Vérification des zones critiques à l'avant
     front_ranges = scan[0:30] + scan[330:360]
+    ## for debug front_ranges = [r for r in (scan[0:30] + scan[330:360]) if r > 0.05]
     min_front = min(front_ranges)
+
+    print(f"[DEBUG] LaserScan min_front = {min_front}")
 
     # Si un obstacle est détecté dans une zone critique
     if min_front < robot_r + 0.1:
+        print("[DEBUG] Obstacle très proche, stop et tourne.")
         return 0.0, max(min(math.pi / 2, 1.5), -1.5)  # Tourne rapidement
 
     # Si un obstacle est détecté à une distance modérée, ralentir
     if min_front < robot_r + 0.2:
         adjusted_speed = max(speed * (min_front / (robot_r + 0.2)), 0.1)
+        print(f"[DEBUG] Obstacle modéré, adjusted_speed = {adjusted_speed}")
         return adjusted_speed, 0.0  # Ajuste la vitesse en fonction de la distance
 
     # Aucun obstacle détecté, avancer à pleine vitesse
+    print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
     return speed, 0.0
+def preprocess_scan(scan):
+    """Prétraite les données de LaserScan pour éviter les valeurs aberrantes."""
+    return [max(min(r, 10.0), 0.05) for r in scan]
 
+def localControl(scan):
+    """Évite les obstacles locaux et ajuste la vitesse."""
+    # Prétraitement des données du scan
+    scan = preprocess_scan(scan)
 
+    # Vérification des zones critiques à l'avant
+    front_ranges = scan[0:30] + scan[330:360]
+    min_front = min(front_ranges)
 
+    print(f"[DEBUG] LaserScan min_front = {min_front}")
 
+    if min_front < robot_r + 0.1:
+        print("[DEBUG] Obstacle très proche, stop et tourne.")
+        return 0.0, math.pi / 4  # Tourne lentement
+
+    if min_front < robot_r + 0.2:
+        adjusted_speed = max(speed * (min_front / (robot_r + 0.2)), 0.2)  
+        print(f"[DEBUG] Obstacle modéré, adjusted_speed = {adjusted_speed}")
+        return adjusted_speed, 0.0  
+
+    print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
+    return max(speed, 0.3), 0.0  
 
 
 class NavigationControl(Node):
