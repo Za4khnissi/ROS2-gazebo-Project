@@ -65,7 +65,7 @@ def generate_launch_description():
                               'launch','open_ydlidar_launch.py'))),
 
         TimerAction(
-            period=10.0,
+            period=15.0,
             actions=[
                 launch_ros.actions.Node(
                     package='slam_toolbox',
