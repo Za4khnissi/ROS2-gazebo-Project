@@ -3,7 +3,8 @@ from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid , Odometry
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
-from rclpy.qos import qos_profile_sensor_data
+#from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 import numpy as np
 import heapq , math , random , yaml
 import scipy.interpolate as si
@@ -333,7 +334,14 @@ class navigationControl(Node):
         # Create subscribers
         self.subscription = self.create_subscription(OccupancyGrid,'/limo_105_1/map',self.map_callback,10)
         self.subscription = self.create_subscription(Odometry,'/limo_105_1/odom',self.odom_callback,10)
-        self.subscription = self.create_subscription(LaserScan,'/limo_105_1/scan',self.scan_callback,qos_profile_sensor_data)
+        # Créez une politique QoS personnalisée
+        qos_profile = QoSProfile(
+        reliability=ReliabilityPolicy.BEST_EFFORT,  # Les données doivent être fiables
+        durability=DurabilityPolicy.VOLATILE,   # Les messages ne sont pas sauvegardés
+        depth=10                                # Taille de la file d'attente
+        )
+
+        self.subscription = self.create_subscription(LaserScan,'/limo_105_1/scan',self.scan_callback,qos_profile)
         self.resume_sub = self.create_subscription(Int8,'/limo_105_1/explore/resume',self.resume_callback,10)
         
         # Create publishers
