@@ -65,23 +65,33 @@ def astar(array, start, goal):
 
 
 def localControl(scan):
-    front_ranges = scan[0:30] + scan[330:360]
+    front_ranges = scan[0:30] + scan[330:360]  # Avant du robot
+    left_ranges = scan[60:120]  # Côté gauche
+    right_ranges = scan[240:300]  # Côté droit
+
     min_front = min(front_ranges)
+    min_left = min(left_ranges)
+    min_right = min(right_ranges)
 
+    # Évitement en fonction des distances
     if min_front < robot_r + 0.05:
-        print("[DEBUG] Obstacle critique détecté. Rotation rapide.")
-        return 0.0, 0.5
+        if min_left > min_right:
+            print("[DEBUG] Obstacle devant, tourner à gauche.")
+            return 0.0, 0.5  # Tourner à gauche
+        else:
+            print("[DEBUG] Obstacle devant, tourner à droite.")
+            return 0.0, -0.5  # Tourner à droite
 
-    elif robot_r + 0.05 <= min_front < robot_r + 0.2:
-        adjusted_speed = max(speed * (min_front / (robot_r + 0.2)), 0.05)
-        print(f"[DEBUG] Obstacle proche détecté. Avance lente : {adjusted_speed}")
-        return adjusted_speed, 0.1  # Tourne légèrement pour éviter de rester bloqué
+    elif min_left < robot_r + 0.1:
+        print("[DEBUG] Obstacle proche à gauche, tourner à droite.")
+        return speed, -0.2  # Éviter en tournant légèrement à droite
 
-    print(f"[DEBUG] Aucun obstacle critique détecté. Avance normale : {speed}")
-    return speed, 0.0
+    elif min_right < robot_r + 0.1:
+        print("[DEBUG] Obstacle proche à droite, tourner à gauche.")
+        return speed, 0.2  # Éviter en tournant légèrement à gauche
 
-
-
+    print("[DEBUG] Aucun obstacle critique, avancer.")
+    return speed, 0.0  # Avancer droit
 
 
 
@@ -218,6 +228,13 @@ class NavigationControl(Node):
         path = astar(data, start, goal)
 
         if path:
+            # Vérifiez que le chemin ne traverse pas d'obstacles
+            for p in path:
+                if data[p[0]][p[1]] == 1:  # 1 = obstacle
+                    print("[WARN] Chemin traverse un obstacle. Replanification.")
+                    self.path = None
+                    return
+
             self.path = [(p[1] * self.map_data.info.resolution + self.map_data.info.origin.position.x,
                         p[0] * self.map_data.info.resolution + self.map_data.info.origin.position.y) for p in path]
             print(f"[INFO] Nouveau chemin généré vers {goal}.")
@@ -225,11 +242,6 @@ class NavigationControl(Node):
             print("[WARN] Aucun chemin valide trouvé.")
             self.path = None
 
-
-    def is_goal_reached(self):
-        if self.path and len(self.path) == 0:
-            return True
-        return False
 
 
     def map_callback(self, msg):
@@ -245,10 +257,10 @@ class NavigationControl(Node):
         print(f"[DEBUG] Odom updated: x={self.x}, y={self.y}, yaw={self.yaw}")
 
     def scan_callback(self, msg):
-        # Corriger les valeurs 0.0 en les remplaçant par la portée maximale
         self.scan_data = msg
-        self.scan_data.ranges = [r if r > 0.0 else 12.0 for r in msg.ranges]
+        self.scan_data.ranges = [r if r > 0.01 else 10.0 for r in msg.ranges]  # Remplacez 0.0 par 10.0 (portée maximale)
         print("[DEBUG] LaserScan corrigé et mis à jour.")
+
 
 
     def pure_pursuit(self):
@@ -258,7 +270,7 @@ class NavigationControl(Node):
         target = self.path[0]
         target_angle = math.atan2(target[1] - self.y, target[0] - self.x)
         angle_diff = target_angle - self.yaw
-        angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))
+        angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))  # Normaliser entre -pi et pi
 
         distance_to_target = heuristic((self.x, self.y), target)
 
@@ -267,11 +279,16 @@ class NavigationControl(Node):
             print("[DEBUG] Proche du point cible. Passage au prochain.")
             return 0.0, 0.0
 
-        linear_speed = max(speed * (1 - abs(angle_diff) / math.pi), 0.05)
-        angular_speed = max(min(angle_diff, 1.0), -1.0)
+        # Réduisez la rotation pour éviter des angles trop importants
+        angular_speed = max(min(angle_diff * 1.5, 1.0), -1.0)
 
-        print(f"[DEBUG] Pure pursuit : distance={distance_to_target}, angle_diff={angle_diff}")
+        # Si l'angle est trop grand, arrêtez temporairement le déplacement linéaire
+        if abs(angle_diff) > 1.0:
+            return 0.0, angular_speed
+
+        linear_speed = max(speed * (1 - abs(angle_diff) / math.pi), 0.05)
         return linear_speed, angular_speed
+
 
 
 
