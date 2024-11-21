@@ -3,23 +3,23 @@ from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid , Odometry
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
-#from rclpy.qos import qos_profile_sensor_data
-from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 import numpy as np
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 import heapq , math , random , yaml
 import scipy.interpolate as si
-from std_msgs.msg import Int8
 import sys , threading , time
 
 
-lookahead_distance = 0.24
-speed = 0.05
-expansion_size = 3
-target_error = 0.15
-robot_r = 0.2
+with open("src/ROS2-FrontierBaseExplorationForAutonomousRobot/autonomous_exploration/autonomous_exploration/config/params.yaml", 'r') as file:
+    params = yaml.load(file, Loader=yaml.FullLoader)
+
+lookahead_distance = params["lookahead_distance"]
+speed = params["speed"]
+expansion_size = params["expansion_size"]
+target_error = params["target_error"]
+robot_r = params["robot_r"]
 
 pathGlobal = 0
-
 
 def euler_from_quaternion(x,y,z,w):
     t0 = +2.0 * (w * x + y * z)
@@ -331,23 +331,16 @@ def localControl(scan):
 class navigationControl(Node):
     def __init__(self):
         super().__init__('Exploration')
-        # Create subscribers
         self.subscription = self.create_subscription(OccupancyGrid,'/limo_105_1/map',self.map_callback,10)
         self.subscription = self.create_subscription(Odometry,'/limo_105_1/odom',self.odom_callback,10)
-        # Créez une politique QoS personnalisée
         qos_profile = QoSProfile(
         reliability=ReliabilityPolicy.BEST_EFFORT,  # Les données doivent être fiables
         durability=DurabilityPolicy.VOLATILE,   # Les messages ne sont pas sauvegardés
         depth=10                                # Taille de la file d'attente
         )
 
-        self.subscription = self.create_subscription(LaserScan,'/limo_105_1/scan',self.scan_callback,qos_profile)
-        self.resume_sub = self.create_subscription(Int8,'/limo_105_1/explore/resume',self.resume_callback,10)
-        
-        # Create publishers
+        self.subscription = self.create_subscription(LaserScan,'/limo_105_1/scan',self.scan_callback, qos_profile)
         self.publisher = self.create_publisher(Twist, '/limo_105_1/cmd_vel', 10)
-
-
         print("[BILGI] KESİF MODU AKTİF")
         self.kesif = True
         threading.Thread(target=self.exp).start() #Kesif fonksiyonunu thread olarak calistirir.
