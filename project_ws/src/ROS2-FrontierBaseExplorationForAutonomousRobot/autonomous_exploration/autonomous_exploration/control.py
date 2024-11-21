@@ -65,24 +65,21 @@ def astar(array, start, goal):
 
 
 def localControl(scan):
-    """Évite les obstacles locaux et ajuste la vitesse."""
     front_ranges = scan[0:30] + scan[330:360]
     min_front = min(front_ranges)
 
-    # Si un obstacle est critique (< 0.3 m), arrêter et tourner
     if min_front < robot_r + 0.05:
         print("[DEBUG] Obstacle critique détecté. Rotation rapide.")
-        return 0.0, 0.5  # Tourne rapidement
+        return 0.0, 0.5
 
-    # Si un obstacle est proche (entre 0.3 m et 0.5 m), avancer lentement
     elif robot_r + 0.05 <= min_front < robot_r + 0.2:
         adjusted_speed = max(speed * (min_front / (robot_r + 0.2)), 0.05)
         print(f"[DEBUG] Obstacle proche détecté. Avance lente : {adjusted_speed}")
-        return adjusted_speed, 0.0  # Avance lentement
+        return adjusted_speed, 0.1  # Tourne légèrement pour éviter de rester bloqué
 
-    # Si aucun obstacle critique, avancer à pleine vitesse
     print(f"[DEBUG] Aucun obstacle critique détecté. Avance normale : {speed}")
     return speed, 0.0
+
 
 
 
@@ -150,6 +147,10 @@ class NavigationControl(Node):
             if self.kesif:
                 print("[INFO] Exploration active.")
 
+                print(f"[DEBUG] Position actuelle : x={self.x}, y={self.y}, yaw={self.yaw}")
+                if self.path:
+                    print(f"[DEBUG] Cible actuelle : {self.path[0]}")
+
                 # Vérifiez si le robot est bloqué
                 if abs(self.x - last_position[0]) < 0.01 and abs(self.y - last_position[1]) < 0.01:
                     stuck_count += 1
@@ -159,14 +160,15 @@ class NavigationControl(Node):
                 last_position = [self.x, self.y]
 
                 # Si le robot est bloqué, appliquer une stratégie de déblocage
-                if stuck_count > 10:  # Si bloqué pendant plusieurs cycles
+                if stuck_count > 10:
                     print("[WARN] Robot bloqué. Reculer et tourner.")
-                    twist.linear.x = -0.05  # Reculer légèrement
-                    twist.angular.z = random.choice([-0.5, 0.5])  # Tourner dans une direction aléatoire
+                    twist.linear.x = -0.05
+                    twist.angular.z = random.choice([-0.5, 0.5])
                     self.cmd_vel_pub.publish(twist)
-                    stuck_count = 0  # Réinitialise le compteur
-                    time.sleep(1.0)  # Laisse le temps au mouvement
+                    stuck_count = 0
+                    time.sleep(1.0)
                     continue
+
 
 
                 # Planification globale si nécessaire
@@ -200,16 +202,17 @@ class NavigationControl(Node):
         row = int((self.x - self.map_data.info.origin.position.x) / self.map_data.info.resolution)
         col = int((self.y - self.map_data.info.origin.position.y) / self.map_data.info.resolution)
 
+        print(f"[DEBUG] Génération de chemin : position actuelle (row={row}, col={col})")
+
         frontiers = self.detect_frontiers(data)
         if len(frontiers) == 0:
             print("[INFO] Aucune frontière détectée. L'exploration est terminée.")
             self.path = None
             return
 
-        
         closest_frontier = min(frontiers, key=lambda f: heuristic((row, col), f))
+        print(f"[DEBUG] Frontière la plus proche : {closest_frontier}")
 
-       
         start = (row, col)
         goal = tuple(closest_frontier)
         path = astar(data, start, goal)
@@ -221,7 +224,6 @@ class NavigationControl(Node):
         else:
             print("[WARN] Aucun chemin valide trouvé.")
             self.path = None
-
 
 
     def is_goal_reached(self):
@@ -251,20 +253,26 @@ class NavigationControl(Node):
 
     def pure_pursuit(self):
         if not self.path or len(self.path) == 0:
-            return 0.0, 0.0  # Pas de chemin, arrêt
+            return 0.0, 0.0
 
         target = self.path[0]
         target_angle = math.atan2(target[1] - self.y, target[0] - self.x)
         angle_diff = target_angle - self.yaw
-        angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))  
+        angle_diff = math.atan2(math.sin(angle_diff), math.cos(angle_diff))
 
-        if abs(angle_diff) > 0.5:  
-            return 0.0, max(min(angle_diff * 1.5, 1.0), -1.0) 
-        elif heuristic((self.x, self.y), target) > target_error:  
-            return speed, max(min(angle_diff * 0.5, 0.5), -0.5)  
-        else:  
+        distance_to_target = heuristic((self.x, self.y), target)
+
+        if distance_to_target < target_error:
             self.path.pop(0)
+            print("[DEBUG] Proche du point cible. Passage au prochain.")
             return 0.0, 0.0
+
+        linear_speed = max(speed * (1 - abs(angle_diff) / math.pi), 0.05)
+        angular_speed = max(min(angle_diff, 1.0), -1.0)
+
+        print(f"[DEBUG] Pure pursuit : distance={distance_to_target}, angle_diff={angle_diff}")
+        return linear_speed, angular_speed
+
 
 
 

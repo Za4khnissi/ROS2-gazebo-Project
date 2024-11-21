@@ -27,7 +27,7 @@ slam_toolbox:
     map_update_interval: 0.5
     resolution: 0.05
     min_laser_range: 0.1  # Updated to match YDLIDAR's range_min
-    max_laser_range: 12.0  # Updated to match YDLIDAR's range_max
+    max_laser_range: 10.0  # Updated to match YDLIDAR's range_max
     minimum_time_interval: 0.5
     transform_timeout: 0.05
     tf_buffer_duration: 30.0
