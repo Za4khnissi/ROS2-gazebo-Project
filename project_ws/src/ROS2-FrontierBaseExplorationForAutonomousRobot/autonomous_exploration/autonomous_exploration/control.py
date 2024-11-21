@@ -66,27 +66,24 @@ def astar(array, start, goal):
 
 def localControl(scan):
     """Évite les obstacles locaux et ajuste la vitesse."""
-    filtered_ranges = [r if r > 0.1 else float('inf') for r in (scan[0:30] + scan[330:360])]
+    front_ranges = scan[0:30] + scan[330:360]
+    min_front = min(front_ranges)
 
-   
-    min_front = min(filtered_ranges)  
+    # Si un obstacle est critique (< 0.3 m), arrêter et tourner
+    if min_front < robot_r + 0.05:
+        print("[DEBUG] Obstacle critique détecté. Rotation rapide.")
+        return 0.0, math.pi / 2  # Tourne rapidement
 
-    print(f"[DEBUG] LaserScan min_front après filtration = {min_front}")
+    # Si un obstacle est proche (entre 0.3 m et 0.5 m), avancer lentement
+    elif robot_r + 0.05 <= min_front < robot_r + 0.2:
+        adjusted_speed = max(speed * (min_front / (robot_r + 0.2)), 0.05)
+        print(f"[DEBUG] Obstacle proche détecté. Avance lente : {adjusted_speed}")
+        return adjusted_speed, 0.0  # Avance lentement
 
-   
-    if min_front < robot_r + 0.1:
-        print("[DEBUG] Obstacle très proche, stop et tourne.")
-        return 0.0, 1.0  # Stoppe et tourne sur place
-
-   
-    if min_front < robot_r + 0.5: 
-        adjusted_speed = max(speed * (min_front / (robot_r + 0.5)), 0.1)
-        print(f"[DEBUG] Obstacle modéré, adjusted_speed = {adjusted_speed}")
-        return adjusted_speed, 0.0  
-
-    # Aucun obstacle détecté, avancer à pleine vitesse
-    print(f"[DEBUG] Aucun obstacle, avance à pleine vitesse = {speed}")
+    # Si aucun obstacle critique, avancer à pleine vitesse
+    print(f"[DEBUG] Aucun obstacle critique détecté. Avance normale : {speed}")
     return speed, 0.0
+
 
 
 
@@ -153,6 +150,24 @@ class NavigationControl(Node):
             if self.kesif:
                 print("[INFO] Exploration active.")
 
+                # Vérifiez si le robot est bloqué
+                if abs(self.x - last_position[0]) < 0.01 and abs(self.y - last_position[1]) < 0.01:
+                    stuck_count += 1
+                else:
+                    stuck_count = 0
+
+                last_position = [self.x, self.y]
+
+                # Si le robot est bloqué, appliquer une stratégie de déblocage
+                if stuck_count > 10:  # Si bloqué pendant plusieurs cycles
+                    print("[WARN] Robot bloqué. Reculer et tourner.")
+                    twist.linear.x = -0.05  # Reculer légèrement
+                    twist.angular.z = 0.5  # Tourner doucement
+                    self.cmd_vel_pub.publish(twist)
+                    stuck_count = 0  # Réinitialise le compteur
+                    time.sleep(1.0)  # Laisse le temps au mouvement
+                    continue
+
                 # Planification globale si nécessaire
                 if self.path is None or len(self.path) == 0:
                     print("[DEBUG] Génération d'un nouveau chemin avec la carte.")
@@ -172,8 +187,6 @@ class NavigationControl(Node):
                 self.cmd_vel_pub.publish(twist)
 
                 time.sleep(0.05)
-
-
 
 
 
@@ -229,8 +242,11 @@ class NavigationControl(Node):
         print(f"[DEBUG] Odom updated: x={self.x}, y={self.y}, yaw={self.yaw}")
 
     def scan_callback(self, msg):
+        # Corriger les valeurs 0.0 en les remplaçant par la portée maximale
         self.scan_data = msg
-        print("[DEBUG] LaserScan updated.")
+        self.scan_data.ranges = [r if r > 0.0 else 12.0 for r in msg.ranges]
+        print("[DEBUG] LaserScan corrigé et mis à jour.")
+
 
     def pure_pursuit(self):
         if not self.path or len(self.path) == 0:
