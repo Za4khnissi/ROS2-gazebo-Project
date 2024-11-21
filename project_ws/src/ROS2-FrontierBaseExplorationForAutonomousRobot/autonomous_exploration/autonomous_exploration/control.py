@@ -10,10 +10,10 @@ from rclpy.qos import qos_profile_sensor_data
 
 # Paramètres globaux
 lookahead_distance = 0.5 #0.24 initially
-speed = 0.1  #0.05 initially
+speed = 0.05  #0.05 initially
 expansion_size = 3
 target_error = 0.05  
-robot_r = 0.3
+robot_r = 0.2
 
 pathGlobal = 0
 
@@ -72,7 +72,7 @@ def localControl(scan):
     # Si un obstacle est critique (< 0.3 m), arrêter et tourner
     if min_front < robot_r + 0.05:
         print("[DEBUG] Obstacle critique détecté. Rotation rapide.")
-        return 0.0, math.pi / 2  # Tourne rapidement
+        return 0.0, 0.5  # Tourne rapidement
 
     # Si un obstacle est proche (entre 0.3 m et 0.5 m), avancer lentement
     elif robot_r + 0.05 <= min_front < robot_r + 0.2:
@@ -162,11 +162,12 @@ class NavigationControl(Node):
                 if stuck_count > 10:  # Si bloqué pendant plusieurs cycles
                     print("[WARN] Robot bloqué. Reculer et tourner.")
                     twist.linear.x = -0.05  # Reculer légèrement
-                    twist.angular.z = 0.5  # Tourner doucement
+                    twist.angular.z = random.choice([-0.5, 0.5])  # Tourner dans une direction aléatoire
                     self.cmd_vel_pub.publish(twist)
                     stuck_count = 0  # Réinitialise le compteur
                     time.sleep(1.0)  # Laisse le temps au mouvement
                     continue
+
 
                 # Planification globale si nécessaire
                 if self.path is None or len(self.path) == 0:
