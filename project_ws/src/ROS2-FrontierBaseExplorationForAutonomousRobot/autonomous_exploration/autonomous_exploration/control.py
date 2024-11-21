@@ -9,17 +9,14 @@ import scipy.interpolate as si
 import sys , threading , time
 
 
-#with open("src/autonomous_exploration/config/params.yaml", 'r') as file:
-#    params = yaml.load(file, Loader=yaml.FullLoader)
-
-lookahead_distance : 0.24 #one bakma mesafesi
-speed : 0.18 #maksimum hiz
-expansion_size : 3 #duvar genisletme katsayisi
-target_error : 0.15 #hedefe olan hata payi
-robot_r : 0.2 #lokal guvenlik icin robot mesafesi
-
+lookahead_distance = 0.24
+speed = 0.05
+expansion_size = 3
+target_error = 0.15
+robot_r = 0.2
 
 pathGlobal = 0
+
 
 def euler_from_quaternion(x,y,z,w):
     t0 = +2.0 * (w * x + y * z)
@@ -331,10 +328,16 @@ def localControl(scan):
 class navigationControl(Node):
     def __init__(self):
         super().__init__('Exploration')
+        # Create subscribers
         self.subscription = self.create_subscription(OccupancyGrid,'/limo_105_1/map',self.map_callback,10)
         self.subscription = self.create_subscription(Odometry,'/limo_105_1/odom',self.odom_callback,10)
-        self.subscription = self.create_subscription(LaserScan,'/limo_105_1/scan',self.scan_callback,10)
+        self.subscription = self.create_subscription(LaserScan,'/limo_105_1/scan',self.scan_callback,qos_profile_sensor_data)
+        self.resume_sub = self.create_subscription(Int8,'/limo_105_1/explore/resume',self.resume_callback,10)
+        
+        # Create publishers
         self.publisher = self.create_publisher(Twist, '/limo_105_1/cmd_vel', 10)
+
+
         print("[BILGI] KESİF MODU AKTİF")
         self.kesif = True
         threading.Thread(target=self.exp).start() #Kesif fonksiyonunu thread olarak calistirir.
