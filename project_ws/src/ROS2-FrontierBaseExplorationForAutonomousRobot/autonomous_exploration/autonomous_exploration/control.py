@@ -9,14 +9,15 @@ import scipy.interpolate as si
 import sys , threading , time
 
 
-with open("src/autonomous_exploration/config/params.yaml", 'r') as file:
-    params = yaml.load(file, Loader=yaml.FullLoader)
+#with open("src/autonomous_exploration/config/params.yaml", 'r') as file:
+#    params = yaml.load(file, Loader=yaml.FullLoader)
 
-lookahead_distance = params["lookahead_distance"]
-speed = params["speed"]
-expansion_size = params["expansion_size"]
-target_error = params["target_error"]
-robot_r = params["robot_r"]
+lookahead_distance : 0.24 #one bakma mesafesi
+speed : 0.18 #maksimum hiz
+expansion_size : 3 #duvar genisletme katsayisi
+target_error : 0.15 #hedefe olan hata payi
+robot_r : 0.2 #lokal guvenlik icin robot mesafesi
+
 
 pathGlobal = 0
 
