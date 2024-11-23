@@ -16,7 +16,10 @@ export class MissionController {
   async startMission(@Param('robotId') robotId: string) {
     const response = await this.rosService.startRobotMission(robotId);
     if (!response.success) {
-      return { statusCode: HttpStatus.NOT_FOUND, message: `Robot ${robotId} not found or mission start failed` };
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `Robot ${robotId} not found or mission start failed`,
+      };
     }
     return { statusCode: HttpStatus.OK, message: response.message };
   }
@@ -27,7 +30,10 @@ export class MissionController {
   async stopMission(@Param('robotId') robotId: string) {
     const response = await this.rosService.stopRobotMission(robotId);
     if (!response.success) {
-      return { statusCode: HttpStatus.NOT_FOUND, message: `Robot ${robotId} not found or mission stop failed` };
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `Robot ${robotId} not found or mission stop failed`,
+      };
     }
     return { statusCode: HttpStatus.OK, message: response.message };
   }

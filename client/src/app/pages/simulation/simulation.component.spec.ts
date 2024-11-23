@@ -7,6 +7,7 @@ import { of, throwError } from 'rxjs';
 describe('SimulationComponent', () => {
   let component: SimulationComponent;
   let simServiceSpy: jasmine.SpyObj<RobotService>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(() => {

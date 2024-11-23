@@ -1,33 +1,61 @@
-import { Controller, Post, Param, Body, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { RosService } from '../ros.service';
-import { ApiTags, ApiOperation, ApiOkResponse, ApiBadRequestResponse, ApiInternalServerErrorResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiBadRequestResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('Simulation')
-@Controller('robot')
+@Controller('simulation') // Updated to match Angular's expected route
 export class SimulationController {
   constructor(private readonly rosService: RosService) {}
 
-  @Post(':robotId/change_drive_mode')
-  @ApiOperation({ summary: 'Change drive mode for a specific robot during simulation' })
-  @ApiOkResponse({ description: 'Drive mode changed successfully' })
-  @ApiBadRequestResponse({ description: 'Bad Request: Invalid Robot ID or drive mode' })
-  @ApiInternalServerErrorResponse({ description: 'Internal Server Error: Failed to change drive mode' })
-  async changeDriveMode(
-    @Param('robotId') robotId: string,
-    @Body() body: { drive_mode: string }
-  ) {
-    const { drive_mode } = body;
-    
-    if (!drive_mode || !['diff_drive', 'ackermann'].includes(drive_mode)) {
-      throw new HttpException('Invalid drive mode', HttpStatus.BAD_REQUEST);
-    }
-    
+  @Post('start_ros')
+  @ApiOperation({
+    summary: 'Start the ROS system with the specified drive modes',
+  })
+  @ApiOkResponse({
+    description: 'ROS started successfully and server connected',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid drive modes or user declined connection',
+  })
+  async startRos(@Body() body: { driveModes: { [key: string]: string } }) {
     try {
-      const result = await this.rosService.changeDriveMode(robotId, drive_mode);
-      return { statusCode: HttpStatus.OK, message: `Drive mode for Robot ${robotId} changed to ${drive_mode}`, result };
+      const { driveModes } = body; // Extract the nested driveModes
+      console.log('Received drive modes:', driveModes);
+      // Validate the drive modes
+      if (
+        !driveModes['3'] ||
+        !driveModes['4'] ||
+        !['diff_drive', 'ackermann'].includes(driveModes['3']) ||
+        !['diff_drive', 'ackermann'].includes(driveModes['4'])
+      ) {
+        throw new HttpException('Invalid drive modes', HttpStatus.BAD_REQUEST);
+      }
+      // Call the ROS service to start the system
+      const response = await this.rosService.startRos(driveModes);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'ROS started successfully',
+        result: response,
+      };
     } catch (error) {
-      console.error(`Error changing drive mode for Robot ${robotId}:`, error);
-      throw new HttpException('Failed to change drive mode', HttpStatus.INTERNAL_SERVER_ERROR);
+      console.error('Failed to start ROS:', error);
+      throw error instanceof HttpException
+        ? error
+        : new HttpException(
+            'Failed to start ROS',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
     }
   }
 }

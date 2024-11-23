@@ -14,11 +14,11 @@ import { MapComponent } from '../../components/map/map.component';
   imports: [NgFor, NgClass, NgIf,BatteryStatusComponent, MapComponent],
 })
 export class PhysicalRobotComponent implements OnInit {
-  robot1Status: string = 'Waiting';
-  robot2Status: string = 'Waiting';
+  robot1Status = 'Waiting';
+  robot2Status = 'Waiting';
   mode: 'simulation' | 'physical' = 'physical';
   logs: any[] = [];
-  showOldLogs: boolean = false;
+  showOldLogs = false;
   missions: any[] = [];
 
   constructor(

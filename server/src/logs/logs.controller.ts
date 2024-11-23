@@ -1,5 +1,5 @@
 // logs.controller.ts
-import { Controller, Get, Sse } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { RosService } from '../ros.service';
 
 @Controller('logs')

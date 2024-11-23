@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 import {ApiMissionResponse } from '@app/models/mission.model';
 import { WebSocketService } from './web-socket.service';
 import { MissionModel } from '@app/models/mission.model';
@@ -12,7 +12,6 @@ import { SortingInterface } from '@app/pages/history/sortingInterface';
 export class RobotService {
   private apiUrl = 'http://localhost:3000';
   private apiDataUrl = 'http://localhost:3000/mission';
-  private logSubject = new Subject<any>();
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService) {}
 
@@ -32,8 +31,8 @@ export class RobotService {
     return this.http.get<{ message: string }>(`${this.apiUrl}/mission/${robotId}/return`);
   }
 
-  changeDriveMode(robotId: number, driveMode: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/robot/${robotId}/change_drive_mode`, { drive_mode: driveMode });
+  startRos(payload: { driveModes: Record<string, string> }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/simulation/start_ros`, payload);
   }
 
 
