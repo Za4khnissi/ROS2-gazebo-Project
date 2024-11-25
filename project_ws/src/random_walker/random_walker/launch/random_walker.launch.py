@@ -28,12 +28,14 @@ def generate_launch_description():
                 'robot_frame': f"{namespace}/base_link",
                 'nav_action_server': f"/{namespace}/navigate_to_pose",
                 'goal_tolerance': 0.5,
-                'min_distance_from_current': 0.3,
-                'max_attempts': 3,
+                'min_distance_from_current': 0.1,
+                'max_attempts': 20,
                 'timeout_delay': 100.0,
                 'return_to_init': True,
                 'progress_timeout': 30.0,
-                'pose_topic': f"/{namespace}/amcl_pose"
+                'pose_topic': f"/{namespace}/amcl_pose",
+                'global_costmap_topic':  f"/{namespace}/global_costmap/costmap",
+                'local_costmap_topic':  f"/{namespace}/local_costmap/costmap",
             }]
         )
     ])

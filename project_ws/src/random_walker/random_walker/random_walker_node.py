@@ -12,6 +12,7 @@ import random
 import math
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
+from nav_msgs.msg import OccupancyGrid
 
 class RandomWalker(Node):
     """
@@ -40,6 +41,9 @@ class RandomWalker(Node):
                 ('max_attempts', 10),
                 ('return_to_init', False),
                 ('progress_timeout', 30.0),
+                ('global_costmap_topic', '/limo_105_3/global_costmap/costmap'),
+                ('local_costmap_topic', '/limo_105_3/local_costmap/costmap'),
+                ('costmap_threshold', 80)  # Threshold for considering a point occupied
             ]
         )
 
@@ -56,6 +60,29 @@ class RandomWalker(Node):
         self.max_y = self.get_parameter('max_y').value
         self.min_distance_from_current = self.get_parameter('min_distance_from_current').value
         self.max_attempts = self.get_parameter('max_attempts').value
+
+
+        self.global_costmap_topic = self.get_parameter('global_costmap_topic').value
+        self.local_costmap_topic = self.get_parameter('local_costmap_topic').value
+        self.costmap_threshold = self.get_parameter('costmap_threshold').value
+        
+        # Initialize costmap data
+        self.global_costmap = None
+        self.local_costmap = None
+
+        self.global_costmap_sub = self.create_subscription(
+        OccupancyGrid,
+        self.global_costmap_topic,
+        self.global_costmap_callback,
+        1
+        )
+    
+        self.local_costmap_sub = self.create_subscription(
+            OccupancyGrid,
+            self.local_costmap_topic,
+            self.local_costmap_callback,
+            1
+        )
         
         # Initialize variables
         self.initial_pose = None
@@ -110,15 +137,50 @@ class RandomWalker(Node):
         while self.current_pose is None and rclpy.ok():
             rclpy.spin_once(self, timeout_sec=1.0)
 
+        self.get_logger().info('Waiting for costmap data...')
+        while (self.global_costmap is None or self.local_costmap is None) and rclpy.ok():
+            rclpy.spin_once(self, timeout_sec=1.0)
+
         # Store initial pose if needed
         if self.return_to_init:
             self.store_initial_pose()
 
         self.get_logger().info('Random walker initialized and ready')
+        #self.resume()
 
     def pose_callback(self, msg):
         """Callback for the AMCL pose updates."""
         self.current_pose = msg.pose.pose
+
+
+    def global_costmap_callback(self, msg):
+        """Callback for global costmap updates."""
+        self.global_costmap = msg
+
+    def local_costmap_callback(self, msg):
+        """Callback for local costmap updates."""
+        self.local_costmap = msg
+
+    def is_point_valid_in_costmap(self, x, y, costmap):
+        """Check if a point is valid in the given costmap."""
+        if costmap is None:
+            return True  # If no costmap data, assume valid
+            
+        # Convert world coordinates to costmap coordinates
+        mx = int((x - costmap.info.origin.position.x) / costmap.info.resolution)
+        my = int((y - costmap.info.origin.position.y) / costmap.info.resolution)
+        
+        # Check if point is within costmap bounds
+        if (mx < 0 or mx >= costmap.info.width or 
+            my < 0 or my >= costmap.info.height):
+            return False
+        
+        # Get cost value
+        index = my * costmap.info.width + mx
+        cost = costmap.data[index]
+        
+        # Return True if cost is below threshold
+        return cost < self.costmap_threshold
 
     def resume_callback(self, msg):
         """Handle resume/stop messages."""
@@ -130,6 +192,9 @@ class RandomWalker(Node):
             self.stop(force_return=True)
         else:
             self.get_logger().warn('Invalid command received on explore/resume topic. Valid values are: 1 (resume), 2 (stop), 3 (stop and return)')
+
+
+
 
     def store_initial_pose(self):
         """Store the initial pose of the robot for potential return."""
@@ -165,8 +230,9 @@ class RandomWalker(Node):
         return self.current_pose
 
     def is_valid_goal(self, x, y, cached_robot_pose=None):
-        """Check if the goal position is valid based on distance from current position."""
-        robot_pose = self.get_robot_pose() #cached_robot_pose if cached_robot_pose is not None else self.get_robot_pose()
+        """Check if the goal position is valid based on distance and costmaps."""
+        # First check distance
+        robot_pose = cached_robot_pose if cached_robot_pose is not None else self.get_robot_pose()
         if robot_pose is None:
             return False, None
         
@@ -174,64 +240,66 @@ class RandomWalker(Node):
         dy = y - robot_pose.position.y
         distance = math.sqrt(dx*dx + dy*dy)
         
-        return distance >= self.min_distance_from_current, robot_pose
+        if distance < self.min_distance_from_current:
+            return False, robot_pose
+        
+        # Check global costmap
+        if not self.is_point_valid_in_costmap(x, y, self.global_costmap):
+            return False, robot_pose
+        
+        # Check local costmap
+        if not self.is_point_valid_in_costmap(x, y, self.local_costmap):
+            return False, robot_pose
+        
+        return True, robot_pose
 
-    def is_goal_blacklisted(self, point, tolerance=0.5):
-        """Check if a goal position is in the blacklist."""
-        for blacklisted_point in self.goal_blacklist:
-            dx = point.x - blacklisted_point.x
-            dy = point.y - blacklisted_point.y
-            if math.sqrt(dx*dx + dy*dy) < tolerance:
-                return True
-        return False
-    
     def update_direction(self, success=True):
         """Update movement direction based on success/failure."""
         if success:
-            # If successful, maintain current direction
+            # If successful, gradually rotate direction to explore new areas
             self.consecutive_failures = 0
+            if self.current_direction is not None:
+                # Rotate direction by a small amount for exploration
+                self.current_direction += math.pi/4  # 45-degree rotation
+                self.current_direction = math.atan2(math.sin(self.current_direction), 
+                                                math.cos(self.current_direction))
         else:
             self.consecutive_failures += 1
             if self.consecutive_failures >= self.max_failures_before_direction_change:
-                # Change direction significantly after multiple failures
-                self.current_direction = None
+                # After multiple failures, choose a completely new direction
+                self.current_direction = random.uniform(-math.pi, math.pi)
                 self.consecutive_failures = 0
 
     def generate_random_goal(self):
-        """Generate a goal position using momentum-based direction."""
+        """Generate a goal position using improved exploration strategy."""
         max_attempts = self.max_attempts
         attempts = 0
-        cached_robot_pose = None
+        best_goal = None
+        best_score = float('-inf')
         
-        # Initialize direction if none exists
-        wasNone = self.current_direction is None
-        if wasNone:
+        # Get current robot pose
+        robot_pose = self.get_robot_pose()
+        if robot_pose is None:
+            return None
+        
+        # Initialize or update exploration parameters
+        if self.current_direction is None:
             self.current_direction = random.uniform(-math.pi, math.pi)
         
+        # Calculate minimum distance based on consecutive failures
+        min_distance = self.min_distance_from_current * (1 + self.consecutive_failures * 0.5)
+        max_distance = min(8.0, self.max_x - self.min_x)  # Increased max distance for better exploration
+        
         while attempts < max_attempts:
-            # Generate angle with bias towards current direction
-            angle = self.current_direction 
+            # Generate goals with increasing distance and varying angles
+            angle_variance = math.pi/2  # 90 degrees variance
+            base_angle = self.current_direction
             
-            if wasNone:
-                self.current_direction = random.uniform(-math.pi, math.pi)
-            if random.random() < self.direction_weight:
-                # Use current direction with some variance
-                angle = self.current_direction 
-            #else:
-                # Sometimes choose completely random direction
-                #angle = random.uniform(-math.pi, math.pi)
+            # Use spiral pattern for exploration
+            spiral_factor = attempts / max_attempts
+            distance = min_distance + (max_distance - min_distance) * spiral_factor
+            angle = base_angle + spiral_factor * 2 * math.pi + random.uniform(-angle_variance, angle_variance)
             
-            # Generate distance
-            distance = random.uniform(
-                self.min_distance_from_current,
-                min(5.0, self.max_x - self.min_x)  # Use reasonable maximum distance
-            )
-            
-            # Calculate position
-            robot_pose = self.get_robot_pose()
-            if robot_pose is None:
-                return None
-                
             x = robot_pose.position.x + distance * math.cos(angle)
             y = robot_pose.position.y + distance * math.sin(angle)
             
@@ -243,18 +311,100 @@ class RandomWalker(Node):
             point.x = x
             point.y = y
             
-            isValidGoal, robot_pose = self.is_valid_goal(x, y, cached_robot_pose)
+            # Check validity
+            isValidGoal, _ = self.is_valid_goal(x, y)
             
             if isValidGoal and not self.is_goal_blacklisted(point):
-                # Update direction based on chosen point
-                return (x, y)
-            elif robot_pose is not None:
-                cached_robot_pose = robot_pose
+                # Score the candidate
+                score = self._evaluate_goal(x, y, distance, angle)
+                
+                if score > best_score:
+                    best_score = score
+                    best_goal = (x, y)
+                    
+                # Accept first good goal
+                if score > 0.7:
+                    break
             
             attempts += 1
         
-        self.get_logger().warn('Failed to find valid goal position')
+        # If no good goal found, try emergency recovery
+        if best_goal is None:
+            return self._generate_emergency_goal(robot_pose)
+        
+        return best_goal
+
+    def _evaluate_goal(self, x, y, distance, angle):
+        """Evaluate the quality of a potential goal with emphasis on exploration."""
+        score = 1.0
+        
+        # Strongly prefer goals that are far from previous goals
+        for old_goal in self.goal_blacklist[-10:]:  # Consider last 10 goals
+            dx = x - old_goal.x
+            dy = y - old_goal.y
+            dist_to_old = math.sqrt(dx*dx + dy*dy)
+            if dist_to_old < 3.0:  # Increased minimum distance from old goals
+                score *= 0.3  # Stronger penalty for being close to previous goals
+        
+        # Prefer goals that are farther away (encourages exploration)
+        distance_score = min(1.0, distance / 5.0)  # Normalize distance up to 5 meters
+        score *= (0.5 + 0.5 * distance_score)
+        
+        # Check clearance in costmap
+        clearance_score = self._evaluate_clearance(x, y)
+        score *= clearance_score
+        
+        return score
+
+    def _generate_emergency_goal(self, robot_pose):
+        """Generate an emergency goal when stuck."""
+        # Try to move in a random direction but close by
+        for _ in range(8):  # Try 8 different directions
+            angle = random.uniform(-math.pi, math.pi)
+            distance = random.uniform(self.min_distance_from_current, 2.0)
+            
+            x = robot_pose.position.x + distance * math.cos(angle)
+            y = robot_pose.position.y + distance * math.sin(angle)
+            
+            # Ensure within bounds
+            x = max(self.min_x, min(self.max_x, x))
+            y = max(self.min_y, min(self.max_y, y))
+            
+            isValidGoal, _ = self.is_valid_goal(x, y)
+            if isValidGoal:
+                return (x, y)
+        
         return None
+
+    def _evaluate_clearance(self, x, y, radius=0.8):  # Increased radius for better clearance
+        """Evaluate the clearance around a potential goal."""
+        if self.global_costmap is None:
+            return 1.0
+        
+        resolution = self.global_costmap.info.resolution
+        cells_to_check = int(radius / resolution)
+        
+        total_cells = 0
+        free_cells = 0
+        
+        for dx in range(-cells_to_check, cells_to_check + 1):
+            for dy in range(-cells_to_check, cells_to_check + 1):
+                check_x = x + dx * resolution
+                check_y = y + dy * resolution
+                if self.is_point_valid_in_costmap(check_x, check_y, self.global_costmap):
+                    free_cells += 1
+                total_cells += 1
+        
+        return free_cells / total_cells if total_cells > 0 else 0.0
+
+    def is_goal_blacklisted(self, point, tolerance=1.0):  # Increased tolerance
+        """Check if a goal position is in the blacklist with larger tolerance."""
+        for blacklisted_point in self.goal_blacklist:
+            dx = point.x - blacklisted_point.x
+            dy = point.y - blacklisted_point.y
+            if math.sqrt(dx*dx + dy*dy) < tolerance:
+                return True
+        return False
 
     def make_plan(self):
         """Generate and send a new navigation goal."""
@@ -403,7 +553,7 @@ class RandomWalker(Node):
         self.nav_client.send_goal_async(goal_msg)
 
         # Wait 2 seconds
-        rclpy.sleep(2.0)
+        rclpy.spin_once(self, timeout_sec=2.0)  # Spins for 2 seconds
 
         # Get new position after waiting
         new_robot_pose = self.get_robot_pose()
