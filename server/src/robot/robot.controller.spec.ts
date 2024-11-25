@@ -27,7 +27,9 @@ describe('RobotController', () => {
   describe('identifyRobot', () => {
     it('should return OK when robot identifies itself successfully', () => {
       const robotId = '1';
-      const mockResponse = { message: `Robot ${robotId} is identifying itself` };
+      const mockResponse = {
+        message: `Robot ${robotId} is identifying itself`,
+      };
       jest.spyOn(rosService, 'identifyRobot').mockReturnValue(mockResponse);
 
       const result = controller.identifyRobot(robotId);

@@ -6,6 +6,12 @@
   gz_type_name: "gz.msgs.Twist"
   direction: ROS_TO_GZ
 
+- ros_topic_name: "/limo_105_3/depth/image_raw/points"
+  gz_topic_name: "/limo_105_3/depth/image_raw/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
 # Bridge configuration for Robot 4
 - ros_topic_name: "/limo_105_4/cmd_vel"
   gz_topic_name: "/limo_105_4/cmd_vel"

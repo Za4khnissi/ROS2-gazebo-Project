@@ -1,5 +1,16 @@
-import { Controller, Param, Get, HttpStatus, HttpException } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import {
+  Controller,
+  Param,
+  Get,
+  HttpStatus,
+  HttpException,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { RosService } from '../ros.service';
 
 @ApiTags('Robot')
@@ -15,9 +26,15 @@ export class RobotController {
     try {
       const response = await this.rosService.identifyRobot(robotId);
       if (!response.success) {
-        throw new HttpException(`Failed to identify Robot ${robotId}`, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          `Failed to identify Robot ${robotId}`,
+          HttpStatus.NOT_FOUND,
+        );
       }
-      return { statusCode: HttpStatus.OK, message: `Robot ${robotId} is identigying itself` };
+      return {
+        statusCode: HttpStatus.OK,
+        message: `Robot ${robotId} is identigying itself`,
+      };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

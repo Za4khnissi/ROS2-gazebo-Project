@@ -5,26 +5,29 @@ import { NgFor, NgClass, NgIf } from '@angular/common';
 import { MapComponent } from '../../components/map/map.component';
 import { Router } from '@angular/router';
 import { BatteryStatusComponent } from '../battery-status/battery-status.component';
+import { OctomapComponent } from '@app/components/map/octomap.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-simulation-robot',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css'],
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, MapComponent, BatteryStatusComponent]
+  imports: [NgFor, NgClass, NgIf, MapComponent, OctomapComponent, FormsModule, BatteryStatusComponent]
 })
 export class SimulationComponent implements OnInit {
-  robot1Status: string = 'Waiting';
-  robot2Status: string = 'Waiting';
-  simulationStatus: boolean = false;
-  driveMode3: string = 'Diff Drive';
-  driveMode4: string = 'Diff Drive';
-  driveModeAvailable: boolean = false;
+  robot1Status = 'Waiting';
+  robot2Status = 'Waiting';
+  simulationStatus = false;
+  driveMode3 = 'Diff Drive'; // Default mode
+  driveMode4 = 'Diff Drive'; // Default mode
+  selectedDriveModes = { 3: 'Diff Drive', 4: 'Diff Drive' };
   mode: 'simulation' | 'physical' = 'simulation';
 
   logs: any[] = [];
-  showOldLogs: boolean = false;
+  showOldLogs = false;
   missions: any[] = [];
+  is3DView = false;
 
   constructor(
     private simService: RobotService, 
@@ -89,7 +92,7 @@ export class SimulationComponent implements OnInit {
     this.simService.identifyRobot(robotId).subscribe();
   }
 
-  startMission(robotId: number, IsSimu: boolean) {
+  startMission(robotId: number) {
     this.simService.startMission(robotId).subscribe();
   }
 
@@ -103,9 +106,29 @@ export class SimulationComponent implements OnInit {
 
   toggleDriveMode(robotId: number) {
     let newDriveMode = robotId === 3 ? this.driveMode3 : this.driveMode4;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     newDriveMode = newDriveMode === 'Diff Drive' ? 'Ackermann' : 'Diff Drive';
+  }
 
-    this.simService.changeDriveMode(robotId, newDriveMode.toLowerCase().replace(' ', '_')).subscribe();
+  startRos() {
+    const payload: { driveModes: Record<string, string> } = {
+      driveModes: {
+        '3': this.selectedDriveModes[3].toLowerCase().replace(' ', '_'),
+        '4': this.selectedDriveModes[4].toLowerCase().replace(' ', '_'),
+      },
+    };
+  
+    console.log('Payload being sent to the server:', payload); // Log payload for debugging
+  
+    this.simService.startRos(payload).subscribe({
+      next: (response) => {
+        console.log('ROS started successfully:', response);
+        this.simulationStatus = true; // Update simulation status if needed
+      },
+      error: (err) => {
+        console.error('Failed to start ROS:', err);
+      },
+    });
   }
 
   toggleOldLogs() {
@@ -125,5 +148,9 @@ export class SimulationComponent implements OnInit {
 
   toggleMissionLogs(mission: any) {
     mission.expanded = !mission.expanded;
+  }
+
+  toggleViewMode() {
+    this.is3DView = !this.is3DView;
   }
 }

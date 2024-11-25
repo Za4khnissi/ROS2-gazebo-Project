@@ -24,6 +24,7 @@
     "@nestjs/websockets": "^10.4.6",
     "rxjs": "~7.8.0",
     "socket.io-client": "^4.8.1",
+    "three": "^0.170.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"
   },
@@ -32,6 +33,7 @@
     "@angular/cli": "^18.2.10",
     "@angular/compiler-cli": "^18.2.9",
     "@types/jasmine": "~5.1.0",
+    "@types/three": "^0.170.0",
     "angular-eslint": "18.3.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
