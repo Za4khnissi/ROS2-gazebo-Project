@@ -131,7 +131,7 @@ fi
 
 cd "$HOME"
 
-if [ ! -d "$HOME/Desktop/testfinal/inf3995" ]; then
+if [ ! -d "$HOME/inf3995" ]; then
     git clone https://gitlab.com/polytechnique-montr-al/inf3995/20243/equipe-105/inf3995.git "$HOME/inf3995"
 fi
 
@@ -139,7 +139,7 @@ if [ -e /dev/ttyTHS1 ]; then
     sudo chmod 666 /dev/ttyTHS1
 fi
 
-cd "$HOME/Desktop/testfinal/inf3995/project_ws"
+cd "$HOME/inf3995/project_ws"
 
 if [ "$ROBOT_ID" == "simulation" ]; then
 
@@ -149,9 +149,9 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     
     python3 generate_world_with_obstacles.py $DRIVE_MODE_3 $DRIVE_MODE_4 $MODIFIED_WORLD_FILE
 
-    cd /home/jodel/Desktop/testfinal/inf3995/project_ws
+    cd ~/inf3995/project_ws
 
-    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_msgs limo_description limo_bringup ydlidar_ros2_driver voice_control
+    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_msgs limo_description limo_bringup ydlidar_ros2_driver voice_control cliff_detector
 
 else colcon build --cmake-args -DBUILD_TESTING=ON
 

@@ -50,7 +50,7 @@
     <model name="limo_105_3">
       <pose>0 -0.5 0.35 0 0 0</pose>
       <include merge="true">
-        <uri>package://ros_gz_example_description/models/limo_105_3_ackermann</uri>
+        <uri>package://ros_gz_example_description/models/limo_105_3_diff_drive</uri>
       </include>
       <ros>
         <package>ros_gz_example_gazebo</package>
@@ -61,7 +61,7 @@
     <model name="limo_105_4">
       <pose>0 0.5 0.35 0 0 0</pose>
       <include merge="true">
-        <uri>package://ros_gz_example_description/models/limo_105_4_ackermann</uri>
+        <uri>package://ros_gz_example_description/models/limo_105_4_diff_drive</uri>
       </include>
       <ros>
         <package>ros_gz_example_gazebo</package>
@@ -149,120 +149,120 @@
       </link>
     </model>
     
-    <model name="random_wall_-6.883982846498665_-2.248058414735282">
-      <pose>-6.883982846498665 -2.248058414735282 0.0 0 0 1.8077225911935144</pose>
+    <model name="random_wall_2.1361247208055687_7.571390531421152">
+      <pose>2.1361247208055687 7.571390531421152 0.0 0 0 3.0239080812026615</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>6.80770070028342 0.5 1</size>
+              <size>9.341296124339756 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>6.80770070028342 0.5 1</size>
+              <size>9.341296124339756 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_3.337093928500156_8.135222627450027">
-      <pose>3.337093928500156 8.135222627450027 0.0 0 0 1.3269579476956221</pose>
+    <model name="random_wall_-1.7822268721896979_-1.3987213289229503">
+      <pose>-1.7822268721896979 -1.3987213289229503 0.0 0 0 1.6823122414772211</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>6.531446491576376 0.5 1</size>
+              <size>6.623927246795113 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>6.531446491576376 0.5 1</size>
+              <size>6.623927246795113 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_1.155505959324735_4.614011240522888">
-      <pose>1.155505959324735 4.614011240522888 0.0 0 0 0.33783934696395596</pose>
+    <model name="random_wall_2.352018670810729_-2.8179079623434955">
+      <pose>2.352018670810729 -2.8179079623434955 0.0 0 0 0.3360990573766421</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>5.3771001816419615 0.5 1</size>
+              <size>7.110585209127207 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>5.3771001816419615 0.5 1</size>
+              <size>7.110585209127207 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_4.093804843524788_-3.8720424593263436">
-      <pose>4.093804843524788 -3.8720424593263436 0.0 0 0 1.3793691021576853</pose>
+    <model name="random_wall_-0.03969513891871124_-3.235905528208611">
+      <pose>-0.03969513891871124 -3.235905528208611 0.0 0 0 0.9336857083540699</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>5.480460457463661 0.5 1</size>
+              <size>8.177047366929994 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>5.480460457463661 0.5 1</size>
+              <size>8.177047366929994 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_-3.397550200670656_-4.140378296744633">
-      <pose>-3.397550200670656 -4.140378296744633 0.0 0 0 2.9211715510747798</pose>
+    <model name="random_wall_-6.205099834001329_7.872361859602574">
+      <pose>-6.205099834001329 7.872361859602574 0.0 0 0 0.06354758361550573</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>8.350174629027146 0.5 1</size>
+              <size>7.524801555073738 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>8.350174629027146 0.5 1</size>
+              <size>7.524801555073738 0.5 1</size>
             </box>
           </geometry>
         </visual>
       </link>
     </model>
     
-    <model name="random_wall_6.400935363053183_-7.244122822401502">
-      <pose>6.400935363053183 -7.244122822401502 0.0 0 0 0.756381417028788</pose>
+    <model name="random_wall_6.484469722031587_5.918141843546735">
+      <pose>6.484469722031587 5.918141843546735 0.0 0 0 0.0025689412876480056</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>6.576716371951159 0.5 1</size>
+              <size>6.045073216091118 0.5 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>6.576716371951159 0.5 1</size>
+              <size>6.045073216091118 0.5 1</size>
             </box>
           </geometry>
         </visual>
