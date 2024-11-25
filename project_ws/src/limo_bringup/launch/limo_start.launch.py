@@ -6,6 +6,7 @@ import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
 from launch.substitutions import LaunchConfiguration, EnvironmentVariable
 from launch.actions import TimerAction
+from launch.conditions import IfCondition
 
 def generate_launch_description():
     ROBOT_ID = os.getenv('ROBOT_ID')
@@ -14,7 +15,19 @@ def generate_launch_description():
     absolute_namespace = f'/{ros_namespace[0]}{ROBOT_ID}'
     namespace=f'{ros_namespace[0]}{ROBOT_ID}'
 
-
+    map_merge_config = {
+        'merging_rate': 10.0,
+        'discovery_rate': 2.0,
+        'estimation_rate': 10.0,
+        'estimation_confidence': 0.6,
+        'robot_map_topic': 'map',
+        'robot_map_updates_topic': 'map_udpates',
+        'robot_namespace': '',
+        'merged_map_topic': 'map',
+        'world_frame': 'map',
+        'known_init_poses': False
+    }
+    
     ld = launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(name='port_name',
                                              default_value='ttyTHS1'),
@@ -65,7 +78,7 @@ def generate_launch_description():
                               'launch','open_ydlidar_launch.py'))),
 
         TimerAction(
-            period=15.0,
+            period=12.0,
             actions=[
                 launch_ros.actions.Node(
                     package='slam_toolbox',
@@ -88,6 +101,23 @@ def generate_launch_description():
                         ('/tf_static', '/tf_static'),
                         ('/odom', f'{absolute_namespace}/odom')
                     ]
+                )
+            ]
+        ),
+        TimerAction(
+            period=16.0,
+            actions=[
+                launch_ros.actions.Node(
+                    package="multirobot_map_merge",
+                    name="map_merge",
+                    namespace=namespace,
+                    executable="map_merge",
+                    parameters=[
+                        map_merge_config,
+                        {"use_sim_time": False},
+                    ],
+                    output="screen",
+                    #condition=IfCondition(str(ROBOT_ID == "2"))
                 )
             ]
         )
