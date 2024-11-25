@@ -13,6 +13,9 @@ import math
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from nav_msgs.msg import OccupancyGrid
+from rclpy.qos import QoSProfile
+from geometry_msgs.msg import Twist
+
 
 class RandomWalker(Node):
     """
@@ -125,7 +128,14 @@ class RandomWalker(Node):
             self.pose_callback,
             10
         )
-        
+
+        namespace = self.get_namespace()
+        self.vel_pub = self.create_publisher(
+            Twist,
+            f'{namespace}/cmd_vel',
+            10
+        )
+                
         # Wait for navigation action server
         self.get_logger().info(f'Waiting for {self.nav_action_server} action server...')
         if not self.nav_client.wait_for_server(timeout_sec=20.0):
@@ -509,20 +519,56 @@ class RandomWalker(Node):
     def feedback_callback(self, feedback_msg):
         """Handle navigation feedback."""
         pass
-
+    
+    def send_stop_command(self):
+        """Send an immediate stop command to the robot."""
+        stop_msg = Twist()
+        # All velocities set to 0
+        stop_msg.linear.x = 0.0
+        stop_msg.linear.y = 0.0
+        stop_msg.linear.z = 0.0
+        stop_msg.angular.x = 0.0
+        stop_msg.angular.y = 0.0
+        stop_msg.angular.z = 0.0
+        
+        # Publish stop command multiple times to ensure it's received
+        for _ in range(5):
+            self.vel_pub.publish(stop_msg)
+            rclpy.spin_once(self, timeout_sec=0.01)
+    
     def stop(self, force_return=False):
         """Stop the random walker and clean up."""
         self.is_active = False
         self._navigation_active = False
         self.get_logger().info('Random walker stopped')
         
+        # Send immediate stop command
+        if force_return==False:
+            self.send_stop_command()
+        
+        # Cancel current goal if it exists
+        if hasattr(self, '_goal_handle') and self._goal_handle is not None:
+            # Cancel the goal and wait for confirmation
+            cancel_future = self._goal_handle.cancel_goal_async()
+            
+            # Wait for cancellation to complete
+            while not cancel_future.done():
+                rclpy.spin_once(self, timeout_sec=0.1)
+            
+            # Clear the goal handle
+            self._goal_handle = None
+        
+        # Cancel all goals in the action server's queue
+        if self.nav_client:
+            self.nav_client.wait_for_server(timeout_sec=1.0)
+            self.nav_client._action_client.cancel_all_goals()
+        
         if self._timeout_timer is not None:
             self.destroy_timer(self._timeout_timer)
             self._timeout_timer = None
         
-        # Cancel current goal if it exists
-        if hasattr(self, '_goal_handle') and self._goal_handle is not None:
-            self._goal_handle.cancel_goal_async()
+        # Send stop command again to ensure the robot is stopped
+        self.send_stop_command()
         
         if force_return and self.initial_pose is not None:
             self.return_to_initial_pose()

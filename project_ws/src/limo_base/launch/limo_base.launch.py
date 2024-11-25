@@ -100,6 +100,15 @@ def generate_launch_description():
         parameters=[{'is_simulation': False}]
     )
 
+    # battery_node_1 = Node(
+    #     package='ros_gz_example_application',
+    #     executable='battery_manager.py',
+    #     name='battery_node',
+    #     output='screen',
+    #     namespace=ros_namespace,
+    #     parameters=[{'is_simulation': False}]
+    # )
+
     return LaunchDescription([
         # DeclareLaunchArgument('pub_odom_tf',default_value=pub_odom_tf_arg_,description='TF'),
         limo_base_node,
