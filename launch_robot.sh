@@ -48,6 +48,9 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM EXIT
 
+run_in_new_terminal() {
+    gnome-terminal -- bash -c "$1; exec bash"
+}
 
 # kill_existing_services() {
 #     echo "Killing existing identify and mission services..."
@@ -153,7 +156,7 @@ if [ "$ROBOT_ID" == "simulation" ]; then
 
     colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_msgs limo_description limo_bringup ydlidar_ros2_driver voice_control cliff_detector
 
-else colcon build --cmake-args -DBUILD_TESTING=ON
+else colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control explore_lite
 
 fi
 
@@ -164,6 +167,35 @@ if [ "$ROBOT_ID" == "simulation" ]; then
     cleanup
 
     ros2 launch ros_gz_example_bringup full.launch.py
+elif [ "$ROBOT_ID" == "1" ] || [ "$ROBOT_ID" == "2" ]; then  
+    export ROBOT_ID=$ROBOT_ID
+    source install/setup.sh
+    # First terminal (current terminal)
+    ros2 launch limo_bringup limo_start.launch.py &
+
+    # Wait longer to ensure the first launch is fully initialized
+    sleep 15
+    
+    # Second terminal with modified command
+    run_in_new_terminal "cd ${HOME}/inf3995/project_ws && \
+        source /opt/ros/humble/setup.bash && \
+        source install/setup.sh && \
+        export ROS_DOMAIN_ID=49 && \
+        export ROBOT_ID=$ROBOT_ID && \
+        sleep 2 && \
+        ros2 launch limo_bringup navigation2.launch.py"
+
+    # Wait longer before launching the third terminal
+    sleep 15
+
+    # Third terminal with modified command
+    run_in_new_terminal "cd ${HOME}/inf3995/project_ws && \
+        source /opt/ros/humble/setup.bash && \
+        source install/setup.sh && \
+        export ROS_DOMAIN_ID=49 && \
+        export ROBOT_ID=$ROBOT_ID && \
+        sleep 2 && \
+        ros2 launch random_walker random_walker.launch.py"
 else
     echo "Invalid ROBOT_ID. Please provide ROBOT_ID as 1, 2, 'simulation', 'gazebo'."
     exit 1
