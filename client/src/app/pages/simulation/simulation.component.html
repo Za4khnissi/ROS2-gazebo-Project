@@ -41,12 +41,6 @@
         <button (click)=returnFromMission(3) class="bg-red-600 hover:bg-red-500 text-white py-2 px-4 rounded-lg mb-3 w-full">
           Return From Mission
         </button>
-        <div class="mt-10 text-center">
-          <label for="driveMode3">Drive Mode for Robot 3: diff_drive</label>
-          <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(3)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
-            {{ driveMode3 }}
-          </button>
-        </div>
         <app-battery-status [robotId]="3" [mode]="mode" class="mt-auto"></app-battery-status>
       </div>
 
@@ -75,12 +69,6 @@
         <button (click)=returnFromMission(4) class="bg-red-600 hover:bg-red-500 text-white py-2 px-4 rounded-lg mb-3 w-full">
           Return From Mission
         </button>
-        <div class="mt-10 text-center">
-          <label for="driveMode4">Drive Mode for Robot 4: diff_drive</label>
-          <button *ngIf="driveModeAvailable" (click)="toggleDriveMode(4)" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-6 rounded-lg mt-4">
-            {{ driveMode4 }}
-          </button>
-        </div>
         <app-battery-status [robotId]="4" [mode]="mode" class="mt-auto"></app-battery-status>
       </div>
     </div>

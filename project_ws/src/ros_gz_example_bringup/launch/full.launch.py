@@ -135,6 +135,7 @@ def setup_robot_descriptions(context):
         namespace='limo_105_4',
         parameters=[{'is_simulation': True}]
     )
+
     octomap_node = TimerAction(
         period=5.0,
         actions=[
@@ -365,4 +366,3 @@ def generate_launch_description():
         drive_mode_4_arg,
         OpaqueFunction(function=setup_robot_descriptions),
     ])
-

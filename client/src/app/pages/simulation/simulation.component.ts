@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css'],
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, MapComponent, OctomapComponent, FormsModule, BatteryStatusComponent]
+  imports: [NgFor, NgClass, NgIf, MapComponent, BatteryStatusComponent, OctomapComponent, FormsModule]
 })
 export class SimulationComponent implements OnInit {
   robot1Status = 'Waiting';
