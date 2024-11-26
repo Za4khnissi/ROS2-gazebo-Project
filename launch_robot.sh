@@ -140,6 +140,7 @@ fi
 
 if [ -e /dev/ttyTHS1 ]; then
     sudo chmod 666 /dev/ttyTHS1
+    sudo chmod 666 /dev/ttyUSB0
 fi
 
 cd "$HOME/inf3995/project_ws"
