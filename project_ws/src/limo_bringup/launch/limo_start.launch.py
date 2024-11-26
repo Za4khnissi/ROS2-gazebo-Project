@@ -110,14 +110,14 @@ def generate_launch_description():
                 launch_ros.actions.Node(
                     package="multirobot_map_merge",
                     name="map_merge",
-                    namespace=namespace,
+                    #namespace=namespace,
                     executable="map_merge",
                     parameters=[
                         map_merge_config,
                         {"use_sim_time": False},
                     ],
                     output="screen",
-                    #condition=IfCondition(str(ROBOT_ID == "2"))
+                    condition=IfCondition(str(ROBOT_ID == "2"))
                 )
             ]
         )
