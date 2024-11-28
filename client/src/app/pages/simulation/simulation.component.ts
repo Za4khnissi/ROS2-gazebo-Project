@@ -92,7 +92,7 @@ export class SimulationComponent implements OnInit {
     this.simService.identifyRobot(robotId).subscribe();
   }
 
-  startMission(robotId: number, isSimu: boolean) {
+  startMission(robotId: number) {
     this.simService.startMission(robotId).subscribe();
   }
 

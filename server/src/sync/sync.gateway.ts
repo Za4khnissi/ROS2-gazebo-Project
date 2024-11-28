@@ -43,6 +43,6 @@ export class SyncGateway
 
   broadcastBatteryUpdate(robotId: string, batteryLevel: number): void {
     this.server.emit('batteryUpdate', { robotId, batteryLevel });
-    //console.log(`Battery level broadcasted for robot ${robotId}: ${batteryLevel}%`);
+    console.log(`Battery level broadcasted for robot ${robotId}: ${batteryLevel}%`);
   }
 }

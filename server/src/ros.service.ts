@@ -540,7 +540,7 @@ export class RosService implements OnModuleDestroy {
 
   private watchDistance(robotId: string) {
     this.totalDistance[robotId] = 0;
-    const topicName = `limo_105_${robotId}/odom`;
+    const topicName = `/limo_105_1/odom`;
 
     const node = this.validateRobotConnection(robotId);
     node.createSubscription('nav_msgs/msg/Odometry', topicName, (msg) => {
