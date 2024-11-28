@@ -76,7 +76,7 @@ export class PhysicalRobotComponent implements OnInit {
     this.robotService.identifyRobot(robotId).subscribe();
   }
 
-  startMission(robotId: number, isSimulation: boolean) {
+  startMission(robotId: number) {
     this.robotService.startMission(robotId).subscribe();
   }
 

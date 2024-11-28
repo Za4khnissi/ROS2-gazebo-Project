@@ -25,8 +25,13 @@ export class BatteryStatusComponent implements OnInit, OnDestroy {
   
     this.batterySubscription = this.socketBattery.listenToBatteryStatus(this.robotId, this.mode).subscribe(
       (level: number) => {
-        this.batteryLevel = Math.floor(level);
-        console.log(`Battery level updated: ${this.batteryLevel}%`);
+        const newLevel = Math.floor(level);
+        if (newLevel < this.batteryLevel) {
+          this.batteryLevel = newLevel;
+          console.log(`Battery level updated to new minimum: ${this.batteryLevel}%`);
+        } else {
+          console.log(`Battery level ignored: ${newLevel}% (current minimum: ${this.batteryLevel}%)`);
+        }
       },
       (error) => {
         console.error('Error receiving battery status:', error);
