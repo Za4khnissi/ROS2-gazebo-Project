@@ -173,7 +173,7 @@ elif [ "$ROBOT_ID" == "1" ] || [ "$ROBOT_ID" == "2" ]; then
     source install/setup.sh
     # First terminal (current terminal)
     ros2 launch limo_bringup limo_start.launch.py &
-
+    LAUNCH_PID=$!
     # Wait longer to ensure the first launch is fully initialized
     sleep 15
     
@@ -197,6 +197,8 @@ elif [ "$ROBOT_ID" == "1" ] || [ "$ROBOT_ID" == "2" ]; then
         export ROBOT_ID=$ROBOT_ID && \
         sleep 2 && \
         ros2 launch random_walker random_walker.launch.py"
+
+    wait $LAUNCH_PID
 else
     echo "Invalid ROBOT_ID. Please provide ROBOT_ID as 1, 2, 'simulation', 'gazebo'."
     exit 1
