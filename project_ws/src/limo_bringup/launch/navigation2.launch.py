@@ -41,7 +41,7 @@ def generate_launch_description():
             'maps',
             'zhiyuan.yaml'))
 
-    param_file_name = 'navigation2.yaml'
+    param_file_name = 'navigation2.yaml' if ROBOT_ID == '1' else 'navigation2_2.yaml'
     param_dir = LaunchConfiguration(
         'params_file',
         default=os.path.join(

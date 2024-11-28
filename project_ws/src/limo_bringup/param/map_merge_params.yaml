@@ -1,0 +1,24 @@
+map_merge:
+  ros__parameters:
+    merging_rate: 2.0 # Hz
+    discovery_rate: 0.1
+    estimation_rate: 2.0
+    estimation_confidence: 0.6
+    robot_map_topic: map
+    robot_map_updates_topic: map_udpates
+    robot_namespace: ""
+    merged_map_topic: map
+    world_frame: map
+    known_init_poses: true
+    # known_init_poses: false
+
+    # Define here robots' positions in the map if known_init_poses is true
+    /limo_105_1/map_merge/init_pose_x: 0.0
+    /limo_105_1/map_merge/init_pose_y: 0.0
+    /limo_105_1/map_merge/init_pose_z: 0.0
+    /limo_105_1/map_merge/init_pose_yaw: 0.0
+
+    /limo_105_2/map_merge/init_pose_x: 1.0
+    /limo_105_2/map_merge/init_pose_y: 0.0
+    /limo_105_2/map_merge/init_pose_z: 0.0
+    /limo_105_2/map_merge/init_pose_yaw: 0.0

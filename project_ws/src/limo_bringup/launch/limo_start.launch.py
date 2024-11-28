@@ -25,7 +25,17 @@ def generate_launch_description():
         'robot_namespace': '',
         'merged_map_topic': 'map',
         'world_frame': 'map',
-        'known_init_poses': False
+        'known_init_poses': True,
+        "/limo_105_1/map_merge/init_pose_x": 0.0,
+        "/limo_105_1/map_merge/init_pose_y": 0.0,
+        "/limo_105_1/map_merge/init_pose_z": 0.0,
+        "/limo_105_1/map_merge/init_pose_yaw": 0.0,
+
+        "/limo_105_2/map_merge/init_pose_x": 1.0,
+        "/limo_105_2/map_merge/init_pose_y": 0.0,
+        "/limo_105_2/map_merge/init_pose_z": 0.0,
+        "/limo_105_2/map_merge/init_pose_yaw": 0.0,
+        
     }
     
     ld = launch.LaunchDescription([
