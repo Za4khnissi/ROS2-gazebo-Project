@@ -3,6 +3,7 @@ import {
   OnModuleDestroy,
   HttpException,
   HttpStatus,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as rclnodejs from 'rclnodejs';
@@ -24,10 +25,11 @@ interface ServiceResponse {
 const BATTERY_THRESHOLD = parseInt(process.env.BATTERY_THRESHOLD || '30');
 
 @Injectable()
-export class RosService implements OnModuleDestroy {
+export class RosService implements OnModuleInit, OnModuleDestroy {
   private realRobotNode: rclnodejs.Node;
   private simulationRobotNode: rclnodejs.Node;
   private logsFolder = this.configService.get<string>('PATH_TO_LOGS_FOLDER');
+  private isSimulation = this.configService.get<string>('Simulation') || false;
   private logSubject = new Subject<any>();
   private missionActive = false;
   private logInterval: Subscription;
@@ -49,6 +51,10 @@ export class RosService implements OnModuleDestroy {
     @InjectModel('Mission') private missionModel: Model<MissionModel>,
   ) {
     this.ensureLogsFolderExists();
+  }
+
+  async onModuleInit() {
+    if (!this.isSimulation)await this.connectToRos();
   }
 
   async startRos(driveModes: { [key: string]: string }): Promise<any> {

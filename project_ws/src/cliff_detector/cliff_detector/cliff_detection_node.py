@@ -56,8 +56,8 @@ class CliffDetectionNode(Node):
         # Créer le message de commande de mouvement
         cmd = Twist()
         if self.negative_elevation_detected:
-            self.get_logger().info("Vide détecté, recul du robot.")
-            cmd.linear.x = -0.1  # Reculer
+            self.get_logger().info("Vide détecté, Robot s'arrete.")
+            cmd.linear.x = 0.0  # Reculer
         else:
             self.get_logger().info("Aucun vide détecté, le robot avance.")
             cmd.linear.x = 0.1  # Avancer
