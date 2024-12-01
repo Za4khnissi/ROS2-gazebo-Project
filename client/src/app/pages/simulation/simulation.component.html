@@ -126,13 +126,15 @@
     </div>
 
     <!-- Real-Time Logs -->
-    <ul class="space-y-2">
-      <li
-        *ngFor="let log of logs"
-        class="bg-gray-700 p-4 rounded-lg shadow-inner"
-      >
-        <p>{{ log.timestamp }} - <strong>{{ log.message }}</strong></p>
-      </li>
-    </ul>
+    <div class="max-h-196 overflow-y-scroll">
+      <ul class="space-y-2">
+        <li
+          *ngFor="let log of logs"
+          class="bg-gray-700 p-4 rounded-lg shadow-inner"
+        >
+          <p>{{ log.timestamp }} - <strong>{{ log.message }}</strong></p>
+        </li>
+      </ul>
+    </div>
   </div>
 </div>
