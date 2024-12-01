@@ -23,6 +23,8 @@ export class SimulationComponent implements OnInit {
   driveMode4 = 'Diff Drive'; // Default mode
   selectedDriveModes = { 3: 'Diff Drive', 4: 'Diff Drive' };
   mode: 'simulation' | 'physical' = 'simulation';
+  confirmStopMissionId: number | null = null;
+
 
   logs: any[] = [];
   showOldLogs = false;
@@ -88,6 +90,28 @@ export class SimulationComponent implements OnInit {
     }
   }
 
+  
+  
+  stopConfirmedMission() {
+    if (this.confirmStopMissionId !== null) {
+      this.simService.stopMission(this.confirmStopMissionId).subscribe({
+        next: () => {
+          console.log(`Mission arretée avec succès pour le Robot ${this.confirmStopMissionId}.`);
+          this.confirmStopMissionId = null; 
+        },
+        error: (err) => {
+          console.error(`Une erreur s'est produite lors de l'arrêt de la mission pour le robot ${this.confirmStopMissionId}:`, err);
+          this.confirmStopMissionId = null; 
+        },
+      });
+    }
+  }
+  
+  cancelStopMission() {
+    this.confirmStopMissionId = null; 
+  }
+  
+
   identifyRobot(robotId: number) {
     this.simService.identifyRobot(robotId).subscribe();
   }
@@ -97,7 +121,7 @@ export class SimulationComponent implements OnInit {
   }
 
   stopMission(robotId: number) {
-    this.simService.stopMission(robotId).subscribe();
+    this.confirmStopMissionId = robotId;
   }
 
   returnFromMission(robotId: number) {
