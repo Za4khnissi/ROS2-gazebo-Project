@@ -4,12 +4,23 @@ import os
 import random
 import sys
 
-# Function to generate random positions for internal walls
-def generate_random_position():
-    x = random.uniform(-9, 9) 
-    y = random.uniform(-9, 9)
-    z = 0.0
-    return x, y, z
+# Function to check if a position is too close to a robot
+def is_position_safe(x, y, robots, min_distance=2.0):
+    for robot in robots:
+        rx, ry = robot
+        distance = ((x - rx) ** 2 + (y - ry) ** 2) ** 0.5
+        if distance < min_distance:
+            return False
+    return True
+
+# Function to generate random positions for internal walls ensuring no collisions with robots
+def generate_random_position(robots):
+    while True:
+        x = random.uniform(-8, 8)
+        y = random.uniform(-8, 8)
+        z = 0.0
+        if is_position_safe(x, y, robots):
+            return x, y, z
 
 # Function to generate random angles for internal walls
 def generate_random_angle():
@@ -54,12 +65,12 @@ def generate_border_walls():
 
 
 # Function to generate the random internal walls
-def generate_internal_walls():
+def generate_internal_walls(robots):
     walls = ""
-    for _ in range(6):
-        x, y, z = generate_random_position()
+    for _ in range(6):  # Generate 6 walls
+        x, y, z = generate_random_position(robots)
         angle = generate_random_angle()
-        length = random.uniform(5, 10)  # Length of the wall between 5 and 10 units
+        length = random.uniform(5, 7)  # Length of the wall between 5 and 7 units
         walls += generate_wall_sdf(x, y, z, length, angle)
     return walls
 
@@ -139,7 +150,7 @@ def generate_world_with_obstacles(drive_mode_3, drive_mode_4, modified_world_fil
     sdf_content += generate_border_walls()
 
     # Add the internal random walls
-    sdf_content += generate_internal_walls()
+    sdf_content += generate_internal_walls(robots=[(0, -0.5), (0, 0.5)])
 
     # Append the closing </world> and </sdf> tags
     sdf_content += "\n  </world>\n</sdf>\n"
