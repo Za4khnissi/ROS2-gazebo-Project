@@ -135,12 +135,12 @@
                 </material>
             </visual-->
             <sensor name='sensor_camera' type='depth_camera'>
-                <topic>/limo/depth/image_raw</topic>
+                <topic>/limo_105_4/depth/image_raw</topic>
                 <always_on>true</always_on>
                 <visualize>true</visualize>
                 <update_rate>10</update_rate>
                 <camera name='head'>
-                    <cameraInfoTopic>/limo/color/camera_info</cameraInfoTopic>
+                    <cameraInfoTopic>/limo_105_4/color/camera_info</cameraInfoTopic>
                     <horizontal_fov>1.3962634</horizontal_fov>
                     <image>
                         <width>640</width>
@@ -159,14 +159,14 @@
             </sensor>
             <gravity>true</gravity>
             <sensor name='imu_sensor' type='imu'>
-                <topic>/limo/imu</topic>
+                <topic>/limo_105_4/imu</topic>
                 <always_on>true</always_on>
                 <update_rate>100</update_rate>
                 <visualize>true</visualize>
                 <pose relative_to="imu_link">0 0 0.05 0 -0 0</pose>
             </sensor>
             <sensor name='laser_sensor' type='gpu_lidar'>
-                <topic>/limo/scan</topic>
+                <topic>/limo_105_4/scan</topic>
                 <visualize>false</visualize>
                 <update_rate>8</update_rate>
                 <ray>
@@ -540,8 +540,9 @@
         
         <plugin filename="ignition-gazebo-odometry-publisher-system" name="ignition::gazebo::systems::OdometryPublisher">
             <odom_frame>limo_105_4/odom</odom_frame>
-            <robot_base_frame>limo_105_4/base_footprint</robot_base_frame>
+            <robot_base_frame>limo_105_4</robot_base_frame>
             <odom_topic>limo_105_4/odom</odom_topic>
+            <odom_publish_frequency>8</odom_publish_frequency>
         </plugin>
     </model>
 </sdf>

@@ -145,7 +145,7 @@ def setup_robot_descriptions(context):
             output='screen',
             parameters=[os.path.join(pkg_project_bringup, 'config', 'octomap_params.yaml')],
             remappings=[
-                ('/cloud_in', '/limo_105_3/depth/image_raw/points'),  # Point to your point cloud topic
+                ('/cloud_in', '/limo_105_3/depth/image_raw/points'), 
             ],
         )
         ]
