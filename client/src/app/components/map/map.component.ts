@@ -73,9 +73,9 @@ export class MapComponent implements OnInit, AfterViewInit {
   @ViewChild('mapContainer') containerRef!: ElementRef<HTMLDivElement>;
   private ctx!: CanvasRenderingContext2D;
   private currentMapData: OccupancyGrid | null = null;
-  private robotPositions: Map<string, RobotPosition> = new Map();
-  private scale: number = 1;
-  private robotColors: Map<string, string> = new Map([
+  private robotPositions = new Map<string, RobotPosition>();
+  private scale = 1;
+  private robotColors = new Map<string, string>([
     ['limo_105_1', '#FF0000'], // Red
     ['limo_105_2', '#00FF00'], // Green
     ['limo_105_3', '#0000FF'], // Blue

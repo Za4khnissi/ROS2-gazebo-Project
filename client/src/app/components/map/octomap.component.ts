@@ -20,15 +20,26 @@ import {
   @Component({
     selector: 'app-octomap',
     template: `
-      <div #octomapContainer class="octomap-container"></div>
+      <div #octomapContainer class="octomap-container">
+        <canvas>#mapCanvas</canvas>
+      </div>
     `,
     styles: [`
-      .octomap-container {
-        width: 100%;
-        height: 400px;
-        overflow: hidden;
-        position: relative;
-      }
+    .octomap-container {
+      width: 100%;
+      height: 400px;
+      background: #2d2d2d;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    canvas {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
     `],
     standalone: true
   })
