@@ -11,5 +11,67 @@
       <button (click)="goToHistory()" class="w-full bg-purple-500 hover:bg-purple-400 text-white py-3 rounded-lg shadow mb-4">
         Database
         </button>
+        <button (click)="toggleHelp()" class="w-full bg-blue-500 hover:bg-blue-400 text-white py-3 rounded-lg shadow mb-4">
+          Help
+          </button>
     </div>
+    <div
+  *ngIf="isHelpVisible"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+>
+  <div class="bg-white p-6 rounded-lg shadow-lg text-left w-full max-w-3xl overflow-y-auto h-3/4">
+    <h3 class="text-2xl font-bold mb-4">Aide et Instructions</h3>
+    <div class="space-y-4">
+      <h4 class="text-xl font-semibold">Comment utiliser cette interface</h4>
+      <p>Cette interface permet de sélectionner un mode pour interagir avec le robot ou le système. Voici les étapes :</p>
+      <ul class="list-disc pl-6">
+        <li>
+          <strong>Mode Robot Physique :</strong> Cliquez sur le bouton <em>"Physical Robot"</em> pour contrôler directement le robot physique.
+        </li>
+        <li>
+          <strong>Mode Simulation :</strong> Cliquez sur le bouton <em>"Simulation"</em> pour travailler dans un environnement simulé.
+        </li>
+        <li>
+          <strong>Base de Données :</strong> Cliquez sur le bouton <em>"Database"</em> pour consulter les historiques de missions.
+        </li>
+      </ul>
+
+      <h4 class="text-xl font-semibold">Fonctionnalités principales</h4>
+      <ul class="list-disc pl-6">
+        <li>
+          <strong>Identifier le robot :</strong> Permet de vérifier l’identité du robot sélectionné (par un son).
+        </li>
+        <li>
+          <strong>Démarrer une mission :</strong> Lance une mission autonome pour le robot. Vérifiez que l’environnement est sécurisé.
+        </li>
+        <li>
+          <strong>Arrêter une mission :</strong> Interrompt immédiatement la mission en cours. Une confirmation sera demandée.
+        </li>
+        <li>
+          <strong>Retour à la base :</strong> Demande au robot de revenir à sa position initiale.
+        </li>
+        <li>
+          <strong>Gestion de la batterie :</strong> Le robot retourne automatiquement à la base si la batterie descend en dessous de 30 %.
+        </li>
+      </ul>
+
+      <h4 class="text-xl font-semibold">Conseils pratiques</h4>
+      <ul class="list-disc pl-6">
+        <li>Assurez-vous que le robot est dans un environnement dégagé avant de commencer une mission.</li>
+        <li>Pour la simulation, configurez correctement les paramètres (mode de conduite, trajectoires).</li>
+        <li>Consultez les logs régulièrement pour surveiller l’état des missions.</li>
+      </ul>
+    </div>
+    <div class="text-right mt-6">
+      <button
+        (click)="toggleHelp()"
+        class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg"
+      >
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
+
+
   </div>
