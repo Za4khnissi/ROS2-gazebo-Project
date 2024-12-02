@@ -122,6 +122,14 @@ if ! is_apt_package_installed "ros-$ROS_DISTRO-image-geometry"; then
     sudo apt install -y "ros-$ROS_DISTRO-image-geometry"
 fi
 
+if ! is_apt_package_installed "ros-$ROS_DISTRO-octomap"; then
+    sudo apt install -y "ros-$ROS_DISTRO-octomap"
+fi
+
+if ! is_apt_package_installed "ros-$ROS_DISTRO-octomap-server"; then
+    sudo apt install -y "ros-$ROS_DISTRO-octomap-server"
+fi
+
 source /opt/ros/humble/setup.bash
 
 export ROS_DOMAIN_ID=49
