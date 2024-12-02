@@ -85,6 +85,8 @@ export class SimulationComponent implements OnInit {
         return 'Mission Start Failed';
       case 'mission_stop_failed':
         return 'Mission Stop Failed';
+      case 'robot_returning':
+        return 'Returning';
       default:
         return 'Waiting';
     }
