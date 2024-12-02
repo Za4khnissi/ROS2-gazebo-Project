@@ -92,8 +92,8 @@ export class RosService implements OnModuleDestroy,OnModuleInit {
 
           // Wait 1 minute for nodes to initialize
           console.log('Waiting 40 seconds for ROS nodes to initialize...');
-          setTimeout(() => {
-            this.promptUserForConnection(resolve, reject);
+          setTimeout(async () => {
+            await this.connectToRos();
           }, 40000);
         }
       });
@@ -384,6 +384,8 @@ export class RosService implements OnModuleDestroy,OnModuleInit {
   }
 
   private subscribeToBatteryLevel(robotId: string, node: rclnodejs.Node) {
+
+    const robotIdNumber = robotId.split('_')[2];
     const topicName = `/${robotId}/battery_level`;
     console.log(`Attempting to subscribe to ${topicName}`);
 
@@ -397,7 +399,7 @@ export class RosService implements OnModuleDestroy,OnModuleInit {
           !['Returning', 'Waiting'].includes(this.lastRobotStatus[robotId])
         ) {
           console.log(`Battery level for ${robotId} is low. Stopping Mission.`);
-          this.stopRobotMission(robotId, true);
+          this.stopRobotMission(robotIdNumber, true);
         }
         this.syncGateway.broadcastBatteryUpdate(robotId, batteryLevel);
       } else {
