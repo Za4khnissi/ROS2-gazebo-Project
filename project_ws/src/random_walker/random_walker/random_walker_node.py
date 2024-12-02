@@ -546,32 +546,17 @@ class RandomWalker(Node):
         if force_return==False:
             self.send_stop_command()
         
-        # Cancel current goal if it exists
-        if hasattr(self, '_goal_handle') and self._goal_handle is not None:
-            # Cancel the goal and wait for confirmation
-            cancel_future = self._goal_handle.cancel_goal_async()
-            
-            # Wait for cancellation to complete
-            while not cancel_future.done():
-                rclpy.spin_once(self, timeout_sec=0.1)
-            
-            # Clear the goal handle
-            self._goal_handle = None
-        
-        # Cancel all goals in the action server's queue
-        if self.nav_client:
-            self.nav_client.wait_for_server(timeout_sec=1.0)
-            self.nav_client._action_client.cancel_all_goals()
-        
         if self._timeout_timer is not None:
             self.destroy_timer(self._timeout_timer)
             self._timeout_timer = None
         
-        # Send stop command again to ensure the robot is stopped
-        self.send_stop_command()
+        # Cancel current goal if it exists
+        if hasattr(self, '_goal_handle') and self._goal_handle is not None:
+            self._goal_handle.cancel_goal_async()
         
         if force_return and self.initial_pose is not None:
             self.return_to_initial_pose()
+
 
     def resume(self):
         """Resume random walking."""
