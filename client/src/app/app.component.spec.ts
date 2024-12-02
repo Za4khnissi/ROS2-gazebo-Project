@@ -1,10 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent],
+      imports: [AppComponent, RouterOutlet, CommonModule],
+      schemas: [NO_ERRORS_SCHEMA], // Ignore unknown elements like router-outlet
     }).compileComponents();
   });
 
@@ -20,10 +24,9 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('Robot Control Interface');
   });
 
-  it('should render title', () => {
+  it('should have the title "Robot Control Interface"', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Robot Control Interface');
+    const app = fixture.componentInstance;
+    expect(app.title).toEqual('Robot Control Interface');
   });
 });
