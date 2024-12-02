@@ -374,7 +374,7 @@ def setup_robot_descriptions(context):
         slam_nodes,
         nav2_nodes,
         explore_nodes,
-        random_walker_nodes
+        #random_walker_nodes
     ]
 
 def generate_launch_description():
