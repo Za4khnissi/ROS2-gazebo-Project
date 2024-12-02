@@ -155,7 +155,7 @@ if [ "$ROBOT_ID" == "simulation" ]; then
 
     cd ~/inf3995/project_ws
 
-    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_msgs limo_description limo_bringup ydlidar_ros2_driver voice_control cliff_detector
+    colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip limo_base limo_description limo_bringup ydlidar_ros2_driver voice_control cliff_detector
 
 else colcon build --cmake-args -DBUILD_TESTING=ON --packages-skip voice_control explore_lite
 
