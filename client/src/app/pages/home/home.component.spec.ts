@@ -1,35 +1,30 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { HomeComponent } from './home.component';
 import { Router } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
-  let fixture: ComponentFixture<HomeComponent>;
-  let router: Router;
-  let navigateSpy: jasmine.Spy;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [HomeComponent, RouterTestingModule], // Importer RouterTestingModule pour simuler le routage
-    }).compileComponents();
-  });
+  let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(HomeComponent);
-    component = fixture.componentInstance;
-    router = TestBed.inject(Router);
+    const spy = jasmine.createSpyObj('Router', ['navigate']);
 
-    // Spy sur la méthode navigate pour vérifier qu'elle est appelée correctement
-    navigateSpy = spyOn(router, 'navigate');
+    TestBed.configureTestingModule({
+      imports: [HomeComponent],
+      providers: [{ provide: Router, useValue: spy }],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(HomeComponent);
+    component = fixture.componentInstance;
+    routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
-  it('should create the component', () => {
+  it('should create the HomeComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should navigate to /choose-mode when startProcess is called', () => {
-    component.startProcess(); // Appel de la méthode startProcess
-    expect(navigateSpy).toHaveBeenCalledWith(['/choose-mode']); // Vérification que la méthode navigate a été appelée avec le bon paramètre
+  it('should navigate to choose-mode page when startProcess is called', () => {
+    component.startProcess();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/choose-mode']);
   });
 });
