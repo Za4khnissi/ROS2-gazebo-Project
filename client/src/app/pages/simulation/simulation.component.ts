@@ -91,23 +91,6 @@ export class SimulationComponent implements OnInit {
         return 'Waiting';
     }
   }
-
-  
-  
-  stopConfirmedMission() {
-    if (this.confirmStopMissionId !== null) {
-      this.simService.stopMission(this.confirmStopMissionId).subscribe({
-        next: () => {
-          console.log(`Mission arretée avec succès pour le Robot ${this.confirmStopMissionId}.`);
-          this.confirmStopMissionId = null; 
-        },
-        error: (err) => {
-          console.error(`Une erreur s'est produite lors de l'arrêt de la mission pour le robot ${this.confirmStopMissionId}:`, err);
-          this.confirmStopMissionId = null; 
-        },
-      });
-    }
-  }
   
   cancelStopMission() {
     this.confirmStopMissionId = null; 
@@ -123,7 +106,7 @@ export class SimulationComponent implements OnInit {
   }
 
   stopMission(robotId: number) {
-    this.confirmStopMissionId = robotId;
+    this.simService.stopMission(robotId).subscribe();
   }
 
   returnFromMission(robotId: number) {
