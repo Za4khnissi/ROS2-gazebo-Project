@@ -46,6 +46,7 @@ export class RosService implements OnModuleDestroy,OnModuleInit {
   private mapData: any | null = null;
   private currentMissionId: string | null = null;
   private isSimulation : boolean
+  private robotListIntervalId: NodeJS.Timeout;
 
   constructor(
     private configService: ConfigService,
@@ -149,6 +150,9 @@ export class RosService implements OnModuleDestroy,OnModuleInit {
     await rclnodejs.init();
 
     this.connectToRobots();
+
+    this.startRobotListPublishing();
+
 
     const rosoutNode = new rclnodejs.Node('log_listener');
     rosoutNode.createSubscription('rcl_interfaces/msg/Log', '/rosout', (msg) =>
@@ -676,6 +680,42 @@ export class RosService implements OnModuleDestroy,OnModuleInit {
     });
   }
 
+  private startRobotListPublishing() {
+    console.log('Starting robot list publishing...');
+    this.robotListIntervalId = setInterval(() => {
+      const robots = this.getRobotList();
+      console.log('Broadcasting robot list:', robots);
+      this.syncGateway.broadcast('robot_list_update', { robots });
+    }, 5000);
+  }
+
+  private getRobotList(): string[] {
+    try {
+      console.log('Getting services...');
+      const services = this.simulationRobotNode.getServiceNamesAndTypes();
+      //console.log('All services:', services);
+      
+      const robots = services
+        .filter(service => {
+          //console.log('Checking service:', service.name);
+          return service.name.endsWith('/identify');
+        })
+        .map(service => {
+          const parts = service.name.split('/');
+          //console.log('Service parts:', parts);
+          return parts.length > 2 ? parts[1] : '';
+        })
+        .filter(name => name !== '');
+      
+      console.log('Found robots:', robots);
+      return robots;
+    } catch (error) {
+      console.error('Error getting robot list:', error);
+      return [];
+    }
+  }
+
+
   async identifyRobot(
     robotId: string,
   ): Promise<{ message: string; success: boolean }> {
@@ -777,6 +817,11 @@ export class RosService implements OnModuleDestroy,OnModuleInit {
 
   // On shutdown, cleanly stop ROS and free up the port
   async onModuleDestroy() {
+
+    if (this.robotListIntervalId) {
+      clearInterval(this.robotListIntervalId);
+    }
+
     if (this.isRosRunning) {
       await this.stopRos();
     }
