@@ -24,7 +24,7 @@ export class SimulationComponent implements OnInit {
   selectedDriveModes = { 3: 'Diff Drive', 4: 'Diff Drive' };
   mode: 'simulation' | 'physical' = 'simulation';
   confirmStopMissionId: number | null = null;
-  robotList: string[] = [];
+  robotList: string[] = ["limo_105_3", "limo_105_4"];
 
 
 
