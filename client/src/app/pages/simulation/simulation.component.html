@@ -31,7 +31,7 @@
   <!-- Robot Controls Section -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:w-2/5 max-w-xl">
     <!-- Robot 3 Controls -->
-    <div class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
+    <div *ngIf="robotList.includes('limo_105_3')" class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
       <h3 class="text-xl text-white mb-4">Robot 3 Control</h3>
       <label for="driveMode3" class="text-white mb-2">Select Drive Mode</label>
       <select
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Robot 4 Controls -->
-    <div class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
+    <div *ngIf="robotList.includes('limo_105_4')" class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
       <h3 class="text-xl text-white mb-4">Robot 4 Control</h3>
       <label for="driveMode4" class="text-white mb-2">Select Drive Mode</label>
       <select

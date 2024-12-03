@@ -24,6 +24,8 @@ export class SimulationComponent implements OnInit {
   selectedDriveModes = { 3: 'Diff Drive', 4: 'Diff Drive' };
   mode: 'simulation' | 'physical' = 'simulation';
   confirmStopMissionId: number | null = null;
+  robotList: string[] = [];
+
 
 
   logs: any[] = [];
@@ -65,6 +67,13 @@ export class SimulationComponent implements OnInit {
           this.cdr.detectChanges();
         }
       });
+
+      this.webSocketService.listen('robot_list_update').subscribe((data: any) => {
+        console.log('Received robot list update:', data);
+        this.robotList = data.robots;
+        this.cdr.detectChanges();
+      });
+
     });
   }
   
