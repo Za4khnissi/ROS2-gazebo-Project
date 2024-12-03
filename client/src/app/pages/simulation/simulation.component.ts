@@ -24,6 +24,8 @@ export class SimulationComponent implements OnInit {
   selectedDriveModes = { 3: 'Diff Drive', 4: 'Diff Drive' };
   mode: 'simulation' | 'physical' = 'simulation';
   confirmStopMissionId: number | null = null;
+  robotList: string[] = ["limo_105_3", "limo_105_4"];
+
 
 
   logs: any[] = [];
@@ -65,6 +67,13 @@ export class SimulationComponent implements OnInit {
           this.cdr.detectChanges();
         }
       });
+
+      this.webSocketService.listen('robot_list_update').subscribe((data: any) => {
+        console.log('Received robot list update:', data);
+        this.robotList = data.robots;
+        this.cdr.detectChanges();
+      });
+
     });
   }
   
@@ -91,23 +100,6 @@ export class SimulationComponent implements OnInit {
         return 'Waiting';
     }
   }
-
-  
-  
-  stopConfirmedMission() {
-    if (this.confirmStopMissionId !== null) {
-      this.simService.stopMission(this.confirmStopMissionId).subscribe({
-        next: () => {
-          console.log(`Mission arretée avec succès pour le Robot ${this.confirmStopMissionId}.`);
-          this.confirmStopMissionId = null; 
-        },
-        error: (err) => {
-          console.error(`Une erreur s'est produite lors de l'arrêt de la mission pour le robot ${this.confirmStopMissionId}:`, err);
-          this.confirmStopMissionId = null; 
-        },
-      });
-    }
-  }
   
   cancelStopMission() {
     this.confirmStopMissionId = null; 
@@ -123,7 +115,7 @@ export class SimulationComponent implements OnInit {
   }
 
   stopMission(robotId: number) {
-    this.confirmStopMissionId = robotId;
+    this.simService.stopMission(robotId).subscribe();
   }
 
   returnFromMission(robotId: number) {

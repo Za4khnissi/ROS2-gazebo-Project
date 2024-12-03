@@ -13,7 +13,7 @@ import { Subscription } from 'rxjs';
 export class BatteryStatusComponent implements OnInit, OnDestroy {
   @Input() robotId!: number; 
   @Input() mode!: 'simulation' | 'physical'; 
-  batteryLevel: number = 100;
+  batteryLevel = 100;
   
   private batterySubscription!: Subscription;
 

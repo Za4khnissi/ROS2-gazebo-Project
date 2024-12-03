@@ -75,25 +75,6 @@ export class PhysicalRobotComponent implements OnInit {
     }
   }
 
-  stopConfirmedMission() {
-    if (this.confirmStopMissionId !== null) {
-      this.robotService.stopMission(this.confirmStopMissionId).subscribe({
-        next: () => {
-          console.log(`Mission arretée avec succès pour le Robot ${this.confirmStopMissionId}.`);
-          this.confirmStopMissionId = null; 
-        },
-        error: (err) => {
-          console.error(`Une erreur s'est produite lors de l'arrêt de la mission pour le robot ${this.confirmStopMissionId}:`, err);
-          this.confirmStopMissionId = null; 
-        },
-      });
-    }
-  }
-  
-  cancelStopMission() {
-    this.confirmStopMissionId = null; 
-  }
-
   identifyRobot(robotId: number) {
     this.robotService.identifyRobot(robotId).subscribe();
   }
@@ -103,7 +84,7 @@ export class PhysicalRobotComponent implements OnInit {
   }
 
   stopMission(robotId: number) {
-    this.confirmStopMissionId = robotId;
+    this.robotService.stopMission(robotId).subscribe();
   }
 
   returnFromMission(robotId: number) {
