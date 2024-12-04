@@ -13,13 +13,10 @@ describe('SyncGateway', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [SyncGateway],
-    })
-      .overrideProvider(SyncGateway)
-      .useValue({ server: mockServer })
-      .compile();
+    }).compile();
 
     gateway = module.get<SyncGateway>(SyncGateway);
-    gateway.server = mockServer as Server;
+    gateway.server = mockServer as Server; // Assign the mock server
   });
 
   describe('afterInit', () => {
@@ -33,7 +30,7 @@ describe('SyncGateway', () => {
   describe('handleConnection', () => {
     it('should log client connection', () => {
       const consoleSpy = jest.spyOn(console, 'log');
-      const mockClient = { id: '12345' } as Socket;
+      const mockClient = { id: '12345' } as Socket; // Mock client
       gateway.handleConnection(mockClient);
       expect(consoleSpy).toHaveBeenCalledWith('Client connected: 12345');
     });
@@ -42,7 +39,7 @@ describe('SyncGateway', () => {
   describe('handleDisconnect', () => {
     it('should log client disconnection', () => {
       const consoleSpy = jest.spyOn(console, 'log');
-      const mockClient = { id: '12345' } as Socket;
+      const mockClient = { id: '12345' } as Socket; // Mock client
       gateway.handleDisconnect(mockClient);
       expect(consoleSpy).toHaveBeenCalledWith('Client disconnected: 12345');
     });
@@ -57,7 +54,55 @@ describe('SyncGateway', () => {
 
       expect(mockServer.emit).toHaveBeenCalledWith(event, payload);
     });
+
+    it('should log the event and payload for standard events', () => {
+      const consoleSpy = jest.spyOn(console, 'log');
+      const event = 'testEvent';
+      const payload = { data: 'testData' };
+
+      gateway.broadcast(event, payload);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Broadcasting event: ${event}`,
+        payload
+      );
+    });
+
+    it('should log simplified payload for map_update events', () => {
+      const consoleSpy = jest.spyOn(console, 'log');
+      const event = 'map_update';
+      const payload = { complex: 'data' };
+
+      gateway.broadcast(event, payload);
+
+      expect(consoleSpy).toHaveBeenCalledWith(`Broadcasting event: ${event}`, '...');
+    });
+  });
+
+  describe('broadcastBatteryUpdate', () => {
+    it('should emit a battery update with the correct data', () => {
+      const robotId = 'robot123';
+      const batteryLevel = 85;
+
+      gateway.broadcastBatteryUpdate(robotId, batteryLevel);
+
+      expect(mockServer.emit).toHaveBeenCalledWith('batteryUpdate', {
+        robotId,
+        batteryLevel,
+      });
+    });
+
+    it('should log the battery level broadcast', () => {
+      const consoleSpy = jest.spyOn(console, 'log');
+      const robotId = 'robot123';
+      const batteryLevel = 85;
+
+      gateway.broadcastBatteryUpdate(robotId, batteryLevel);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Battery level broadcasted for robot ${robotId}: ${batteryLevel}%`
+      );
+    });
   });
 });
-
 
