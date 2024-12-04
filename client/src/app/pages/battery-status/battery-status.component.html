@@ -1,0 +1,10 @@
+<div class="flex items-center">
+  <div class="relative w-60 h-10 border-2 rounded-lg border-gray-500 flex items-center p-1">
+    <!-- Battery Bar -->
+    <div class="h-full rounded-lg" [ngStyle]="{ 'width': batteryLevel + '%', 'background-color': getBatteryColor() }"></div>
+    <!-- Percentage Text -->
+    <p class="absolute inset-0 flex justify-center items-center text-white font-bold">
+      {{ batteryLevel }}%
+    </p>
+  </div>
+</div>

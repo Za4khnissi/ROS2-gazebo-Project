@@ -1,0 +1,8 @@
+# octomap_params.yaml
+octomap_server:
+  ros__parameters:
+    resolution: 0.01
+    frame_id: 'map'
+    sensor_model:
+      max_range: 300.0
+    use_sim_time: True

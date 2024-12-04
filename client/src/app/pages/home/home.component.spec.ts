@@ -23,17 +23,8 @@ describe('HomeComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should have showModal initialized to false', () => {
-    expect(component.showModal).toBeFalse();
-  });
-
-  it('should navigate to physical robot page', () => {
-    component.goToPhysicalRobot();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/robot/physical']);
-  });
-
-  it('should navigate to simulation page', () => {
-    component.goToSimulation();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/robot/simulation']);
+  it('should navigate to choose-mode page when startProcess is called', () => {
+    component.startProcess();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/choose-mode']);
   });
 });

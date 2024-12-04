@@ -1,0 +1,142 @@
+<div class="flex flex-col lg:flex-row justify-between gap-4 lg:gap-8 p-4 sm:p-8 h-screen">
+  <!-- Main Black Screen -->
+  <div class="flex flex-col items-center p-4 rounded-lg bg-gray-900 w-full lg:w-3/5 max-h-full">
+    <h1 class="text-4xl text-gray-100 font-bold mb-6">Simulation Control</h1>
+
+    <!-- Conditionally Render MapComponent or OctomapComponent -->
+    <ng-container *ngIf="!is3DView">
+      <app-map class="w-full h-full"></app-map>
+    </ng-container>
+    <ng-container *ngIf="is3DView">
+      <app-octomap class="w-full h-full"></app-octomap>
+    </ng-container>
+
+    <!-- Start ROS Button -->
+    <div class="flex justify-center items-center gap-4 mt-4">
+      <button
+        (click)="startRos()"
+        class="bg-green-600 hover:bg-green-500 text-white py-2 px-6 rounded-lg"
+      >
+        Start ROS
+      </button>
+      <button
+        (click)="toggleViewMode()"
+        class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg"
+      >
+        Switch to {{ is3DView ? '2D' : '3D' }} View
+      </button>
+    </div>
+  </div>
+
+  <!-- Robot Controls Section -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:w-2/5 max-w-xl">
+    <!-- Robot 3 Controls -->
+    <div *ngIf="robotList.includes('limo_105_3')" class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
+      <h3 class="text-xl text-white mb-4">Robot 3 Control</h3>
+      <label for="driveMode3" class="text-white mb-2">Select Drive Mode</label>
+      <select
+        id="driveMode3"
+        [(ngModel)]="selectedDriveModes[3]"
+        class="bg-gray-600 text-white py-2 px-4 rounded-lg mb-4"
+      >
+        <option value="Diff Drive">Diff Drive</option>
+        <option value="Ackermann">Ackermann</option>
+      </select>
+      <p class="text-sm text-green-300 mb-4">Status: {{ robot1Status }}</p>
+      <button
+        (click)="identifyRobot(3)"
+        class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Identify Robot
+      </button>
+      <button
+        (click)="startMission(3)"
+        [disabled]="robot1Status === 'Moving'"
+        class="bg-green-600 hover:bg-green-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Start Mission
+      </button>
+      <button
+        (click)="stopMission(3)"
+        class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Stop Mission
+      </button>
+      <button
+        (click)="returnFromMission(3)"
+        class="bg-red-600 hover:bg-red-500 text-white py-2 px-4 rounded-lg mb-3 w-full"
+      >
+        Return From Mission
+      </button>
+      <app-battery-status [robotId]="3" [mode]="mode" class="mt-auto"></app-battery-status>
+    </div>
+
+    <!-- Robot 4 Controls -->
+    <div *ngIf="robotList.includes('limo_105_4')" class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
+      <h3 class="text-xl text-white mb-4">Robot 4 Control</h3>
+      <label for="driveMode4" class="text-white mb-2">Select Drive Mode</label>
+      <select
+        id="driveMode4"
+        [(ngModel)]="selectedDriveModes[4]"
+        class="bg-gray-600 text-white py-2 px-4 rounded-lg mb-4"
+      >
+        <option value="Diff Drive">Diff Drive</option>
+        <option value="Ackermann">Ackermann</option>
+      </select>
+      <p class="text-sm text-green-300 mb-4">Status: {{ robot2Status }}</p>
+      <button
+        (click)="identifyRobot(4)"
+        class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Identify Robot
+      </button>
+      <button
+        (click)="startMission(4)"
+        [disabled]="robot2Status === 'Moving'"
+        class="bg-green-600 hover:bg-green-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Start Mission
+      </button>
+      <button
+        (click)="stopMission(4)"
+        class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Stop Mission
+      </button>
+      <button
+        (click)="returnFromMission(4)"
+        class="bg-red-600 hover:bg-red-500 text-white py-2 px-4 rounded-lg mb-3 w-full"
+      >
+        Return From Mission
+      </button>
+      <app-battery-status [robotId]="4" [mode]="mode" class="mt-auto"></app-battery-status>
+    </div>
+  </div>
+
+  <!-- Logs Panel -->
+  <div class="bg-gray-800 text-white rounded-lg shadow-lg w-full lg:w-1/5 p-6 lg:order-last">
+    <h3 class="text-xl font-bold mb-4">Robot Logs</h3>
+
+    <!-- Load/Hide Old Logs Button -->
+    <div class="flex justify-center mb-4">
+      <button
+        (click)="toggleOldLogs()"
+        class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg"
+      >
+        {{ showOldLogs ? 'Hide Old Logs' : 'Load Old Logs' }}
+      </button>
+    </div>
+
+    <!-- Real-Time Logs -->
+    <div class="max-h-196 overflow-y-scroll">
+      <ul class="space-y-2">
+        <li
+          *ngFor="let log of logs"
+          class="bg-gray-700 p-4 rounded-lg shadow-inner"
+        >
+          <p>{{ log.timestamp }} - <strong>{{ log.message }}</strong></p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

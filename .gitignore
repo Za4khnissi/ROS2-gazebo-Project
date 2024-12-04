@@ -58,3 +58,7 @@ project_ws/log/
 # Editors
 **/.idea
 **/.vscode
+server/missions_logs/
+frames_*
+project_ws/src/ros_gz_example_gazebo/worlds/modified_world.sdf
+**/modified_world.sdf

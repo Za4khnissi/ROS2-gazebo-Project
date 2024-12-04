@@ -16,6 +16,7 @@ def generate_launch_description():
     ROBOT_ID = os.getenv('ROBOT_ID')
 
     ros_namespace = ['limo_105_', EnvironmentVariable('ROBOT_ID')]
+    absolute_namespace = f'/{ros_namespace[0]}{ROBOT_ID}'
 
     remapped_cmd_vel = f'/{ros_namespace[0]}{ROBOT_ID}/cmd_vel'
 
@@ -40,6 +41,7 @@ def generate_launch_description():
     remapping = [
         ('odom', '/wheel/odom'),
         ('/cmd_vel', remapped_cmd_vel),
+        ('/odom', f'{absolute_namespace}/odom'),
     ]
 
     # Define limo_base_node with the namespace applied
@@ -53,9 +55,10 @@ def generate_launch_description():
         parameters=[{
             # 'use_sim_time': launch.substitutions.LaunchConfiguration('use_sim_time'),
             'port_name': port_name_arg,
-            'odom_frame': odom_frame_arg,
-            'base_frame': base_link_frame_arg,
+            'odom_frame': f'{ros_namespace[0]}{ROBOT_ID}/odom',
+            'base_frame': f'{ros_namespace[0]}{ROBOT_ID}/base_link',
             'pub_odom_tf': pub_odom_tf_arg_,
+            'odom_topic': f'{absolute_namespace}/odom',
             'use_mcnamu': False
         }],
         remappings=remapping
@@ -79,9 +82,38 @@ def generate_launch_description():
         output='screen',
     )
 
+    battery_node_1 = Node(
+        package='ros_gz_example_application',
+        executable='battery_manager.py',
+        name='battery_node',
+        output='screen',
+        namespace='limo_105_1',
+        parameters=[{'is_simulation': False}]
+    )
+
+    battery_node_2 = Node(
+        package='ros_gz_example_application',
+        executable='battery_manager.py',
+        name='battery_node',
+        output='screen',
+        namespace='limo_105_2',
+        parameters=[{'is_simulation': False}]
+    )
+
+    # battery_node_1 = Node(
+    #     package='ros_gz_example_application',
+    #     executable='battery_manager.py',
+    #     name='battery_node',
+    #     output='screen',
+    #     namespace=ros_namespace,
+    #     parameters=[{'is_simulation': False}]
+    # )
+
     return LaunchDescription([
         # DeclareLaunchArgument('pub_odom_tf',default_value=pub_odom_tf_arg_,description='TF'),
         limo_base_node,
         identify_service,
-        mission_service
+        mission_service,
+        battery_node_1,
+        battery_node_2
     ])

@@ -6,124 +6,98 @@ Ce projet est composé de trois parties principales :
 - **Backend** : Développé en Nest.js.
 - **Partie embarquée** : ROS (Python).
 
-## Installation et Lancement
+## Accès scripts de lancement
+
+Executer les commandes suivantes à la racine du projet pour autoriser l'execution des scripts de lancement
+
+   ```bash
+     sudo chmod 777 launch_station.sh
+     sudo chmod 777 launch_robot.sh
+   ```
+
+## Lancement de la simulation
+
+## Station au sol ( Client + Serveuer)
+
+1. Mettez la variable SIMULATION à 1 dans le fichier .env
+
+2. **Utilisation du script de lancement**
+   - Executer le script via : 
+     ```bash
+     source launch_station.sh
+     ```
 
 ### 1. Client (Angular)
 
-1. **Installation des dépendances :**
-
-   - Accédez au répertoire du client (`/client`) et exécutez la commande suivante :
-     ```bash
-     npm install
-     ```
-
-2. **Démarrage du client :**
-
-   - Une fois les dépendances installées, démarrez l'application Angular avec :
-     ```bash
-     npm start
-     ```
-
-3. **Accès au client :**
+1. **Accès au client :**
    - Ouvrez un navigateur et accédez à l'URL suivante : `http://localhost:4200`.
 
 ### 2. Backend (Nest.js)
 
-1. **Installation des dépendances :**
-
-   - Accédez au répertoire du backend (`/server`) et exécutez la commande suivante :
-     ```bash
-     npm install
-     ```
-
-2. **Démarrage du backend :**
-
-   - Pour démarrer le serveur Nest.js, exécutez :
-     ```bash
-     npm start
-     ```
-
-3. **Vérification du backend :**
+1. **Vérification du backend :**
    - Le serveur backend sera accessible sur `http://localhost:3000`.
 
 ### 3. Partie Embarquée
 
 ## Lancement de la simulation
 
-   - Lancez le script de démarrage avec la commande suivante :
-   ``` bash
-   source ./launch_script.sh simulation
-   ```
-   - Installer et lancer les dépendances du serveur
-   - Installer et lancer les dépendances du client
-   - Ouvrez un navigateur et accédez à l'URL suivante : `http://localhost:4200`.
+  Une fois la station au sol lancée avec les étapes plus haut, sélectionnez le bouton “Simulation”.
+  Puis dans l’interface qui s’affiche cliquer sur “Start ROS” pour lancer la simulation Gazebo.
+  Patientez 1 minute le temps que le système complet soit lancé.
 
 ## Lancement des robots
 
 ### 1. Préparation des robots
 
-#### Sur le robot 1 :
+#### Sur les robots :
 
-1. **Allumer le robot** :
-   - Assurez-vous que le robot est allumé correctement. Si nécessaire, utilisez l'interface physique du robot pour démarrer.
-2. **Déverrouiller l'interface graphique** :
+1.  **Allumer le robot** :
+    - Assurez-vous que le robot est allumé correctement. Si nécessaire, utilisez l'interface physique du robot pour démarrer.
+2.  **Déverrouiller l'interface graphique** :
 
-   - Accédez à l'interface graphique directement sur l'écran du robot. Si une session est verrouillée, déverrouillez-la avec le mot de passe **!mistlab**.
+    - Accédez à l'interface graphique directement sur l'écran du robot. Si une session est verrouillée, déverrouillez-la avec le mot de passe **!mistlab**.
 
-3. **Vérification du speaker** :
+3.  **Vérification du speaker** :
 
-   - Ouvrez les paramètres du robot.
-   - Sous les réglages audio, vérifiez que le speaker sélectionné est bien `"USB..."` ou `"Digital output audio"`.
-   - Assurez-vous que le volume est supérieur à 0.
-   - Testez le speaker en lançant un son pour confirmer qu'il fonctionne correctement.
+    - Ouvrez les paramètres du robot.
+    - Sous les réglages audio, vérifiez que le speaker sélectionné est bien `"USB..."` ou `"Digital output audio"`.
+    - Assurez-vous que le volume est supérieur à 0.
+    - Testez le speaker en lançant un son pour confirmer qu'il fonctionne correctement.
 
-4. **Connexion SSH** :
+4.  **Connexion SSH** :
 
-   - Depuis votre ordinateur, connectez-vous au robot via SSH en utilisant l'IP du robot:
-     ```bash
-     ssh nvidia@<ip_robot1>
-     ```
+    - Depuis votre ordinateur, connectez-vous au robot via SSH en utilisant l'IP du robot:
+      ```bash
+      ssh nvidia@<ip_robot>
+      ```
 
-5. **Accéder au répertoire du projet** :
+5.  **Accéder au répertoire du projet** :
 
-   - Une fois connecté en SSH, naviguez dans le répertoire du projet avec la commande suivante :
-     ```bash
-     cd ~/inf3995/project_ws
-     ```
+    - Une fois connecté en SSH, naviguez dans le répertoire du projet avec la commande suivante :
+      ```bash
+      cd ~/inf3995/
+      ```
 
-6. **Mettre à jour le projet** :
+6.  **Mettre à jour le projet** :
 
-   - Assurez-vous que le projet est à jour en exécutant :
-     ```bash
-     git pull
-     ```
+    - Assurez-vous que le projet est à jour en exécutant :
+      ```bash
+      git pull
+      ```
 
-7. **Lancer le robot 1** :
-   - Lancez le script de démarrage avec la commande suivante :
-     ```bash
-     source ./launch_robot.sh 1
-     ```
-     Cela va initialiser toutes les configurations nécessaires pour le robot 1.
-     Faites pareil pour le robot 2 après avoir répété les étapes 3.1 à 3.4 en faisant:
-     ```bash
-     source ./launch_robot.sh 2
-     ```
+7.  **Lancer le robot 1 ou 2** :
 
-### 2. Lancement de `rosbridge`
-
-1. **Ouvrir un nouveau terminal sur le robot 1** :
-
-   - Depuis le robot 1 (ou l'un des deux robots), ouvrez un autre terminal ou utilisez votre session SSH existante.
-
-2. **Configurer le domaine ROS** :
-
-   - Définissez le domaine ROS :
-     ```bash
-     export ROS_DOMAIN_ID=49
-     ```
-
-3. **Lancer le serveur WebSocket de ROS** :
-   - Lancez `rosbridge` pour permettre la communication entre les robots et le frontend :
-     ```bash
-     ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-     ```
+    - Assurez vous que la station au sol et les robots soient sur le même réseau WIFI puis suivre les étapes suivantes:
+      Sur le premier robot, placez vous à la racine du projet et executez la commande suivante:
+      ```bash
+      source launch_robot.sh 1
+      ```
+      Sur le deuxième robot, placez vous à la racine du projet et executez la commande suivante:
+      ```bash
+      source launch_robot.sh 1
+      ```
+      Sur la station au sol, mettre la variable SIMULATION à 0 dans le fichier .env
+      À la racine du repo, executer la commande
+      ```bash
+      source launch_station.sh
+      ```

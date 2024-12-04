@@ -21,11 +21,19 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, EnvironmentVariable
 from launch_ros.actions import Node
 
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+    limo_bringup_dir = get_package_share_directory('limo_bringup')
+
+    ROBOT_ID = os.getenv('ROBOT_ID')
+
+    ros_namespace = ['limo_105_', EnvironmentVariable('ROBOT_ID')]
+    absolute_namespace = f'/{ros_namespace[0]}{ROBOT_ID}'
+    namespace = f'{ros_namespace[0]}{ROBOT_ID}'
+
     map_dir = LaunchConfiguration(
         'map',
         default=os.path.join(
@@ -33,7 +41,7 @@ def generate_launch_description():
             'maps',
             'zhiyuan.yaml'))
 
-    param_file_name = 'navigation2.yaml'
+    param_file_name = 'navigation2.yaml' if ROBOT_ID == '1' else 'navigation2_2.yaml'
     param_dir = LaunchConfiguration(
         'params_file',
         default=os.path.join(
@@ -41,7 +49,7 @@ def generate_launch_description():
             'param',
             param_file_name))
 
-    nav2_launch_file_dir = os.path.join(get_package_share_directory('nav2_bringup'), 'launch')
+    nav2_launch_file_dir = os.path.join(limo_bringup_dir, 'launch')
 
     rviz_config_dir = os.path.join(
         get_package_share_directory('nav2_bringup'),
@@ -69,14 +77,17 @@ def generate_launch_description():
             launch_arguments={
                 'map': map_dir,
                 'use_sim_time': use_sim_time,
+                'use_namespace': 'True',
+                'namespace': namespace,
                 'params_file': param_dir}.items(),
         ),
 
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['-d', rviz_config_dir],
-            parameters=[{'use_sim_time': use_sim_time}],
-            output='screen'),
+        # Node(
+        #     package='rviz2',
+        #     executable='rviz2',
+        #     name='rviz2',
+        #     namespace=namespace,
+        #     arguments=['-d', rviz_config_dir],
+        #     parameters=[{'use_sim_time': use_sim_time}],
+        #     output='screen'),
     ])

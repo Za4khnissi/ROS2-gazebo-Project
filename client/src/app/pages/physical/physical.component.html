@@ -1,0 +1,103 @@
+<div class="flex flex-col lg:flex-row justify-between gap-4 lg:gap-8 p-4 sm:p-8 h-screen">
+  <!-- Main Black Screen -->
+  <div class="flex flex-col items-center p-4 rounded-lg bg-gray-900 w-full lg:w-3/5 max-h-full">
+    <h1 class="text-4xl text-gray-100 font-bold mb-6">Physical Robot Control</h1>
+
+    <!-- Map Component -->
+    <app-map class="w-full h-full mb-4"></app-map>
+  </div>
+
+  <!-- Robot Controls Section -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:w-2/5 max-w-xl">
+    <!-- Robot 1 Controls -->
+    <div class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
+      <h3 class="text-xl text-white mb-4">Robot 1 Control</h3>
+      <button
+        (click)="identifyRobot(1)"
+        class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Identify Robot 1
+      </button>
+      <button
+        (click)="startMission(1)"
+        [disabled]="robot1Status === 'Moving'"
+        class="bg-green-600 hover:bg-green-500 text-white py-2 px-6 rounded-lg mb-3 w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+      >
+        Start Mission
+      </button>
+      <button
+        (click)="stopMission(1)"
+        class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Stop Mission
+      </button>
+      <button
+        (click)="returnFromMission(1)"
+        class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Return From Mission
+      </button>
+      <p class="text-sm text-green-300 mb-4">Status: {{ robot1Status }}</p>
+      <app-battery-status [robotId]="1" [mode]="mode" class="mt-auto"></app-battery-status>
+    </div>
+
+    <!-- Robot 2 Controls -->
+    <div class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col items-center">
+      <h3 class="text-xl text-white mb-4">Robot 2 Control</h3>
+      <button
+        (click)="identifyRobot(2)"
+        class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Identify Robot 2
+      </button>
+      <button
+        (click)="startMission(2)"
+        [disabled]="robot2Status === 'Moving'"
+        class="bg-green-600 hover:bg-green-500 text-white py-2 px-6 rounded-lg mb-3 w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+      >
+        Start Mission
+      </button>
+      <button
+        (click)="stopMission(2)"
+        class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Stop Mission
+      </button>
+      <button
+        (click)="returnFromMission(2)"
+        class="bg-red-600 hover:bg-red-500 text-white py-2 px-6 rounded-lg mb-3 w-full"
+      >
+        Return From Mission
+      </button>
+      <p class="text-sm text-green-300 mb-4">Status: {{ robot2Status }}</p>
+      <app-battery-status [robotId]="2" [mode]="mode" class="mt-auto"></app-battery-status>
+    </div>
+  </div>
+
+  <!-- Logs Panel -->
+  <div class="bg-gray-800 text-white rounded-lg shadow-lg w-full lg:w-1/5 p-6 lg:order-last">
+    <h3 class="text-xl font-bold mb-4">Robot Logs</h3>
+
+    <!-- Load/Hide Old Logs Button -->
+    <div class="flex justify-center mb-4">
+      <button
+        (click)="toggleOldLogs()"
+        class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-lg"
+      >
+        {{ showOldLogs ? 'Hide Old Logs' : 'Load Old Logs' }}
+      </button>
+    </div>
+
+    <!-- Real-Time Logs -->
+    <div class="max-h-196 overflow-y-scroll">
+      <ul class="space-y-2">
+        <li
+          *ngFor="let log of logs"
+          class="bg-gray-700 p-4 rounded-lg shadow-inner"
+        >
+          <p>{{ log.timestamp }} - <strong>{{ log.message }}</strong></p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
