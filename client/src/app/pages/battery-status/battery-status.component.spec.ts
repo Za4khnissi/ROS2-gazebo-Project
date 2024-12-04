@@ -1,88 +1,75 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BatteryStatusComponent } from './battery-status.component';
 import { WebSocketService } from '@app/services/web-socket.service';
-import { of, throwError } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 describe('BatteryStatusComponent', () => {
   let component: BatteryStatusComponent;
   let fixture: ComponentFixture<BatteryStatusComponent>;
-  let webSocketServiceSpy: jasmine.SpyObj<WebSocketService>;
+  let mockWebSocketService: jasmine.SpyObj<WebSocketService>;
+  let batterySubject: Subject<number>;
 
   beforeEach(async () => {
-    const socketServiceSpy = jasmine.createSpyObj('WebSocketService', ['listenToBatteryStatus']);
+    batterySubject = new Subject<number>();
+
+    mockWebSocketService = jasmine.createSpyObj('WebSocketService', ['listenToBatteryStatus']);
+    mockWebSocketService.listenToBatteryStatus.and.returnValue(batterySubject.asObservable());
 
     await TestBed.configureTestingModule({
       imports: [BatteryStatusComponent],
-      providers: [
-        { provide: WebSocketService, useValue: socketServiceSpy },
-      ],
+      providers: [{ provide: WebSocketService, useValue: mockWebSocketService }],
     }).compileComponents();
 
-    webSocketServiceSpy = TestBed.inject(WebSocketService) as jasmine.SpyObj<WebSocketService>;
     fixture = TestBed.createComponent(BatteryStatusComponent);
     component = fixture.componentInstance;
+
+    component.robotId = 1;
+    component.mode = 'simulation';
+    fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize with robotId and mode', () => {
-    component.robotId = 1;
-    component.mode = 'simulation';
-    spyOn(console, 'log');
-
-    fixture.detectChanges();
-
-    expect(console.log).toHaveBeenCalledWith('Robot ID:', 1);
+  it('should subscribe to battery updates on init', () => {
+    expect(mockWebSocketService.listenToBatteryStatus).toHaveBeenCalledWith(1, 'simulation');
   });
 
-  it('should update batteryLevel on receiving new data from WebSocketService', () => {
-    component.robotId = 1;
-    component.mode = 'physical';
-    const mockBatteryLevel = 75;
+  it('should update batteryLevel to the new minimum value', () => {
+    batterySubject.next(80);
+    expect(component.batteryLevel).toBe(80);
 
-    webSocketServiceSpy.listenToBatteryStatus.and.returnValue(of(mockBatteryLevel));
+    batterySubject.next(70);
+    expect(component.batteryLevel).toBe(70);
 
-    fixture.detectChanges();
-
-    expect(component.batteryLevel).toBe(mockBatteryLevel);
-    expect(webSocketServiceSpy.listenToBatteryStatus).toHaveBeenCalledWith(1, 'physical');
+    batterySubject.next(90); // Should not increase the batteryLevel
+    expect(component.batteryLevel).toBe(70);
   });
 
-  it('should handle WebSocketService errors gracefully', () => {
-    component.robotId = 1;
-    component.mode = 'simulation';
-    spyOn(console, 'error');
-
-    webSocketServiceSpy.listenToBatteryStatus.and.returnValue(throwError(() => new Error('WebSocket error')));
-
-    fixture.detectChanges();
-
-    expect(console.error).toHaveBeenCalledWith('Error receiving battery status:', jasmine.any(Error));
-  });
-
-  it('should return correct battery color', () => {
+  it('should return the correct battery color', () => {
     component.batteryLevel = 60;
     expect(component.getBatteryColor()).toBe('green');
 
-    component.batteryLevel = 30;
+    component.batteryLevel = 40;
     expect(component.getBatteryColor()).toBe('yellow');
 
     component.batteryLevel = 10;
     expect(component.getBatteryColor()).toBe('red');
   });
 
-  it('should unsubscribe from WebSocketService on destroy', () => {
-    component.robotId = 1;
-    component.mode = 'physical';
-    const mockSubscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
-    webSocketServiceSpy.listenToBatteryStatus.and.returnValue(of(80));
-    component['batterySubscription'] = mockSubscription;
-
-    fixture.detectChanges();
+  it('should unsubscribe from battery updates on destroy', () => {
+    const unsubscribeSpy = spyOn(component['batterySubscription'], 'unsubscribe');
     component.ngOnDestroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
+  });
 
-    expect(mockSubscription.unsubscribe).toHaveBeenCalled();
+  it('should log an error if battery update throws an error', () => {
+    const consoleErrorSpy = spyOn(console, 'error');
+    const testError = new Error('Test error');
+
+    batterySubject.error(testError);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error receiving battery status:', testError);
   });
 });
