@@ -35,9 +35,8 @@ pkill -f ros2
 # Clear any stale shared memory segments
 sudo rm -rf /dev/shm/*
 
-# Install ROS 2 packages if not installed
 ROS_DISTRO="humble"
-
+source /opt/ros/humble/setup.bash
 export ROS_DOMAIN_ID=49
 
 if ! grep -q "export ROS_DOMAIN_ID=49" ~/.bashrc; then
