@@ -49,7 +49,7 @@ Executer les commandes suivantes à la racine du projet pour autoriser l'executi
 
 ### 1. Préparation des robots
 
-#### Sur les robot :
+#### Sur les robots :
 
 1.  **Allumer le robot** :
     - Assurez-vous que le robot est allumé correctement. Si nécessaire, utilisez l'interface physique du robot pour démarrer.
