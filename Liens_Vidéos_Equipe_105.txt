@@ -1,0 +1,87 @@
+﻿Équipe 105
+Lien de la playlist:
+ https://youtube.com/playlist?list=PL9VKPkZMdh0ZvR1WRWUrmV6zKkEDilRgQ&si=-ukhOSLCr6zrm92s                     
+Liens par vidéo:
+
+
+1. R.F.13: Élévation négative:
+https://youtu.be/COit-McrMTg
+
+
+   2. R.F.7 - CR1: Retour à la base en cas de batterie 30% [Simulation]
+https://youtu.be/Su2nr58srug
+
+
+   3. R.F.6 Retour à la base automatique [Physique]
+https://youtu.be/uSV8odENyjY
+https://youtu.be/onUTHnQQJFc
+
+
+   4. RF1 - RF2 : Démonstration complète des requis du CDR [Simulation] Identification/Arrêt Robot 
+https://youtu.be/RR7XQ2YPsTA?si=bz89VpF_3VbLuIFf
+
+
+   5. Démonstration complète des requis du CDR [Physique]
+https://youtu.be/c9nZ2luco4Q
+https://youtu.be/-b5mjx1eMRA
+
+
+   6. R.F.8 / R.F.9 Génération de carte et position du robot [Physique]
+https://youtu.be/F6RzvdpisgI
+
+
+   7. Démonstration complète PDR [Simulation]
+        https://youtu.be/RR7XQ2YPsTA
+
+
+   8. Démonstration complète PDR [Physique]
+        https://youtu.be/Vuy1nNX6W6g
+        https://youtu.be/vUl0mHCoRAg
+
+
+   9. RC3: Environnement virtuel généré aléatoirement
+https://youtu.be/JK4Y8c1CRjg
+
+
+   10. RF6: Le retour à la base automatique [Simulation]
+       https://youtu.be/rfZijXWURX4
+
+
+   11. RF8-RF9 :  les données générées par les robots et position des robots [Simulation]
+https://youtu.be/Uy3uujFw940
+
+
+      12. RC2: Logiciel lancé en une seule commande
+https://youtu.be/LVKMXl7ipHE
+
+
+      13. RF7 : Retour à la base en cas de batterie faible [Simulation]
+https://youtu.be/tWHPYDPCjmo
+
+
+      14. RF11: Carte 3D [Simulation]
+https://youtu.be/mqUpp4auUbA
+
+
+      15. RF17- RF18 - Base de données et données de mission [Simulation]
+https://youtu.be/JOvcHAxeEUc
+
+
+      16. RC4: Interface utilisateur
+https://youtu.be/QgQPyPav9pg
+
+
+      17.  RF15 [Simulation]
+https://youtu.be/VJtGRNvM6LA
+
+
+      18. RC5 [Simulation]
+https://youtu.be/EJHUodQGoYI
+
+
+      19.  RF4-RF5 [Physique]
+https://youtu.be/Bd7KoE3duAc
+
+
+      20. RF10
+https://youtu.be/4tSsepL3U4g
